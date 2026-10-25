@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/config/supabase_config.dart';
+import '../core/utils/workout_awards.dart';
 
 class SupabaseService {
   static SupabaseClient get client => Supabase.instance.client;
@@ -186,12 +187,15 @@ class SupabaseService {
 
   /// Saves the log and awards Physical points through the workout award rule.
   ///
-  /// [pointsAwarded] is 1 or 0. Zero means this log was saved after today's
-  /// Physical point was already claimed.
+  /// [date] is the company-zone calendar date the workout happened. A future
+  /// date is rejected. A date older than the backfill window is saved and
+  /// awards 0. [pointsAwarded] is whatever that week's cap and bonus allow.
+  /// Zero does not remove points already earned.
   static Future<({String logId, int pointsAwarded})> recordWorkout({
     required String characterId,
     required String type,
     required String exercise,
+    required DateTime date,
     int? sets,
     int? reps,
     String? notes,
@@ -203,6 +207,7 @@ class SupabaseService {
       'p_sets': sets,
       'p_reps': reps,
       'p_notes': notes,
+      'p_date': WorkoutAwardRule.formatDate(date),
     });
     final row = Map<String, dynamic>.from(response as Map);
     return (

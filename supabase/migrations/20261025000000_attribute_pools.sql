@@ -11,13 +11,16 @@
 -- workout_award_config() and must match WorkoutAwardRule in
 -- lib/core/utils/workout_awards.dart:
 --   1 Physical point per awarded log.
---   5 awarded logs per ISO week (Monday–Sunday, UTC calendar date).
+--   5 awarded logs per week. The week is Monday–Sunday in America/Denver.
 --   The 3rd awarded log of that week also earns 1 bonus point.
+--   A log dated within the previous 14 Denver calendar days still earns points.
+--   Older logs are saved and earn 0. Future dates are rejected.
+--   The award uses the week of the workout's date, not the week it was entered.
 --   The same log id cannot be awarded twice. Two logs on one date both count.
---   Once the weekly cap is full, later logs are saved with points_awarded = 0.
+--   Once that week's cap is full, later logs for that week earn 0.
 --   A full cap never reduces points already given.
---   The week id is the Monday of that week (workout_week_start).
---   Only workout_logs.date = current_date can earn points.
+--   The week id is the Monday of the workout's Denver calendar date.
+--   The zone name is config, so another gym can switch zones without new rules.
 
 -- ============================================================
 -- POOL BALANCES
@@ -154,6 +157,10 @@ language plpgsql
 set search_path = public
 as $$
 begin
+  if new.date > public.company_today() then
+    raise exception 'Future workout dates are rejected';
+  end if;
+
   if current_setting('emc.progression_write', true) = 'on' then
     return new;
   end if;
@@ -184,29 +191,32 @@ revoke all on function public.protect_workout_points() from public;
 -- WORKOUT AWARD CONFIG AND WEEK BOUNDARY
 -- ============================================================
 
--- Placeholders for John. Keep these four numbers aligned with WorkoutAwardRule.
+-- Placeholders for John. Keep every column aligned with WorkoutAwardRule.
 create or replace function public.workout_award_config()
 returns table (
   points_per_log int,
   weekly_cap int,
   weekly_target int,
-  weekly_target_bonus int
+  weekly_target_bonus int,
+  time_zone text,
+  backfill_days int
 )
 language sql
 immutable
 as $$
-  select 1, 5, 3, 1
+  select 1, 5, 3, 1, 'America/Denver'::text, 14
 $$;
 
 comment on function public.workout_award_config() is
-  'Placeholder workout award numbers. points_per_log, weekly_cap (awarded logs), weekly_target (the log that earns the bonus), weekly_target_bonus. Mirror of WorkoutAwardRule.';
+  'Placeholder workout award config. points_per_log, weekly_cap (awarded logs), weekly_target, weekly_target_bonus, time_zone (IANA), backfill_days. Mirror of WorkoutAwardRule.';
 
 revoke all on function public.workout_award_config() from public;
 grant execute on function public.workout_award_config() to authenticated;
 
--- Monday of the ISO week for a calendar date. The argument is timestamp
--- without time zone, so the result does not move when TimeZone changes.
--- That matches WorkoutAwardRule.weekStartUtc on the UTC calendar date.
+-- Monday of the civil week for a company-zone calendar date.
+-- The date is already a calendar day in the configured zone, so this
+-- truncation does not depend on the session TimeZone. DST does not move
+-- the Monday: the week is seven calendar dates, not 168 hours.
 create or replace function public.workout_week_start(p_day date)
 returns date
 language sql
@@ -217,10 +227,50 @@ as $$
 $$;
 
 comment on function public.workout_week_start(date) is
-  'Monday of the ISO week containing p_day. Week id used by workout awards. UTC calendar date on Supabase.';
+  'Monday of the week containing p_day. p_day is a calendar date in the company time zone.';
 
 revoke all on function public.workout_week_start(date) from public;
 grant execute on function public.workout_week_start(date) to authenticated;
+
+-- Calendar date of an instant in the configured zone. DST-aware.
+-- Matches WorkoutAwardRule.calendarDate for the same IANA name.
+create or replace function public.company_calendar_date(p_at timestamptz)
+returns date
+language sql
+stable
+strict
+as $$
+  select (timezone(
+    (select time_zone from public.workout_award_config()),
+    p_at
+  ))::date
+$$;
+
+comment on function public.company_calendar_date(timestamptz) is
+  'Calendar date of an instant in workout_award_config().time_zone.';
+
+revoke all on function public.company_calendar_date(timestamptz) from public;
+grant execute on function public.company_calendar_date(timestamptz) to authenticated;
+
+create or replace function public.company_today()
+returns date
+language sql
+stable
+as $$
+  select public.company_calendar_date(now())
+$$;
+
+comment on function public.company_today() is
+  'Today in the company time zone. Workout logs and the backfill window use this date.';
+
+revoke all on function public.company_today() from public;
+grant execute on function public.company_today() to authenticated;
+
+alter table public.workout_logs
+  alter column date set default public.company_today();
+
+comment on column public.workout_logs.date is
+  'Calendar date the workout happened, in the company time zone (America/Denver unless config changes).';
 
 -- ============================================================
 -- AWARD
@@ -250,6 +300,9 @@ declare
   v_weekly_cap int;
   v_weekly_target int;
   v_weekly_bonus int;
+  v_zone text;
+  v_backfill int;
+  v_today date;
 begin
   if p_points < 0 then
     raise exception 'Points cannot be taken away';
@@ -293,8 +346,10 @@ begin
     if p_source_id is null then
       raise exception 'Workout awards require a log id';
     end if;
-    select points_per_log, weekly_cap, weekly_target, weekly_target_bonus
-      into v_points_per_log, v_weekly_cap, v_weekly_target, v_weekly_bonus
+    select points_per_log, weekly_cap, weekly_target, weekly_target_bonus,
+           time_zone, backfill_days
+      into v_points_per_log, v_weekly_cap, v_weekly_target, v_weekly_bonus,
+           v_zone, v_backfill
     from public.workout_award_config();
 
     if v_points_per_log < 1
@@ -302,6 +357,9 @@ begin
        or v_weekly_target < 1
        or v_weekly_target > v_weekly_cap
        or v_weekly_bonus < 0
+       or v_backfill < 0
+       or v_zone is null
+       or length(btrim(v_zone)) = 0
     then
       raise exception 'Workout award config is invalid';
     end if;
@@ -319,9 +377,15 @@ begin
       raise exception 'Workout log not found';
     end if;
 
-    -- Only the database's current date can earn points, so a client cannot
-    -- fill another week by inserting logs on other dates.
-    if v_log_date <> current_date then
+    v_today := public.company_today();
+
+    if v_log_date > v_today then
+      raise exception 'Future workout dates are rejected';
+    end if;
+
+    -- Outside the backfill window the log stays in the journal and earns 0.
+    -- Points already granted to other logs are left alone.
+    if v_log_date < v_today - v_backfill then
       update public.workout_logs
       set points_awarded = 0
       where id = p_source_id;
@@ -498,7 +562,8 @@ create or replace function public.record_workout(
   p_exercise text,
   p_sets int default null,
   p_reps int default null,
-  p_notes text default null
+  p_notes text default null,
+  p_date date default null
 )
 returns jsonb
 language plpgsql
@@ -509,6 +574,7 @@ declare
   v_owner uuid;
   v_log_id uuid;
   v_awarded int;
+  v_today date;
 begin
   if p_exercise is null or length(btrim(p_exercise)) = 0 then
     raise exception 'Exercise is required';
@@ -528,10 +594,18 @@ begin
     raise exception 'Not your character';
   end if;
 
+  v_today := public.company_today();
+  if p_date is null then
+    p_date := v_today;
+  end if;
+  if p_date > v_today then
+    raise exception 'Future workout dates are rejected';
+  end if;
+
   insert into public.workout_logs (
     character_id, date, type, exercise, sets, reps, notes, points_awarded
   ) values (
-    p_character_id, current_date, btrim(p_type), btrim(p_exercise), p_sets, p_reps, p_notes, 0
+    p_character_id, p_date, btrim(p_type), btrim(p_exercise), p_sets, p_reps, p_notes, 0
   )
   returning id into v_log_id;
 
@@ -551,8 +625,8 @@ begin
 end;
 $$;
 
-revoke all on function public.record_workout(uuid, text, text, integer, integer, text) from public;
-grant execute on function public.record_workout(uuid, text, text, integer, integer, text) to authenticated;
+revoke all on function public.record_workout(uuid, text, text, integer, integer, text, date) from public;
+grant execute on function public.record_workout(uuid, text, text, integer, integer, text, date) to authenticated;
 
 -- ============================================================
 -- CHARACTER CREATION NO LONGER WRITES attribute_points

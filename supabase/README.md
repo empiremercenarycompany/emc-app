@@ -30,11 +30,11 @@ The earlier `20261019_initial_schema.sql` draft was removed. `complete_schema` r
 ## Progression Rules Encoded
 
 - Standard 5.5e point-buy costs, enforced by `spend_attribute_points`
-- Three pools. Workouts earn Physical points up to a weekly cap. The numbers are placeholders in `workout_award_config()`: 1 per log, 5 awarded logs per Monday–Sunday UTC week, +1 on the 3rd. Hitting the cap awards 0. It does not remove points.
+- Three pools. Workouts earn Physical points up to a weekly cap. The placeholders in `workout_award_config()` are 1 per log, 5 awarded logs per Monday–Sunday week in `America/Denver`, +1 on the 3rd, and a 14-day backfill. Older logs earn 0. Future dates are rejected. Hitting the cap awards 0. It does not remove points.
 - `award_attribute_points` refuses a negative amount
 - Milestone leveling is not automated (no week counter, no level-up trigger)
 - Class selection is not gated in SQL
-- Squad size cap is the `max_size` column, not a member-count trigger
+- Squad size is an open decision (5 or 6). `max_size` still defaults to 6 and cannot exceed 6. There is no member-count trigger.
 
 ## Security
 
