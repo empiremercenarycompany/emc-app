@@ -27,14 +27,14 @@ John has the final say. Each line is the placeholder this build uses until he ch
 - Attendance loot. Placeholder: `attendance_loot` is the text `unset`. Check-in copies it onto the attendance row and grants nothing. The loot flag can be corrected by the DM. TODO(John): what attendance pays.
 - Monthly world changes. Placeholder: `world_state` stores a summary. There is no editor yet. TODO(John).
 - Loot share. Placeholder: the attendance flag is stored and grants nothing. TODO(John).
-- Schedule gaps. Placeholder: if `cohort_sessions` has any row, a date in no row earns 0 and does not use the 14-day cadence. TODO(John) if a missing number should fall back instead.
+- Schedule gaps. Placeholder: if `cohort_sessions` has any row, a date in no row earns 0 and does not use the 14-day cadence. A table session on that date is saved and marked off-week. TODO(John) if a missing number should fall back instead, and if an off-week table should be refused.
 - Cohort start. Placeholder: `2027-01-04`, the first Monday of January 2027. TODO(John): the real first session.
 
 ## Character
 
 - Pre-induction level, hit points, and armor. Placeholder: level 1, class reads "Not yet inducted", combat numbers are not calculated. TODO(John).
 - Induction classes. Placeholder: fighter, barbarian, monk, and rogue, every row disabled. Induction opens at company week 6 (`induction_week`). A DM can record it with no class. A disabled class is refused. TODO(John): which martial classes unlock, and whether a spellbook is in play. The spell tables are empty.
-- Milestone weeks. Placeholder: staff may record level 2 from week 16 and level 3 from week 32, one step at a time, with an audit row. Nothing levels by itself. TODO(John): whether those weeks mean the first day of that week or the day after it ends. The first session date is still the cohort placeholder `2027-01-04`.
+- Milestone weeks. Placeholder: staff may record level 2 from week 16 and level 3 from week 32, one step at a time, with an audit row. Nothing levels by itself. A milestone never lowers a level. A DM correction may move the number either way and writes an audit row. TODO(John): whether those weeks mean the first day of that week or the day after it ends, and whether a correction must never go down. The first session date is still the cohort placeholder `2027-01-04`.
 - Origin word. Placeholder: required text, not mapped to a feat. TODO(John). TODO(lore: check with Sage/Master Canon) before any list of words is added.
 - Species. Placeholder: the SRD 5.2 name list in `content_species`. No rules text. TODO(John) if that list should shrink.
 - Levels after 3. Placeholder: not built. Level 2 and 3 are reminders in config. A DM sets the level. Nothing levels by itself. TODO(John): which long-term goals qualify.
