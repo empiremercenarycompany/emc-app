@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/character_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/attribute_pools.dart';
 import '../../../core/utils/point_buy.dart';
 import '../../../services/supabase_service.dart';
 
@@ -20,15 +21,27 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
   final _professionController = TextEditingController();
   final _raceController = TextEditingController();
 
-  int _strength = 8;
-  int _dexterity = 8;
-  int _constitution = 8;
-  int _intelligence = 8;
-  int _wisdom = 8;
-  int _charisma = 8;
-  int _unspent = 0;
+  AbilityScores _scores = const AbilityScores(
+    strength: 8,
+    dexterity: 8,
+    constitution: 8,
+    intelligence: 8,
+    wisdom: 8,
+    charisma: 8,
+  );
+  PoolBalances _pools = const PoolBalances(
+    physical: 0,
+    constitution: 0,
+    mental: 0,
+  );
   String? _characterId;
   bool _loading = false;
+
+  static const _sections = [
+    (AttributePools.physical, 'Physical', 'Strength and Dexterity'),
+    (AttributePools.constitution, 'Constitution', 'Nutrition and sleep'),
+    (AttributePools.mental, 'Mental', 'SMART goals'),
+  ];
 
   @override
   void initState() {
@@ -55,27 +68,27 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
       _originController.text = character.originWord ?? '';
       _professionController.text = character.profession ?? '';
       _raceController.text = character.race ?? '';
-      _strength = character.strength;
-      _dexterity = character.dexterity;
-      _constitution = character.constitution;
-      _intelligence = character.intelligence;
-      _wisdom = character.wisdom;
-      _charisma = character.charisma;
-      _unspent = character.unspentPoints;
+      _scores = character.scores;
+      _pools = character.pools;
     });
   }
 
-  int get _totalCost => PointBuy.totalCost(
-        strength: _strength,
-        dexterity: _dexterity,
-        constitution: _constitution,
-        intelligence: _intelligence,
-        wisdom: _wisdom,
-        charisma: _charisma,
-      );
-
   Future<void> _save() async {
     if (_characterId == null) return;
+
+    final character = ref.read(characterProvider).value;
+    if (character == null) return;
+    final check = AttributeSpend.check(
+      from: character.scores,
+      to: _scores,
+      pools: character.pools,
+    );
+    if (!check.isValid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('That spend is not legal.')),
+      );
+      return;
+    }
 
     setState(() => _loading = true);
     try {
@@ -85,13 +98,15 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
         originWord: _originController.text.trim(),
         profession: _professionController.text.trim(),
         race: _raceController.text.trim(),
-        strength: _strength,
-        dexterity: _dexterity,
-        constitution: _constitution,
-        intelligence: _intelligence,
-        wisdom: _wisdom,
-        charisma: _charisma,
-        attributePoints: _unspent,
+      );
+      await SupabaseService.spendAttributePoints(
+        characterId: _characterId!,
+        strength: _scores.strength,
+        dexterity: _scores.dexterity,
+        constitution: _scores.constitution,
+        intelligence: _scores.intelligence,
+        wisdom: _scores.wisdom,
+        charisma: _scores.charisma,
       );
       ref.invalidate(characterProvider);
       if (mounted) {
@@ -111,57 +126,17 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
     }
   }
 
-  void _adjustAttribute(String attr, int delta) {
+  void _adjust(String ability, int delta) {
+    final step = AttributeSpend.step(
+      scores: _scores,
+      pools: _pools,
+      ability: ability,
+      delta: delta,
+    );
+    if (step == null) return;
     setState(() {
-      int current = 0;
-      switch (attr) {
-        case 'str':
-          current = _strength;
-          break;
-        case 'dex':
-          current = _dexterity;
-          break;
-        case 'con':
-          current = _constitution;
-          break;
-        case 'int':
-          current = _intelligence;
-          break;
-        case 'wis':
-          current = _wisdom;
-          break;
-        case 'cha':
-          current = _charisma;
-          break;
-      }
-
-      final next = current + delta;
-      if (next < 8 || next > 15) return;
-
-      final costDelta = PointBuy.costFor(next) - PointBuy.costFor(current);
-      if (_unspent - costDelta < 0) return;
-
-      switch (attr) {
-        case 'str':
-          _strength = next;
-          break;
-        case 'dex':
-          _dexterity = next;
-          break;
-        case 'con':
-          _constitution = next;
-          break;
-        case 'int':
-          _intelligence = next;
-          break;
-        case 'wis':
-          _wisdom = next;
-          break;
-        case 'cha':
-          _charisma = next;
-          break;
-      }
-      _unspent -= costDelta;
+      _scores = step.scores;
+      _pools = step.pools;
     });
   }
 
@@ -179,7 +154,8 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2))
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : const Text('Save'),
           ),
         ],
@@ -188,65 +164,124 @@ class _CharacterEditScreenState extends ConsumerState<CharacterEditScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name')),
+            controller: _nameController,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
           const SizedBox(height: 12),
           TextField(
-              controller: _originController,
-              decoration: const InputDecoration(labelText: 'Origin Word')),
+            controller: _originController,
+            decoration: const InputDecoration(labelText: 'Origin Word'),
+          ),
           const SizedBox(height: 12),
           TextField(
-              controller: _professionController,
-              decoration: const InputDecoration(labelText: 'Profession')),
+            controller: _professionController,
+            decoration: const InputDecoration(labelText: 'Profession'),
+          ),
           const SizedBox(height: 12),
           TextField(
-              controller: _raceController,
-              decoration: const InputDecoration(labelText: 'Race')),
+            controller: _raceController,
+            decoration: const InputDecoration(labelText: 'Race'),
+          ),
           const SizedBox(height: 24),
-          Text('Unspent Points: $_unspent',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(color: AppColors.weatheredBronze)),
-          Text('Total Cost: $_totalCost',
-              style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 12),
-          _AttributeEditor(
-              label: 'Strength',
-              value: _strength,
-              cost: PointBuy.costFor(_strength),
-              onIncrease: () => _adjustAttribute('str', 1),
-              onDecrease: () => _adjustAttribute('str', -1)),
-          _AttributeEditor(
-              label: 'Dexterity',
-              value: _dexterity,
-              cost: PointBuy.costFor(_dexterity),
-              onIncrease: () => _adjustAttribute('dex', 1),
-              onDecrease: () => _adjustAttribute('dex', -1)),
-          _AttributeEditor(
-              label: 'Constitution',
-              value: _constitution,
-              cost: PointBuy.costFor(_constitution),
-              onIncrease: () => _adjustAttribute('con', 1),
-              onDecrease: () => _adjustAttribute('con', -1)),
-          _AttributeEditor(
-              label: 'Intelligence',
-              value: _intelligence,
-              cost: PointBuy.costFor(_intelligence),
-              onIncrease: () => _adjustAttribute('int', 1),
-              onDecrease: () => _adjustAttribute('int', -1)),
-          _AttributeEditor(
-              label: 'Wisdom',
-              value: _wisdom,
-              cost: PointBuy.costFor(_wisdom),
-              onIncrease: () => _adjustAttribute('wis', 1),
-              onDecrease: () => _adjustAttribute('wis', -1)),
-          _AttributeEditor(
-              label: 'Charisma',
-              value: _charisma,
-              cost: PointBuy.costFor(_charisma),
-              onIncrease: () => _adjustAttribute('cha', 1),
-              onDecrease: () => _adjustAttribute('cha', -1)),
+          for (final section in _sections) ...[
+            _PoolHeader(
+              title: section.$2,
+              subtitle: section.$3,
+              points: _pools.valueOf(section.$1),
+            ),
+            for (final ability in AttributePools.abilities[section.$1]!)
+              _AttributeEditor(
+                label: _label(ability),
+                value: _scores.valueOf(ability),
+                cost: PointBuy.costFor(_scores.valueOf(ability)),
+                onIncrease: AttributeSpend.step(
+                          scores: _scores,
+                          pools: _pools,
+                          ability: ability,
+                          delta: 1,
+                        ) ==
+                        null
+                    ? null
+                    : () => _adjust(ability, 1),
+                onDecrease: AttributeSpend.step(
+                          scores: _scores,
+                          pools: _pools,
+                          ability: ability,
+                          delta: -1,
+                        ) ==
+                        null
+                    ? null
+                    : () => _adjust(ability, -1),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static String _label(String ability) {
+    switch (ability) {
+      case 'strength':
+        return 'Strength';
+      case 'dexterity':
+        return 'Dexterity';
+      case 'constitution':
+        return 'Constitution';
+      case 'intelligence':
+        return 'Intelligence';
+      case 'wisdom':
+        return 'Wisdom';
+      case 'charisma':
+        return 'Charisma';
+      default:
+        return ability;
+    }
+  }
+}
+
+class _PoolHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final int points;
+
+  const _PoolHeader({
+    required this.title,
+    required this.subtitle,
+    required this.points,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.weatheredBronze,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+                Text(
+                  subtitle,
+                  style:
+                      const TextStyle(color: AppColors.steelGray, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '$points',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: AppColors.weatheredBronze,
+                ),
+          ),
         ],
       ),
     );
@@ -257,8 +292,8 @@ class _AttributeEditor extends StatelessWidget {
   final String label;
   final int value;
   final int cost;
-  final VoidCallback onIncrease;
-  final VoidCallback onDecrease;
+  final VoidCallback? onIncrease;
+  final VoidCallback? onDecrease;
 
   const _AttributeEditor({
     required this.label,
@@ -275,11 +310,15 @@ class _AttributeEditor extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label)),
-          Text('($cost)',
-              style: const TextStyle(color: AppColors.steelGray, fontSize: 12)),
+          Text(
+            '($cost)',
+            style: const TextStyle(color: AppColors.steelGray, fontSize: 12),
+          ),
           IconButton(onPressed: onDecrease, icon: const Icon(Icons.remove)),
-          Text(value.toString(),
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            value.toString(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           IconButton(onPressed: onIncrease, icon: const Icon(Icons.add)),
         ],
       ),

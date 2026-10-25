@@ -41,7 +41,7 @@ class CharacterSheetView extends ConsumerWidget {
               _SectionTitle('Attributes'),
               _AttributeGrid(character: character),
               const SizedBox(height: 16),
-              _PointsCard(points: character.unspentPoints),
+              _PoolCard(character: character),
               const SizedBox(height: 24),
               _SectionTitle('Background'),
               _InfoRow(
@@ -175,22 +175,36 @@ class _AttrBox extends StatelessWidget {
   }
 }
 
-class _PointsCard extends StatelessWidget {
-  final int points;
-  const _PointsCard({required this.points});
+class _PoolCard extends StatelessWidget {
+  final Character character;
+  const _PoolCard({required this.character});
 
   @override
   Widget build(BuildContext context) {
+    final rows = [
+      ('Physical', 'STR / DEX', character.physicalPoints),
+      ('Constitution', 'CON', character.constitutionPoints),
+      ('Mental', 'INT / WIS / CHA', character.mentalPoints),
+    ];
     return Card(
       color: const Color(0xFF1A1A1A),
-      child: ListTile(
-        title: const Text('Unspent Points'),
-        trailing: Text(
-          points.toString(),
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(color: AppColors.weatheredBronze),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          children: [
+            for (final row in rows)
+              ListTile(
+                dense: true,
+                title: Text(row.$1),
+                subtitle: Text(row.$2),
+                trailing: Text(
+                  row.$3.toString(),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.weatheredBronze,
+                      ),
+                ),
+              ),
+          ],
         ),
       ),
     );

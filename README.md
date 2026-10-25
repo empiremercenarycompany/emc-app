@@ -84,6 +84,7 @@ Migrations live in `supabase/migrations/` and use 14-digit timestamps so `supaba
 1. `20261019000000_complete_schema.sql` — tables, RLS, point-award function, auth profile trigger
 2. `20261019000100_storage_setup.sql` — portrait, banner, and attachment buckets
 3. `20261019000200_create_character_function.sql` — `create_character` starting-array check
+4. `20261025000000_attribute_pools.sql` — Physical, Constitution, and Mental pools, spend RPC, workout award
 
 `20261019_initial_schema.sql` was removed. It was an earlier draft of the same schema: tables without `IF NOT EXISTS`, the squad foreign key added in a second step, unnamed indexes, no `session_notes`, and RLS policies under different names. `complete_schema` already contains that model. Running the draft first and the complete file second would install two permissive policies on the same tables (Postgres ORs them). The handoff's apply list also skipped the draft.
 
@@ -94,7 +95,7 @@ supabase start
 supabase db reset
 ```
 
-`supabase db reset` rebuilds the local database and runs every file in `supabase/migrations/` in timestamp order. There is no seed file. Hosted projects can use `supabase db push` after `supabase link`, or paste the three files into the SQL editor in the order above.
+`supabase db reset` rebuilds the local database and runs every file in `supabase/migrations/` in timestamp order. There is no seed file. Hosted projects can use `supabase db push` after `supabase link`, or paste the four files into the SQL editor in the order above.
 
 The profile trigger copies `auth.users` into `public.users` on signup. `characters.user_id` references that profile table, so character creation depends on it.
 
@@ -113,12 +114,15 @@ flutter analyze
 flutter test
 ```
 
-Unit tests cover the 5.5e point-buy table in `lib/core/utils/point_buy.dart` and the starting-array rule in `lib/core/utils/starting_array.dart`. GitHub Actions (`.github/workflows/flutter.yml`) runs analyze and test on Flutter 3.47.8.
+Unit tests cover the 5.5e point-buy table, the starting array, the three point pools, and the workout award cap. GitHub Actions (`.github/workflows/flutter.yml`) runs analyze and test on Flutter 3.47.8.
 
 ## Locked rules encoded today
 
 - Starting array: four 8s, one 10, and one 9, or three 8s and three 9s. The creator offers two presets. The SQL function accepts every placement.
-- Point-buy costs: 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9.
+- Point-buy costs: 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9. Scores and pool balances change only through `spend_attribute_points` and `award_attribute_points`.
+- Three pools: Physical (Strength, Dexterity) from workouts, Constitution from nutrition and sleep, Mental (Intelligence, Wisdom, Charisma) from SMART goals. A pool spends only on its own abilities. Refunds return to that same pool.
+- Workout award numbers are placeholders until John sets them: 1 Physical point per log, at most 5 awarded logs per ISO week (Monday–Sunday, UTC), and +1 on the 3rd awarded log that week. The same log cannot be awarded twice. A full week stops further awards and does not take points back. See `lib/core/utils/workout_awards.dart` and `workout_award_config()`.
+- Goals can store a monthly period (`period_start`, `period_end` inside one calendar month) so Mental and Constitution awards can attach later. The goal creation flow is not built.
 - New characters are level 1, rank Recruit, with no class.
 - `award_attribute_points` rejects a negative total.
 - Squad `max_size` defaults to 6 and cannot be set above 6.

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../../core/utils/attribute_pools.dart';
 import '../../../services/supabase_service.dart';
 
 class Character {
@@ -18,7 +19,9 @@ class Character {
   final int intelligence;
   final int wisdom;
   final int charisma;
-  final int unspentPoints;
+  final int physicalPoints;
+  final int constitutionPoints;
+  final int mentalPoints;
 
   const Character({
     required this.id,
@@ -36,8 +39,25 @@ class Character {
     required this.intelligence,
     required this.wisdom,
     required this.charisma,
-    required this.unspentPoints,
+    required this.physicalPoints,
+    required this.constitutionPoints,
+    required this.mentalPoints,
   });
+
+  AbilityScores get scores => AbilityScores(
+        strength: strength,
+        dexterity: dexterity,
+        constitution: constitution,
+        intelligence: intelligence,
+        wisdom: wisdom,
+        charisma: charisma,
+      );
+
+  PoolBalances get pools => PoolBalances(
+        physical: physicalPoints,
+        constitution: constitutionPoints,
+        mental: mentalPoints,
+      );
 
   factory Character.fromMap(Map<String, dynamic> map) {
     return Character(
@@ -56,7 +76,9 @@ class Character {
       intelligence: map['intelligence'] as int? ?? 8,
       wisdom: map['wisdom'] as int? ?? 8,
       charisma: map['charisma'] as int? ?? 8,
-      unspentPoints: map['attribute_points'] as int? ?? 0,
+      physicalPoints: map['physical_points'] as int? ?? 0,
+      constitutionPoints: map['constitution_points'] as int? ?? 0,
+      mentalPoints: map['mental_points'] as int? ?? 0,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/attribute_pools.dart';
 import '../../../services/supabase_service.dart';
 
 class GoalsScreen extends ConsumerStatefulWidget {
@@ -36,15 +37,25 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
       'character_id': characterId,
       'points_awarded': 1,
     });
-    await SupabaseService.awardAttributePoints(
+    // Existing complete button only. Goal creation is still not built.
+    // The award is Mental, and repeating the same goal does not add points again.
+    final awarded = await SupabaseService.awardAttributePoints(
       characterId: characterId,
       points: 1,
       source: 'goal',
+      pool: AttributePools.mental,
+      sourceId: goalId,
       reason: 'Goal completed',
     );
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Goal recorded. +1 point.')),
+        SnackBar(
+          content: Text(
+            awarded > 0
+                ? 'Goal recorded. +$awarded Mental.'
+                : 'That goal was already counted.',
+          ),
+        ),
       );
       _load();
     }

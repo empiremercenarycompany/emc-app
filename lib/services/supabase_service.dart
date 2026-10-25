@@ -108,47 +108,62 @@ class SupabaseService {
     }
   }
 
+  /// Profile fields only. Scores and pool balances go through the spend and
+  /// award functions, which the database will not let a direct update change.
   static Future<void> updateCharacter({
     required String characterId,
     String? name,
     String? originWord,
     String? profession,
     String? race,
-    int? strength,
-    int? dexterity,
-    int? constitution,
-    int? intelligence,
-    int? wisdom,
-    int? charisma,
-    int? attributePoints,
   }) async {
     final updates = <String, dynamic>{};
     if (name != null) updates['name'] = name;
     if (originWord != null) updates['origin_word'] = originWord;
     if (profession != null) updates['profession'] = profession;
     if (race != null) updates['race'] = race;
-    if (strength != null) updates['strength'] = strength;
-    if (dexterity != null) updates['dexterity'] = dexterity;
-    if (constitution != null) updates['constitution'] = constitution;
-    if (intelligence != null) updates['intelligence'] = intelligence;
-    if (wisdom != null) updates['wisdom'] = wisdom;
-    if (charisma != null) updates['charisma'] = charisma;
-    if (attributePoints != null) updates['attribute_points'] = attributePoints;
     if (updates.isEmpty) return;
     await client.from('characters').update(updates).eq('id', characterId);
   }
 
-  static Future<void> awardAttributePoints({
+  /// Returns the points actually added. Zero means the award was already
+  /// recorded, or a workout hit the weekly cap. The cap does not remove points.
+  static Future<int> awardAttributePoints({
     required String characterId,
     required int points,
     required String source,
+    required String pool,
     String? reason,
+    String? sourceId,
   }) async {
-    await client.rpc('award_attribute_points', params: {
+    final response = await client.rpc('award_attribute_points', params: {
       'p_character_id': characterId,
       'p_points': points,
       'p_source': source,
+      'p_pool': pool,
       'p_reason': reason,
+      'p_source_id': sourceId,
+    });
+    return response as int? ?? 0;
+  }
+
+  static Future<void> spendAttributePoints({
+    required String characterId,
+    required int strength,
+    required int dexterity,
+    required int constitution,
+    required int intelligence,
+    required int wisdom,
+    required int charisma,
+  }) async {
+    await client.rpc('spend_attribute_points', params: {
+      'p_character_id': characterId,
+      'p_strength': strength,
+      'p_dexterity': dexterity,
+      'p_constitution': constitution,
+      'p_intelligence': intelligence,
+      'p_wisdom': wisdom,
+      'p_charisma': charisma,
     });
   }
 
@@ -169,7 +184,11 @@ class SupabaseService {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  static Future<void> logWorkout({
+  /// Saves the log and awards Physical points through the workout award rule.
+  ///
+  /// [pointsAwarded] is 1 or 0. Zero means this log was saved after today's
+  /// Physical point was already claimed.
+  static Future<({String logId, int pointsAwarded})> recordWorkout({
     required String characterId,
     required String type,
     required String exercise,
@@ -177,14 +196,19 @@ class SupabaseService {
     int? reps,
     String? notes,
   }) async {
-    await client.from('workout_logs').insert({
-      'character_id': characterId,
-      'type': type,
-      'exercise': exercise,
-      'sets': sets,
-      'reps': reps,
-      'notes': notes,
+    final response = await client.rpc('record_workout', params: {
+      'p_character_id': characterId,
+      'p_type': type,
+      'p_exercise': exercise,
+      'p_sets': sets,
+      'p_reps': reps,
+      'p_notes': notes,
     });
+    final row = Map<String, dynamic>.from(response as Map);
+    return (
+      logId: row['log_id'] as String,
+      pointsAwarded: row['points_awarded'] as int? ?? 0,
+    );
   }
 
   static Future<void> checkInToSession({

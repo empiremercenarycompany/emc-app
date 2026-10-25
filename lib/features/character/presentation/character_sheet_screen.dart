@@ -76,14 +76,21 @@ class CharacterSheetScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Card(
                 color: const Color(0xFF1A1A1A),
-                child: ListTile(
-                  title: const Text('Unspent Points'),
-                  trailing: Text(
-                    character.unspentPoints.toString(),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: AppColors.weatheredBronze,
-                        ),
-                  ),
+                child: Column(
+                  children: [
+                    _PoolRow(
+                        label: 'Physical',
+                        hint: 'STR / DEX',
+                        points: character.physicalPoints),
+                    _PoolRow(
+                        label: 'Constitution',
+                        hint: 'CON',
+                        points: character.constitutionPoints),
+                    _PoolRow(
+                        label: 'Mental',
+                        hint: 'INT / WIS / CHA',
+                        points: character.mentalPoints),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
@@ -99,6 +106,33 @@ class CharacterSheetScreen extends ConsumerWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _PoolRow extends StatelessWidget {
+  final String label;
+  final String hint;
+  final int points;
+
+  const _PoolRow({
+    required this.label,
+    required this.hint,
+    required this.points,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      title: Text(label),
+      subtitle: Text(hint),
+      trailing: Text(
+        points.toString(),
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: AppColors.weatheredBronze,
+            ),
       ),
     );
   }

@@ -9,6 +9,7 @@ Apply these in order. The filenames are 14-digit timestamps so `supabase db rese
 1. `migrations/20261019000000_complete_schema.sql`
 2. `migrations/20261019000100_storage_setup.sql`
 3. `migrations/20261019000200_create_character_function.sql`
+4. `migrations/20261025000000_attribute_pools.sql`
 
 The earlier `20261019_initial_schema.sql` draft was removed. `complete_schema` replaces it and adds `session_notes`, named indexes, and the auth profile trigger. See the root README for why both files cannot be applied together.
 
@@ -21,15 +22,15 @@ The earlier `20261019_initial_schema.sql` draft was removed. `complete_schema` r
 - **guild_memberships** — Rank and membership
 - **attribute_point_ledger** — Immutable point awards
 - **workout_logs** — Strength / Dexterity / functional work
-- **goals** / **goal_logs** — INT / WIS / CHA / CON categories
+- **goals** / **goal_logs** — INT / WIS / CHA / CON categories. A goal may store `period_start` and `period_end` inside one calendar month. The creation flow is not built yet.
 - **missions** / **objectives** — Contracts and company assignments
 - **sessions** / **session_attendance** / **session_notes** — Two-part episodes. Attendance grants loot share.
 - **announcements**, **achievements**, **calendar_events**
 
 ## Progression Rules Encoded
 
-- Standard 5.5e point-buy costs (enforced in the application layer)
-- Attribute points earned from workouts and goals
+- Standard 5.5e point-buy costs, enforced by `spend_attribute_points`
+- Three pools. Workouts earn Physical points up to a weekly cap. The numbers are placeholders in `workout_award_config()`: 1 per log, 5 awarded logs per Monday–Sunday UTC week, +1 on the 3rd. Hitting the cap awards 0. It does not remove points.
 - `award_attribute_points` refuses a negative amount
 - Milestone leveling is not automated (no week counter, no level-up trigger)
 - Class selection is not gated in SQL
