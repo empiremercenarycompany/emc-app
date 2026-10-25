@@ -9,11 +9,13 @@ export function ResultForm({
   submit,
   children,
   secondary,
+  primary,
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
   submit: string;
   children: React.ReactNode;
   secondary?: boolean;
+  primary?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => action(formData),
@@ -23,7 +25,7 @@ export function ResultForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       {children}
-      <button className={secondary ? "secondary" : undefined} disabled={pending} type="submit">
+      <button className={secondary ? "secondary" : primary ? "primary" : undefined} disabled={pending} type="submit">
         {pending ? "Saving" : submit}
       </button>
       {state && "error" in state ? <p role="alert">{state.error}</p> : null}

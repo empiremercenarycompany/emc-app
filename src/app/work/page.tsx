@@ -35,7 +35,7 @@ export default async function WorkPage() {
       : [];
 
   return (
-    <Page title="Work" lede="A log saves immediately. Points follow the company config.">
+    <Page title="Work" lede="A log saves immediately. Attribute growth comes from your workouts and the goals you hit.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
         <p>
@@ -103,7 +103,7 @@ export default async function WorkPage() {
             <ul>
               {(recent ?? []).map((row) => (
                 <li key={row.id}>
-                  {row.date} · {row.exercise ?? row.type} · {row.award_track} · {row.status} · {row.points_awarded}
+                  {row.date} · {row.exercise ?? row.type} · {row.status === "awarded" ? "counted" : row.status}
                 </li>
               ))}
             </ul>

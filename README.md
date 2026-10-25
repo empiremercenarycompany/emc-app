@@ -1,6 +1,6 @@
 # Empire Mercenary Company
 
-Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend three point pools. The database decides the points. The screen shows what the server returned.
+Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend three pools. The database decides the awards. The screen shows what the server returned. Brand rules are in `docs/BRAND.md`.
 
 This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only.
 

@@ -1,22 +1,34 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Cinzel, Lato, League_Spartan } from "next/font/google";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
+import { FONT_PAIR } from "@/lib/brand";
 import { loadViewer } from "@/lib/company";
 import "./globals.css";
 
-const spartan = localFont({
-  src: [
-    { path: "../../public/fonts/LeagueSpartan-Regular.ttf", weight: "400", style: "normal" },
-    { path: "../../public/fonts/LeagueSpartan-Bold.ttf", weight: "700", style: "normal" },
-  ],
+const spartan = League_Spartan({
+  subsets: ["latin"],
   variable: "--font-spartan",
+  display: "swap",
+});
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-cinzel",
+  display: "swap",
+});
+
+const lato = Lato({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-lato",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: { default: "Empire Mercenary Company", template: "%s · EMC" },
-  description: "Train. Record. Advance.",
+  description: "A squad, a story, and a reason to keep showing up.",
   applicationName: "EMC",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -41,7 +53,7 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await loadViewer();
   return (
-    <html lang="en" className={spartan.variable}>
+    <html lang="en" data-font={FONT_PAIR} className={`${spartan.variable} ${cinzel.variable} ${lato.variable}`}>
       <body>
         <RegisterSw />
         {children}

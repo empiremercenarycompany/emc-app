@@ -2,9 +2,10 @@ import { expect, test } from "@playwright/test";
 
 test("barracks shows the company lines", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByText("Build Your Legend. Become the Hero.")).toBeVisible();
+  await expect(page.getByText("A squad, a story, and a reason to keep showing up.")).toBeVisible();
   await expect(page.getByText("Train. Record. Advance.").first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Sign in" }).first()).toBeVisible();
+  await expect(page.getByText("EMPIRE MERCENARY COMPANY").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
 });
 
 test("about attributes the SRD and stays clear of invented place copy", async ({ page }) => {
@@ -29,9 +30,9 @@ test("dice roller keeps a total", async ({ page }) => {
 
 test("sign-in asks for an email link", async ({ page }) => {
   await page.goto("/sign-in");
-  await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Join the Company" })).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Email me a link" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Join the Company" })).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();
 });
 

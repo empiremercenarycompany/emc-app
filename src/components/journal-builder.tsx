@@ -106,7 +106,7 @@ export function JournalBuilder({
       })),
     });
     setImpact(null);
-    setMessage("error" in result ? result.error : "Workout saved. That did not award points.");
+    setMessage("error" in result ? result.error : "Workout saved. Saving the list does not change your attributes.");
   }
 
   async function logSession() {
@@ -296,11 +296,11 @@ export function JournalBuilder({
         <input className="w-auto" type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
         Squad can see this session
       </label>
-      <button type="button" onClick={logSession}>
+      <button className="primary" type="button" onClick={logSession}>
         Record Work
       </button>
       <p className="text-sm text-mute">
-        One session is one log. A flag is a later reward hook and does not add points. TODO(John): the reward itself is unset.
+        One session is one log. A flag is a later reward hook and does not change your attributes. TODO(John): the reward itself is unset.
       </p>
       {message ? <p role="alert">{message}</p> : null}
       {impact ? <ImpactCard impact={impact} /> : null}

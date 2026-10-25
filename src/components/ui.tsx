@@ -1,6 +1,18 @@
 import type { ReactNode } from "react";
 import type { Impact } from "@/lib/types";
 
+/**
+ * Logo slot. No logo file is committed.
+ * The wordmark is the fallback until the mark and a dark version arrive.
+ */
+export function LogoSlot() {
+  return (
+    <div className="logo-slot border border-bronze px-3 py-2" data-logo-slot="wordmark">
+      <p className="text-xs font-bold uppercase tracking-[0.22em] text-parchment">EMPIRE MERCENARY COMPANY</p>
+    </div>
+  );
+}
+
 export function Page({
   title,
   lede,
@@ -12,8 +24,8 @@ export function Page({
 }) {
   return (
     <main className="mx-auto w-full max-w-lg px-4 pb-28 pt-6">
-      <p className="text-xs uppercase tracking-[0.18em] text-mute">Empire Mercenary Company</p>
-      <h1 className="mt-1 text-4xl">{title}</h1>
+      <LogoSlot />
+      <h1 className="mt-4 text-4xl">{title}</h1>
       {lede ? <p className="mt-2 text-mute">{lede}</p> : null}
       <div className="mt-6 flex flex-col gap-4">{children}</div>
     </main>
@@ -45,8 +57,9 @@ export function ImpactCard({ impact }: { impact: Impact }) {
   let headline = "Saved.";
   if (impact.replayed) headline = "This log was already saved.";
   else if (impact.status === "pending") headline = "Saved. Waiting for staff.";
-  else if (impact.status === "awarded" && delta > 0 && pool) headline = `Saved. +${delta} ${pool}.`;
-  else if (impact.status === "none") headline = "Saved. No automatic points for this log.";
+  else if (impact.status === "awarded" && delta > 0 && pool) {
+    headline = `Saved. ${pool} grew from your workouts and the goals you hit.`;
+  } else if (impact.status === "none") headline = "Saved. This log does not change your attributes.";
 
   return (
     <div className="border border-steel bg-iron p-3" data-testid="impact">

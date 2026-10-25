@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { LineIcon } from "@/components/icons";
 import { signOut } from "@/lib/actions/staff";
 
 const PRIMARY = [
-  { href: "/", label: "Barracks" },
-  { href: "/missions", label: "Missions" },
-  { href: "/work", label: "Work" },
-  { href: "/character", label: "Character" },
-];
+  { href: "/", label: "Barracks", icon: "barracks" },
+  { href: "/missions", label: "Missions", icon: "missions" },
+  { href: "/work", label: "Work", icon: "work" },
+  { href: "/character", label: "Character", icon: "character" },
+] as const;
 
 const MORE = [
   { href: "/squad", label: "Squad" },
@@ -64,13 +65,19 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-1 py-3 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
+                className={`flex flex-col items-center px-1 py-2 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
               >
+                <span className={active ? "text-bronze" : "text-steel"}>
+                  <LineIcon name={item.icon} />
+                </span>
                 {item.label}
               </Link>
             );
           })}
-          <button className="secondary border-0 bg-transparent text-sm text-mute" type="button" onClick={() => setOpen(true)}>
+          <button className="secondary flex-col border-0 bg-transparent py-2 text-sm text-mute" type="button" onClick={() => setOpen(true)}>
+            <span className="text-steel">
+              <LineIcon name="menu" />
+            </span>
             Menu
           </button>
         </div>

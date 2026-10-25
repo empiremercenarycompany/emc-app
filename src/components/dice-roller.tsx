@@ -53,7 +53,7 @@ export function DiceRoller({
         />
         Disadvantage
       </label>
-      <button type="button" onClick={() => rollNow()}>
+      <button className="primary" type="button" onClick={() => rollNow()}>
         Roll
       </button>
       {error ? <p role="alert">{error}</p> : null}

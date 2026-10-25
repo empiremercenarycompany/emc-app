@@ -19,7 +19,7 @@ export default async function NewCharacterPage() {
     : [null, null, null];
 
   return (
-    <Page title="Recruit oath" lede="One character. The server checks the array.">
+    <Page title="Recruit oath" lede="One recruit. The Company checks the array.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? (
         <p>

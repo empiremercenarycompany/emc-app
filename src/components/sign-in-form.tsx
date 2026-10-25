@@ -40,9 +40,10 @@ export function SignInForm() {
           onChange={(event) => setEmail(event.target.value)}
         />
       </label>
-      <button disabled={pending || !configured} type="submit">
-        {pending ? "Sending" : "Email me a link"}
+      <button className="primary" disabled={pending || !configured} type="submit">
+        {pending ? "Sending" : "Join the Company"}
       </button>
+      <p className="text-sm text-mute">Already with the Company? The same link brings you back.</p>
       {message ? <p role="status">{message}</p> : null}
     </form>
   );

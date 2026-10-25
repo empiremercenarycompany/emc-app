@@ -47,7 +47,9 @@ John has the final say. Each line is the placeholder this build uses until he ch
 
 - Sign-in. Placeholder: magic link only. Discord and Google are not wired. TODO(John) if they should return.
 - One company. Placeholder: signup joins the seeded company (`single_guild`). TODO(John).
-- Corleone. Placeholder: not bundled. Headings use League Spartan. TODO(John): the web license.
+- Fonts. Placeholder: `FONT_PAIR` in `src/lib/brand.ts` is `spartan`. Body is League Spartan, loaded with `next/font/google`. Headings use the same face because Corleone is not in the repo. The other switch value is `cinzel` (Cinzel headings, Lato body). TODO(John): Corleone with League Spartan, or Cinzel with Lato. Do not commit Corleone files.
+- Logo. Placeholder: the text wordmark `EMPIRE MERCENARY COMPANY` in the marked logo slot. No logo file is in the repo. TODO(John): the logo files and a dark version.
+- Point-buy wording. Placeholder: the sheet says Build, and the numbers stay in config. Player-facing copy describes attribute growth as coming from workouts and the goals you hit, and does not say points. TODO(John): the words recruits should see for the 27 and the three pools.
 - Bleakspire. The name is used. No description is written. TODO(lore: check with Sage/Master Canon). One table label for the place is not confirmed and is not used in the app.
 - Lifting menu. Placeholder: a shared pool, or a pool on an assigned template, or a pool the player already saved. TODO(John).
 - Flag reward. Placeholder: `reward_hook` text only. TODO(John).

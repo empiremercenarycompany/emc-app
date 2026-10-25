@@ -26,7 +26,9 @@ export default async function GoalsPage() {
     <Page title="Goals" lede="Constitution goals feed the Constitution pool. The other three feed Mental.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
-        <Link href={viewer.userId ? "/character/new" : "/sign-in"}>Create a character first.</Link>
+        <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
+          {viewer.userId ? "Sign the Recruit Oath first." : "Join the Company first."}
+        </Link>
       ) : (
         <>
           <Panel title="New goal">

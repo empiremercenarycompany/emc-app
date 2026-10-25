@@ -222,7 +222,7 @@ export default async function JournalPage() {
             <input type="date" name="period_start" />
             <input type="date" name="period_end" />
           </ResultForm>
-          <p className="text-sm text-mute">A flag never grants attribute points. TODO(John): what the hook pays.</p>
+          <p className="text-sm text-mute">A flag does not change attributes. TODO(John): what the hook pays.</p>
         </Panel>
       ) : null}
     </Page>

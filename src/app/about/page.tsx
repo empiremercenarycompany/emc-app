@@ -2,9 +2,9 @@ import { Page, Panel } from "@/components/ui";
 
 export default function AboutPage() {
   return (
-    <Page title="About" lede="Train. Record. Advance.">
-      <Panel title="The book">
-        <p>Build Your Legend. Become the Hero.</p>
+    <Page title="About" lede="A squad, a story, and a reason to keep showing up.">
+      <Panel title="The Company">
+        <p>Train. Record. Advance.</p>
         <p>
           Setting name: Bleakspire. Place description is not written in this app. TODO(lore: check with Sage/Master Canon)
         </p>
@@ -21,10 +21,10 @@ export default function AboutPage() {
         <p>Homebrew rows use their own source and attribution columns. This app does not copy rules text.</p>
       </Panel>
       <Panel title="Type">
-        <p>Body text is League Spartan, under the SIL Open Font License.</p>
+        <p>Body text is League Spartan, under the SIL Open Font License. Cinzel and Lato, the other pair, use the same license.</p>
         <p className="text-mute">
-          Headings are meant to use Corleone. That license is not cleared, so the file is not shipped. League Spartan is
-          the fallback. TODO(John): Corleone license.
+          Heading and body are one switch. The default uses League Spartan for both, because Corleone is not in this repo.
+          TODO(John): Corleone with League Spartan, or Cinzel with Lato.
         </p>
       </Panel>
     </Page>

@@ -1,14 +1,13 @@
 @import "tailwindcss";
 
 /*
-  Brand tokens. Dark first.
-  Mercenary red is a fill. Parchment is the text on that fill.
-  Red as text on iron fails contrast, so it is not used that way.
-  Bronze is for large headings only.
-  Steel is for borders, not for body text.
+  Brand tokens. Dark first. See docs/BRAND.md.
+  Mercenary red is a fill on a primary action only. Parchment is the text on that fill.
+  Red as text on iron fails contrast, so headlines stay bronze or parchment.
+  Bronze is for large headings, the logo frame, and active line icons.
+  Steel is for borders and inactive line icons, not for body text.
   Secondary text uses the contrast-safe mute.
-  TODO: Corleone is the intended display face. The license is not cleared,
-  so the file is not in this repo. The stack falls back to League Spartan.
+  The font pair is the data-font switch on the document element.
 */
 @theme {
   --color-iron: #111111;
@@ -18,7 +17,12 @@
   --color-bronze: #8a6a3b;
   --color-mute: #c4bfb2;
   --font-sans: var(--font-spartan), "League Spartan", sans-serif;
-  --font-display: "Corleone", var(--font-spartan), "League Spartan", sans-serif;
+  --font-display: var(--font-spartan), "League Spartan", sans-serif;
+}
+
+html[data-font="cinzel"] {
+  --font-sans: var(--font-lato), Lato, sans-serif;
+  --font-display: var(--font-cinzel), Cinzel, serif;
 }
 
 html {
@@ -68,13 +72,15 @@ textarea {
 }
 
 button,
-.button {
+.button,
+button.secondary,
+.button.secondary {
   display: inline-flex;
   min-height: 2.75rem;
   align-items: center;
   justify-content: center;
-  border: 0;
-  background: var(--color-red);
+  border: 1px solid var(--color-steel);
+  background: transparent;
   color: var(--color-parchment);
   padding: 0.55rem 1rem;
   font: inherit;
@@ -82,11 +88,17 @@ button,
   cursor: pointer;
 }
 
-button.secondary,
-.button.secondary {
-  background: transparent;
-  border: 1px solid var(--color-steel);
+button.primary,
+.button.primary {
+  border-color: var(--color-red);
+  background: var(--color-red);
   color: var(--color-parchment);
+}
+
+nav button.secondary {
+  border: 0;
+  background: transparent;
+  min-height: 0;
 }
 
 button:disabled {

@@ -94,7 +94,7 @@ export default async function SquadPage() {
             <input name="objective_target" placeholder="Target" />
             <input name="objective_unit" placeholder="Unit" />
           </ResultForm>
-          <p className="text-sm text-mute">Group goals are barracks missions. Progress does not award attribute points. TODO(John): a separate reward.</p>
+          <p className="text-sm text-mute">Group goals are barracks missions. Progress does not change attributes. TODO(John): a separate reward.</p>
         </Panel>
       ) : null}
       <Panel title="Shared lifts">
@@ -102,7 +102,7 @@ export default async function SquadPage() {
         {(shared ?? []).map((session) => (
           <article key={session.id}>
             <p>
-              {session.date} · points {session.points_awarded}
+              {session.date} · {session.points_awarded > 0 ? "counted toward the work" : "saved"}
             </p>
             <ul>
               {(session.lifting_sets ?? []).map(

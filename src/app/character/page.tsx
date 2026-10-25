@@ -23,9 +23,9 @@ export default async function CharacterPage() {
     return (
       <Page title="Character">
         {setup ? <Notice>{setup}</Notice> : null}
-      <p>Sign in to open your sheet.</p>
-        <Link className="button" href="/sign-in">
-          Sign in
+        <p>Sign in to open your sheet.</p>
+        <Link className="button primary" href="/sign-in">
+          Join the Company
         </Link>
       </Page>
     );
@@ -33,7 +33,7 @@ export default async function CharacterPage() {
   if (!viewer.character) {
     return (
       <Page title="Character" lede="Not yet inducted">
-        <Link className="button" href="/character/new">
+        <Link className="button primary" href="/character/new">
           Sign the Recruit Oath
         </Link>
       </Page>
@@ -84,13 +84,12 @@ export default async function CharacterPage() {
           {character.profession}
           {character.origin_word ? ` · ${character.origin_word}` : ""}
         </p>
-        <p className="text-mute">
-          Combat numbers are not set until induction. TODO(John): how hit points and armor are recorded before a class.
-        </p>
+        <p className="text-mute">Combat numbers are not set until induction. TODO(John): how those numbers are recorded before a class.</p>
         <p>
           Build {impact?.build_total ?? "—"} of {viewer.config?.point_buy_budget ?? 27}. Physical {character.physical_points}{" "}
           · Constitution {character.constitution_points} · Mental {character.mental_points}
         </p>
+        <p className="text-mute">Attribute growth comes from your workouts and the goals you hit.</p>
       </Panel>
       <Panel title="Abilities">
         <ul className="grid grid-cols-2 gap-2">
@@ -133,7 +132,8 @@ export default async function CharacterPage() {
         <ul className="flex flex-col gap-2">
           {(ledger ?? []).map((row) => (
             <li key={row.id}>
-              {row.source} {row.points_awarded > 0 ? `+${row.points_awarded}` : row.points_awarded} {row.pool ?? ""}{" "}
+              {row.source}
+              {row.pool ? ` · ${row.pool}` : ""} {row.points_awarded > 0 ? `+${row.points_awarded}` : row.points_awarded}{" "}
               <span className="text-mute">{row.reason}</span>
             </li>
           ))}

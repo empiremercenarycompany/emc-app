@@ -38,21 +38,21 @@ export default async function BarracksPage() {
   }
 
   return (
-    <Page title="Barracks" lede="Train. Record. Advance.">
-      <p className="display text-3xl">Build Your Legend. Become the Hero.</p>
+    <Page title="Barracks" lede="A squad, a story, and a reason to keep showing up.">
+      <p className="text-mute">Train. Record. Advance.</p>
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? (
         <Panel>
-          <p>The company book is locked until you sign in.</p>
-          <Link className="button" href="/sign-in">
-            Sign in
+          <p>The Company book is locked until you join.</p>
+          <Link className="button primary" href="/sign-in">
+            Join the Company
           </Link>
         </Panel>
       ) : null}
       {viewer.userId && !viewer.character ? (
         <Panel title="Recruit">
-          <p>You do not have a character yet.</p>
-          <Link className="button" href="/character/new">
+          <p>You have not taken the Recruit Oath.</p>
+          <Link className="button primary" href="/character/new">
             Sign the Recruit Oath
           </Link>
         </Panel>
@@ -67,6 +67,7 @@ export default async function BarracksPage() {
             Physical {viewer.character.physical_points} · Constitution {viewer.character.constitution_points} · Mental{" "}
             {viewer.character.mental_points}
           </p>
+          <p className="text-mute">Attribute growth comes from your workouts and the goals you hit.</p>
           {viewer.session ? (
             <p>
               This session {viewer.session.session_number}: {viewer.session.start_date} to {viewer.session.end_date}. Logs
@@ -76,7 +77,7 @@ export default async function BarracksPage() {
             <p>No award window covers today. Logs still save.</p>
           )}
           {viewer.week ? <p className="text-mute">Company week {viewer.week}. Induction is a DM record, not this number.</p> : null}
-          <Link className="button" href="/work">
+          <Link className="button primary" href="/work">
             Record Work
           </Link>
         </Panel>
