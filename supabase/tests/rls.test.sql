@@ -911,3 +911,56 @@ begin
   end if;
 end $$;
 reset role;
+
+do $$
+declare
+  v_config text[];
+  v_bare text;
+begin
+  select p.proconfig into v_config
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and p.proname = 'starting_array_valid';
+  if not ('search_path=public' = any (v_config)) then
+    raise exception 'starting_array_valid search_path is %', v_config;
+  end if;
+
+  if has_function_privilege('anon', 'public.stamp_attendance_loot()', 'execute')
+     or has_function_privilege('authenticated', 'public.stamp_attendance_loot()', 'execute')
+     or has_function_privilege('authenticated', 'public.player_can_use_pool(uuid,uuid)', 'execute')
+     or has_function_privilege('authenticated', 'public.protect_ledger()', 'execute')
+     or has_function_privilege('authenticated', 'public.handle_new_user()', 'execute')
+     or has_function_privilege('authenticated', 'public.award_attribute_points(uuid,text,uuid,date,text)', 'execute')
+  then
+    raise exception 'a trigger or internal function is still executable by a client role';
+  end if;
+
+  if not has_function_privilege('authenticated', 'public.log_activity(text,jsonb)', 'execute')
+     or not has_function_privilege('authenticated', 'public.is_member(uuid)', 'execute')
+     or not has_function_privilege('authenticated', 'public.create_character(text,text,text,text,text,text,integer,integer,integer,integer,integer,integer)', 'execute')
+  then
+    raise exception 'a client or policy function lost execute';
+  end if;
+
+  select string_agg(c.relname || '.' || pol.polname, ', ')
+    into v_bare
+  from pg_policy pol
+  join pg_class c on c.oid = pol.polrelid
+  where c.relname in (
+      'profiles', 'guild_memberships', 'characters', 'campaign_notes',
+      'achievements', 'dm_notes', 'announcements'
+    )
+    and (
+      (
+        pg_get_expr(pol.polqual, pol.polrelid) ~ 'auth\.uid\(\)'
+        and pg_get_expr(pol.polqual, pol.polrelid) !~ 'SELECT auth\.uid\(\)'
+      )
+      or (
+        pg_get_expr(pol.polwithcheck, pol.polrelid) ~ 'auth\.uid\(\)'
+        and pg_get_expr(pol.polwithcheck, pol.polrelid) !~ 'SELECT auth\.uid\(\)'
+      )
+    );
+  if v_bare is not null then
+    raise exception 'auth.uid() is still per-row in %', v_bare;
+  end if;
+end $$;
