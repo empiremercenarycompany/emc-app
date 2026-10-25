@@ -106,7 +106,7 @@ Numbers live in `scoring_config`, not in the pages. The seed is a placeholder Jo
 - Staff grants require a reason and may pass 27
 - Empty `cohort_sessions` uses a 14-day cadence. One published window turns that cadence off for dates the table does not list
 
-Open items are in `docs/OPEN_QUESTIONS.md` and in `config_notes` (staff can read them on Schedule).
+The calendar, table check-in, week-6 induction, and milestone levels are in the app. Attendance loot and group-goal payouts are the config text `unset` until John names them. Staff notes on `/notes` are not readable by a player. Open items are in `docs/OPEN_QUESTIONS.md` and in `config_notes` (staff can read them on Schedule).
 
 ## Supabase project, for John
 

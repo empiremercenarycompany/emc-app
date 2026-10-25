@@ -42,6 +42,16 @@ export default async function CharacterPage() {
 
   const character = viewer.character;
   const supabase = await createClient();
+  const audit = supabase
+    ? (
+        await supabase
+          .from("progression_audit")
+          .select("id, kind, from_value, to_value, reason, created_at")
+          .eq("character_id", character.id)
+          .order("created_at", { ascending: false })
+          .limit(20)
+      ).data
+    : [];
   const ledger = supabase
     ? (
         await supabase
@@ -106,6 +116,17 @@ export default async function CharacterPage() {
             </ResultForm>
           );
         })}
+      </Panel>
+      <Panel title="Record">
+        <p className="text-mute">Level changes are recorded by staff. This sheet has no control that raises your level.</p>
+        {(audit ?? []).length === 0 ? <p className="text-mute">No induction or level entries yet.</p> : null}
+        <ul>
+          {(audit ?? []).map((row) => (
+            <li key={row.id}>
+              {row.kind} {row.from_value ?? "—"} to {row.to_value ?? "—"} <span className="text-mute">{row.reason}</span>
+            </li>
+          ))}
+        </ul>
       </Panel>
       <Panel title="Ledger">
         {(ledger ?? []).length === 0 ? <p className="text-mute">No entries yet.</p> : null}

@@ -613,3 +613,301 @@ begin
 end $$;
 select public.clear_cohort_sessions();
 reset role;
+
+-- Campaign: players cannot self-level, and induction waits for the configured week.
+update public.induction_classes set enabled = true where id = 'fighter';
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.set_cohort_start(public.company_today() - 28);
+do $$
+declare
+  v_id uuid;
+begin
+  select id into v_id from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  begin
+    perform public.induct_character(v_id, 'fighter');
+    raise exception 'induction opened before week 6';
+  exception
+    when others then
+      if sqlerrm not ilike '%Induction opens%' then raise; end if;
+  end;
+end $$;
+select public.set_cohort_start(public.company_today() - 35);
+select public.induct_character(
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+  'fighter'
+);
+do $$
+declare
+  v_class text;
+  v_audit int;
+begin
+  select class into v_class from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  if v_class is distinct from 'fighter' then
+    raise exception 'induction class is %', v_class;
+  end if;
+  select count(*) into v_audit
+  from public.progression_audit
+  where kind = 'induction' and to_value = 'fighter';
+  if v_audit <> 1 then
+    raise exception 'induction audit count %', v_audit;
+  end if;
+  begin
+    perform public.advance_milestone(
+      (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221')
+    );
+    raise exception 'milestone opened at week 6';
+  exception
+    when others then
+      if sqlerrm not ilike '%not open%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+begin
+  select id into v_id from public.characters where user_id = auth.uid();
+  begin
+    perform public.set_character_level(v_id, 2);
+    raise exception 'player set their own level';
+  exception
+    when others then
+      if sqlerrm not ilike '%Only the DM%' then raise; end if;
+  end;
+  begin
+    perform public.advance_milestone(v_id);
+    raise exception 'player advanced a milestone';
+  exception
+    when others then
+      if sqlerrm not ilike '%Staff role%' then raise; end if;
+  end;
+  begin
+    update public.characters set level = 9 where id = v_id;
+    raise exception 'player wrote level directly';
+  exception
+    when insufficient_privilege then null;
+    when others then
+      if sqlstate <> '42501' and sqlerrm not ilike '%Level, class%' then raise; end if;
+  end;
+  if has_function_privilege('authenticated', 'public.write_progression_audit(uuid,text,text,text,text)', 'execute') then
+    raise exception 'authenticated can write the audit directly';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.set_cohort_start(public.company_today() - 105);
+select public.advance_milestone(
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221')
+);
+select public.set_cohort_start(public.company_today() - 217);
+select public.advance_milestone(
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221')
+);
+do $$
+declare
+  v_level int;
+  v_audit int;
+begin
+  select level into v_level from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  if v_level <> 3 then
+    raise exception 'milestone level is %', v_level;
+  end if;
+  select count(*) into v_audit from public.progression_audit where kind = 'level' and to_value in ('2', '3');
+  if v_audit <> 2 then
+    raise exception 'level audit count %', v_audit;
+  end if;
+end $$;
+reset role;
+
+-- Staff notes stay invisible to players.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+insert into public.dm_notes (guild_id, character_id, body, created_by)
+values (
+  '11111111-1111-4111-8111-111111111111',
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+  'staff only note',
+  '22222222-2222-4222-8222-222222222222'
+);
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_notes int;
+begin
+  select count(*) into v_notes from public.dm_notes;
+  if v_notes <> 0 then
+    raise exception 'player read % staff notes', v_notes;
+  end if;
+  begin
+    insert into public.dm_notes (guild_id, character_id, body, created_by)
+    values (
+      '11111111-1111-4111-8111-111111111111',
+      (select id from public.characters where user_id = auth.uid()),
+      'player note',
+      auth.uid()
+    );
+    raise exception 'player wrote a staff note';
+  exception
+    when insufficient_privilege then null;
+    when others then
+      if sqlstate <> '42501' and sqlerrm not ilike '%row-level%' and sqlerrm not ilike '%policy%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222223', false);
+set role authenticated;
+do $$
+declare
+  v_notes int;
+begin
+  select count(*) into v_notes from public.dm_notes where body = 'staff only note';
+  if v_notes <> 1 then
+    raise exception 'admin could not read the staff note';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222224', false);
+set role authenticated;
+do $$
+declare
+  v_notes int;
+begin
+  select count(*) into v_notes from public.dm_notes where body = 'staff only note';
+  if v_notes <> 1 then
+    raise exception 'curator could not read the staff note';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222225', false);
+set role authenticated;
+do $$
+declare
+  v_notes int;
+begin
+  select count(*) into v_notes from public.dm_notes;
+  if v_notes <> 0 then
+    raise exception 'outsider read staff notes';
+  end if;
+end $$;
+reset role;
+
+-- Squad announcements are for that squad. Company notices stay company-wide.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.create_squad('Notice squad', 6);
+insert into public.announcements (guild_id, squad_id, title, body, posted_by)
+values (
+  '11111111-1111-4111-8111-111111111111',
+  (select id from public.squads where name = 'Notice squad'),
+  'Squad only',
+  'for the squad',
+  '22222222-2222-4222-8222-222222222222'
+);
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_rows int;
+begin
+  select count(*) into v_rows from public.announcements where title = 'Squad only';
+  if v_rows <> 0 then
+    raise exception 'player outside the squad read its notice';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.assign_squad(
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+  (select id from public.squads where name = 'Notice squad')
+);
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_rows int;
+begin
+  select count(*) into v_rows from public.announcements where title = 'Squad only';
+  if v_rows <> 1 then
+    raise exception 'squad member could not read the notice';
+  end if;
+end $$;
+reset role;
+
+-- Check-in records attendance and copies the loot placeholder. It does not award points.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222223', false);
+set role authenticated;
+select public.save_table_session(null, 'Week table', public.company_today(), null, null);
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+select public.log_activity(
+  'checkin',
+  jsonb_build_object('session_id', (select id from public.sessions where title = 'Week table'))
+);
+do $$
+declare
+  v_loot text;
+  v_rows int;
+begin
+  select count(*), max(loot_placeholder) into v_rows, v_loot
+  from public.session_attendance a
+  join public.sessions s on s.id = a.session_id
+  where s.title = 'Week table';
+  if v_rows <> 1 or v_loot is distinct from 'unset' then
+    raise exception 'attendance loot is % rows %', v_loot, v_rows;
+  end if;
+  begin
+    perform public.correct_attendance(
+      (select id from public.sessions where title = 'Week table'),
+      (select id from public.characters where user_id = auth.uid()),
+      true,
+      false
+    );
+    raise exception 'player corrected attendance';
+  exception
+    when others then
+      if sqlerrm not ilike '%Only the DM%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.correct_attendance(
+  (select id from public.sessions where title = 'Week table'),
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+  true,
+  false
+);
+do $$
+declare
+  v_share boolean;
+begin
+  select loot_share into v_share
+  from public.session_attendance a
+  join public.sessions s on s.id = a.session_id
+  where s.title = 'Week table';
+  if v_share then
+    raise exception 'DM correction did not record loot share';
+  end if;
+end $$;
+reset role;

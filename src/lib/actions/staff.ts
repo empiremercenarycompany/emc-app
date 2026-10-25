@@ -155,8 +155,10 @@ export async function postAnnouncement(formData: FormData): Promise<ActionResult
     .eq("user_id", user.id)
     .maybeSingle();
   if (!membership?.guild_id) return { error: "Join the company first." };
+  const squadId = String(formData.get("squad_id") ?? "");
   const { error: insertError } = await supabase.from("announcements").insert({
     guild_id: membership.guild_id,
+    squad_id: squadId || null,
     title: String(formData.get("title") ?? "").trim(),
     body: String(formData.get("body") ?? "").trim(),
     posted_by: user.id,
@@ -177,16 +179,18 @@ export async function createSession(formData: FormData): Promise<ActionResult> {
     .eq("user_id", user.id)
     .maybeSingle();
   if (!membership?.guild_id) return { error: "Join the company first." };
-  const when = String(formData.get("scheduled_at") ?? "");
-  const { error: insertError } = await supabase.from("sessions").insert({
-    guild_id: membership.guild_id,
-    title: String(formData.get("title") ?? "").trim(),
-    scheduled_at: when || null,
-    notes: String(formData.get("notes") ?? "").trim() || null,
+  const squadId = String(formData.get("squad_id") ?? "");
+  const { error: rpcError } = await supabase.rpc("save_table_session", {
+    p_id: String(formData.get("id") ?? "") || null,
+    p_title: String(formData.get("title") ?? "").trim(),
+    p_session_date: String(formData.get("session_date") ?? "").slice(0, 10),
+    p_squad_id: squadId || null,
+    p_notes: String(formData.get("notes") ?? "").trim(),
   });
-  const message = dbError(insertError);
+  const message = dbError(rpcError);
   if (message) return { error: message };
   revalidatePath("/missions");
+  revalidatePath("/calendar");
   return { ok: true };
 }
 

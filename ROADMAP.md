@@ -8,15 +8,16 @@ What is already in the app is described in the README. This file is the later wo
 - Workout library with three equipment versions and the STR movement check.
 - Prescribed and custom logs, goals, three pools, squads, group goals, and `log_activity`.
 - Lifting journal: curator exercises and pools, player drag-and-drop, session log, squad visibility, personal records.
-- Staff windows, grants, induction, and level. Leveling is not automatic.
+- Staff windows, grants, induction at the configured week, and milestone levels with an audit trail. Leveling is not automatic.
+- Table sessions on the Denver calendar, check-in, attendance with a loot placeholder, company and squad announcements, and staff-only notes.
 
 ## Later
 
 1. Achievements and badges the squad can see. The tables exist. Nothing awards them.
 2. A dedicated nutrition and sleep logger. Constitution goals already feed that pool.
-3. The Week 6 class list, once John enables rows in `induction_classes`.
-4. Milestone leveling as a DM action with a reminder, still not an automatic write. Level 2 after adventure 1 and level 3 after adventure 2 are config values only.
-5. Session notes and a campaign notebook.
+3. Enabling the martial class rows John chooses. The week-6 gate is already in `induct_character`.
+4. Whatever attendance and a group goal pay. The placeholders are stored and grant nothing.
+5. A shared notebook players can read. Staff-only notes are already on `/notes`.
 6. An offline queue for logs. The service worker caches the shell and does not store a log.
 7. Push notifications.
 8. Portrait upload. The portrait column exists. No upload function is wired.

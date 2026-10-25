@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
+import { advanceMilestone } from "@/lib/actions/campaign";
 import { clearSessions, grantPoints, induct, setAppRole, setCohortSession, setCohortStart, setLevel } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -115,7 +116,8 @@ export default async function SchedulePage() {
             </select>
           </ResultForm>
           <p className="text-sm text-mute">
-            Every class row ships disabled. TODO(John): which martial classes open at induction. Leveling is not automatic.
+            Induction opens at week {viewer.config?.induction_week ?? 6}. Every class row ships disabled. TODO(John): which
+            martial classes open. A class that is not enabled is refused.
           </p>
           <ResultForm action={setLevel} submit="Set level">
             <select name="character_id" required defaultValue="">
@@ -130,6 +132,7 @@ export default async function SchedulePage() {
             </select>
             <input name="level" required inputMode="numeric" placeholder="Level" />
           </ResultForm>
+          <p className="text-sm text-mute">A level change is written to the audit. It does not touch point pools.</p>
           <ResultForm action={setAppRole} submit="Set role">
             <input name="user_id" required placeholder="User id" />
             <select name="role" defaultValue="player">
@@ -137,6 +140,27 @@ export default async function SchedulePage() {
               <option value="dm">DM</option>
               <option value="admin">Admin</option>
               <option value="curator">Curator</option>
+            </select>
+          </ResultForm>
+        </Panel>
+      ) : null}
+      {isStaff(viewer.role) ? (
+        <Panel title="Milestones">
+          <p className="text-mute">
+            Level {viewer.config?.level_after_adventure_1 ?? 2} opens at week {viewer.config?.level_two_week ?? 16}. Level{" "}
+            {viewer.config?.level_after_adventure_2 ?? 3} opens at week {viewer.config?.level_three_week ?? 32}. Staff
+            record one step at a time. Nothing levels by itself, and a milestone does not lower a level.
+          </p>
+          <ResultForm action={advanceMilestone} submit="Record milestone">
+            <select name="character_id" required defaultValue="">
+              <option value="" disabled>
+                Character
+              </option>
+              {(people ?? []).map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
             </select>
           </ResultForm>
         </Panel>

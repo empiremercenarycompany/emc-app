@@ -3,6 +3,7 @@ import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { checkIn } from "@/lib/actions/activity";
 import { logObjective } from "@/lib/actions/activity";
+import { correctAttendance } from "@/lib/actions/campaign";
 import { createSession } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -26,11 +27,15 @@ export default async function MissionsPage() {
       ? (
           await supabase
             .from("sessions")
-            .select("id, title, scheduled_at")
+            .select("id, title, session_date, scheduled_at")
             .eq("guild_id", viewer.guildId)
             .order("scheduled_at", { ascending: false })
             .limit(8)
         ).data
+      : [];
+  const people =
+    supabase && viewer.guildId && viewer.role === "dm"
+      ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId)).data
       : [];
 
   return (
@@ -66,7 +71,8 @@ export default async function MissionsPage() {
           <div key={session.id}>
             <p>
               {session.title}
-              {session.scheduled_at ? ` · ${session.scheduled_at}` : ""}
+              {session.session_date ? ` · ${session.session_date}` : ""}
+              {session.scheduled_at && !session.session_date ? ` · ${session.scheduled_at}` : ""}
             </p>
             {viewer.character ? (
               <ResultForm action={checkIn} submit="Check in">
@@ -78,11 +84,46 @@ export default async function MissionsPage() {
         {viewer.role === "dm" ? (
           <ResultForm action={createSession} submit="Add a table">
             <input name="title" required placeholder="Title" />
-            <input type="datetime-local" name="scheduled_at" />
-            <textarea name="notes" placeholder="Notes" />
+            <input type="date" name="session_date" required />
+            <textarea name="notes" placeholder="Note the table can read" />
           </ResultForm>
         ) : null}
-        <p className="text-sm text-mute">TODO(John): loot share is stored and does nothing else.</p>
+        <p className="text-sm text-mute">
+          Attendance loot is {viewer.config?.attendance_loot ?? "unset"}. Check-in copies that placeholder and grants nothing.
+          TODO(John): what it should pay. Group-goal payout is {viewer.config?.group_goal_payout ?? "unset"}.
+        </p>
+        {viewer.role === "dm" ? (
+          <ResultForm action={correctAttendance} submit="Correct attendance" secondary>
+            <select name="session_id" required defaultValue="">
+              <option value="" disabled>
+                Session
+              </option>
+              {(sessions ?? []).map((session) => (
+                <option key={session.id} value={session.id}>
+                  {session.title}
+                </option>
+              ))}
+            </select>
+            <select name="character_id" required defaultValue="">
+              <option value="" disabled>
+                Character
+              </option>
+              {(people ?? []).map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+            <select name="present" defaultValue="true">
+              <option value="true">Present</option>
+              <option value="false">Absent</option>
+            </select>
+            <select name="loot_share" defaultValue="true">
+              <option value="true">Loot flag on</option>
+              <option value="false">Loot flag off</option>
+            </select>
+          </ResultForm>
+        ) : null}
       </Panel>
     </Page>
   );

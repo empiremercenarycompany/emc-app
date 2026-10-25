@@ -49,6 +49,10 @@ export type ScoringRow = {
   adventure_weeks: number;
   level_after_adventure_1: number;
   level_after_adventure_2: number;
+  level_two_week: number;
+  level_three_week: number;
+  attendance_loot: string;
+  group_goal_payout: string;
   veteran_tier_start_week: number | null;
   share_lifting_default: boolean;
 };
