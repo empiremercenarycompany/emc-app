@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app.dart';
 import 'core/config/supabase_config.dart';
-import 'core/utils/workout_awards.dart';
+import 'core/utils/progression.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  WorkoutAwardRule.ensureTimeZones();
+  ProgressionRules.ensureTimeZones();
 
   await Supabase.initialize(
     url: SupabaseConfig.url,

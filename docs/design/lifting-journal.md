@@ -1,8 +1,8 @@
 # Lifting journal — design proposal
 
-For John to review. This is not built. No tables or screens from this document are in the app.
+For John to review. The journal tables and screens below are not built. The award windows they mention (`cohort_sessions` and the first-adventure caps) are already in the database.
 
-A curator approves the exercises that can appear in a workout. Trainers build templates from that library. A player drags approved exercises into their own workout, reorders them, and swaps them. Logging the session records the actual sets and, once, can award Physical points under the existing weekly rule. Some approved exercises also pay a separate bonus because they are part of the month's group goal or tied to that player's own goal.
+A curator approves the exercises that can appear in a workout. Trainers build templates from that library. A player drags approved exercises into their own workout, reorders them, and swaps them. Logging the session records the actual sets. During the first adventure that one log can earn a Physical point under the exercise allotment. A flagged exercise is only a hook for a later reward. It does not pay attribute points.
 
 John named Garret as the person who would curate exercises. The rules do not name him. They key off a guild role, `curator`, stored on `guild_memberships.role`. Another person can hold the same job. A Captain does not automatically become a curator unless John says so.
 
@@ -61,7 +61,7 @@ A player who has not built a workout can still log the assigned template as it s
 
 One screen, two columns. On a phone the menu is above the workout and both scroll.
 
-- Left column, "Approved". The exercises in the player's current pool. Grouped by focus, with a search field. A card shows the name, the focus, and a bonus chip when this exercise pays a bonus for this player this month. Retired exercises and exercises outside the pool are absent. Dragging starts from a card.
+- Left column, "Approved". The exercises in the player's current pool. Grouped by focus, with a search field. A card shows the name, the focus, and a marker when a curator has flagged it. The marker is not a point value. Retired exercises and exercises outside the pool are absent. Dragging starts from a card.
 - Right column, "Your workout". An ordered list with a drag handle on each row. Dropping on the list inserts at that index. Dropping onto an existing row swaps that row for the new exercise and keeps the target sets, reps, and weight already on the row. Dragging a row by its handle reorders it. Each row has a remove control and fields for target sets, reps, and weight, filled from the template when the row was copied.
 - Buttons: "Start from assigned template" (asks before replacing the list), "Save workout", "Clear".
 - Save writes `player_workouts` and `player_workout_exercises` only. It does not write a session and does not award points.
@@ -71,19 +71,16 @@ One screen, two columns. On a phone the menu is above the workout and both scrol
 
 `lifting_sessions`
 
-- `id`, `character_id`, `player_workout_id` (null when logging the template unchanged), `template_id`, `workout_log_id`, `date`, `notes`, `share_with_squad`, `points_awarded`, `bonus_points_awarded`, `created_at`
+- `id`, `character_id`, `player_workout_id` (null when logging the template unchanged), `template_id`, `workout_log_id`, `date`, `notes`, `share_with_squad`, `points_awarded`, `created_at`
 - `date` is the company-zone calendar date passed to `record_workout`.
-- `points_awarded` is the base Physical award from that one workout log. `bonus_points_awarded` is the sum of bonus points granted for this session. Squadmates can read those numbers without reading the point ledger.
+- `points_awarded` is the Physical award from that one workout log, or 0. Squadmates can read it without reading the point ledger.
 
 `lifting_sets`
 
 - `id`, `session_id`, `exercise_id`, `set_number`, `reps`, `weight`, `notes`, `is_pr`
 - What the player actually lifted. Several sets belong to one session. The exercise is a library id, not free text.
 
-`session_exercise_bonuses`
-
-- `id`, `session_id`, `exercise_id`, `pool`, `points_awarded`, `reason` (`group_goal` or `player_goal`), `goal_id`
-- One row per exercise per session per pool. The ledger's `source_id` points here, so a second save of the same session finds the row and awards nothing more.
+There is no per-set point row. A flagged exercise is recorded on `exercise_flags`, described below, and the lifting session does not copy a bonus total.
 
 ## Who can do what
 
@@ -97,55 +94,46 @@ One screen, two columns. On a phone the menu is above the workout and both scrol
 - A player can insert, update, and delete their own sessions and sets.
 - A squadmate can read a session and its sets only when `share_with_squad` is true and both characters share `squad_id`.
 - The privacy toggle is per session. This proposal defaults it to on. Turning it off hides that session. It does not hide other sessions, and it does not remove points.
-- Bonus flags are written by a curator. A player can read the flags that apply to them. A player cannot mark an exercise as a bonus.
+- Exercise flags are written by a curator. A player can read the flags that apply to them. A player cannot mark an exercise.
 
-## Base Physical award
+## Attribute points from a lifting session
 
-Saving a session calls `record_workout` once. That writes one `workout_logs` row and runs the weekly award rule. The session stores that log's id.
+"Session" here is one journal entry. The point rules use a different session: an award window on the Denver calendar.
 
-The date is America/Denver. The award counts against the week the workout happened, including a late log inside the 14-day window. A future date is rejected and nothing is saved. An older date is saved, on the workout log and the session, with `points_awarded` 0. Saving the same session again does not award the base points twice.
+The first adventure is 8 of those windows. At the usual pace each window is 14 days, so the adventure is 16 weeks. A player can earn at most 3 exercise points and 3 goal points in one window. The 27-point build is the binding cap. The starting array already costs 3, so 24 points remain. Four windows at 6 points fill that. A player who maxes every window is done at session 4. Sessions 5 through 8 stay open for a player who earned less. Automatic awards stop at 27 or when the date is outside a first-adventure window, whichever comes first.
 
-Sets do not award the base points. Five sets are one log. The weekly cap counts awarded logs, not sets.
+The windows come from `cohort_sessions` when that table has any row. Staff (`admin`, `curator`, `dm`, or `captain`) edit it with `set_cohort_session`, `delete_cohort_session`, and `clear_cohort_sessions`. Each row is a session number, an inclusive start date, and an inclusive end date. There is no screen for this yet.
 
-## Bonus exercises
+An irregular week is one of two shapes, and both are supported:
 
-A bonus is extra points for including a flagged exercise in a session. It is not a second workout log, and it does not change points already granted.
+- A three-parter is one row with a longer span than 14 days. The whole span is one session and shares that session's 3-point exercise cap.
+- An off-week is a date no row covers. It belongs to no session. A log on that date is saved and earns 0. A later row whose number is 1 through 8 still awards, so the gap does not end the adventure.
 
-### How an exercise gets flagged
+When `cohort_sessions` is empty, the windows fall back to 14 Denver dates from `program_settings.cohort_start` (placeholder `2026-10-05`). Session 1 starts that day. The fallback is all or nothing: one published row means dates outside the table do not use the cadence. Clearing the table restores it. The seeded anchor is a placeholder until John sets the real first day.
 
-Two flags, both set by a curator. The player does not flip either one.
+Saving a lifting session calls `record_workout` once. That writes one `workout_logs` row. During the first adventure, that log can earn 1 Physical point if that adventure session still has room in its 3-point exercise allotment, the 27-point build is not yet full, and the date is inside the 14-day backfill. The award counts against the adventure session of the workout date. A future date is rejected and nothing is saved. An older date, an off-week, a date outside the first adventure, or a full allotment is saved with `points_awarded` 0.
 
-Monthly group goal. `monthly_exercise_bonuses` rows: `guild_id`, `exercise_id`, `period_start`, `period_end`, `pool`, `created_by`. The period is one calendar month, the same shape as `goals.period_start` / `goals.period_end`. While the session date falls in that month, every player in the guild who logs that exercise is eligible. This is the month's group goal.
+Sets do not award points. Five sets are one workout log, and that log is one exercise point at most. There is no weekly cap and no frequency bonus.
 
-A player's own goal. `goal_exercise_links` rows: `goal_id`, `exercise_id`. The goal already has a category and a monthly period. During that period, only that goal's character is eligible, and only for those exercises. The link is how a personal goal turns a lift into a bonus. Goal creation itself is still a later feature. Until it exists, a curator can attach the link to a goal row that is already in the database.
+After the first adventure, the same save still writes the journal and the workout log. It earns no automatic attribute points.
 
-An exercise can carry both flags at once. See the calculation below.
+## Flagged exercises
 
-### Placeholder numbers
+A curator can mark an exercise as part of the month's group goal, or link it to one player's goal. That mark is a hook for a later reward. It does not grant attribute points, during the first adventure or after it.
 
-These are not locked. When this is built they live in one config next to `WorkoutAwardRule` and `workout_award_config()`, and nowhere else.
+`exercise_flags`
 
-| Setting | Placeholder |
-| --- | --- |
-| Points per flagged exercise in a session | **1** |
-| Pool for a monthly group-goal bonus | **physical** |
-| Bonus exercises that pay in one week | **3** |
-| Bonuses count toward the workout-log cap | **no** |
+- `id`, `exercise_id`, `guild_id`, `goal_id` (null for a group mark), `period_start`, `period_end`, `reward_hook` (text, nullable), `created_by`
+- The period is one calendar month when it is set, the same shape as a goal period.
+- `reward_hook` is an empty slot. This design does not define values for it and does not name a reward.
+- A player cannot set the flag. Unflagging an exercise does not change points already earned.
+- Attribute points still come only from the first-adventure allotments: workouts into Physical, and completed goals into the goal's own pool. A flagged lift does not add a second award.
 
-The personal-goal bonus uses the goal's pool: Intelligence, Wisdom, or Charisma pays Mental; Constitution pays Constitution. A group-goal bonus uses the table above, so a group lifting goal pays Physical.
+## Staff grants
 
-### Calculation
+`grant_staff_attribute_points` is in the database now. There is no screen.
 
-On save, after the base `record_workout` call, look at each distinct exercise in the session.
-
-- Future dates never get here, because the session was rejected.
-- If the date is older than the backfill window, the base award is 0 and every bonus is 0. The sets are kept. Nothing already earned is reduced.
-- Otherwise each flagged exercise can pay, even when the base award is 0 because that week's workout-log cap is full. Bonus points sit outside that cap.
-- The separate placeholder caps how many exercises pay a bonus in the company week: 3. A later flagged exercise that week is logged and its bonus is 0.
-- The same exercise twice in one session pays once, not once per set.
-- If the group flag and the player's goal both match and they pay the same pool, pay that pool once. If they pay different pools, pay each pool once. A Mental goal plus the group Physical flag on the same squat pays 1 Mental and 1 Physical.
-- Each payment inserts `session_exercise_bonuses` and then one ledger row with source `exercise_bonus`. A second save finds that row and adds nothing.
-- Amounts are never negative. Unflagging an exercise, ending a goal, or retiring an exercise does not delete a bonus already given.
+A caller whose `guild_memberships.role` is `admin`, `curator`, `dm`, or `captain` can add points to a character's Physical, Constitution, or Mental pool. The call requires a non-empty reason. The ledger row uses source `staff`, stores the reason, and does not set a session. The amount must be positive. The grant may take the build past 27. It does not remove points, and it does not check the first adventure. Automatic awards still stop once the build is at least 27, so a staff grant can close the automatic allotment by filling that budget.
 
 ## Personal records
 
@@ -155,12 +143,12 @@ A shared session shows its PR sets on the squad board. A private session does no
 
 ## Screens
 
-- Library, curator only: add an exercise, approve it, retire it, build pools, flag this month's group-bonus exercises, attach exercises to a player's goal.
+- Library, curator only: add an exercise, approve it, retire it, build pools, and set an exercise flag. The flag carries an optional reward hook and does not show a point value.
 - Template editor, curator only: pick a pool, drag approved exercises into an order, set targets, assign the template to a player, end the assignment.
 - Workout builder, the drag-and-drop screen above. The player only.
-- Log a session: the date control from Log Work, the saved workout or the assigned template as the plan, rows for actual sets, reps, weight, and notes, bonus chips on flagged exercises, and the squad visibility toggle. Save creates the session, the sets, and the one workout log.
-- My journal: past sessions, including ones that earned 0, with sets, bonuses, and PR marks.
-- Squad board: shared sessions only, with the lifter, the date, the sets, bonuses, and PR marks.
+- Log a session: the date control from Log Work, the saved workout or the assigned template as the plan, rows for actual sets, reps, weight, and notes, a marker on flagged exercises, and the squad visibility toggle. Save creates the session, the sets, and the one workout log.
+- My journal: past sessions, including ones that earned 0, with sets and PR marks.
+- Squad board: shared sessions only, with the lifter, the date, the sets, and PR marks.
 
 ## Decisions for John
 
@@ -170,9 +158,8 @@ A shared session shows its PR sets on the squad board. A private session does no
 4. Squad visibility: default shared or private? Per session, as proposed, or one switch for the whole journal?
 5. Should squadmates see every set, or only a summary and the PRs?
 6. Is a personal record the heaviest weight, or should reps count (for example a best estimated one-rep max)?
-7. Confirm one workout log, and therefore one base Physical award, per session rather than per set.
-8. Confirm bonuses sit outside the weekly workout-log cap, with their own placeholder cap of 3 exercises a week.
-9. Confirm the other placeholders: 1 point per flagged exercise, and Physical for a group-goal bonus.
-10. When a group flag and a personal goal both match, is "once per pool" right, or should they stack in the same pool?
-11. Should a personal-goal bonus follow the goal's pool (Mental or Constitution), or should every lift bonus stay Physical?
-12. Confirm a log older than the 14-day window keeps the sets and pays neither the base award nor a bonus.
+7. Confirm one workout log per lifting session, so it can take at most one of the three exercise points in that adventure session.
+8. Confirm a flagged exercise never grants attribute points, and that `reward_hook` stays undefined until a later reward exists.
+9. Confirm a log older than 14 days keeps the sets and earns no attribute points.
+10. Staff grants currently allow `admin`, `curator`, `dm`, and `captain`. Should the grant require the same guild as the character?
+11. The session schedule uses the same roles, and one published row turns the 14-day cadence off for every date the table does not list. Should a missing session fall back to the cadence instead?

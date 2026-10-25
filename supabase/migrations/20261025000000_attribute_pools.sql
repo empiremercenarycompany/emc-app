@@ -7,20 +7,28 @@
 -- Scores and pool balances can change only through spend_attribute_points
 -- and award_attribute_points. Direct updates of those columns are rejected.
 --
--- Workout award numbers are placeholders for John. They live in
--- workout_award_config() and must match WorkoutAwardRule in
--- lib/core/utils/workout_awards.dart:
---   1 Physical point per awarded log.
---   5 awarded logs per week. The week is Monday–Sunday in America/Denver.
---   The 3rd awarded log of that week also earns 1 bonus point.
---   A log dated within the previous 14 Denver calendar days still earns points.
+-- Automatic attribute points are earned only during the first adventure.
+-- Placeholders live in progression_config(), program_settings.cohort_start,
+-- and cohort_sessions. Keep them aligned with ProgressionRules in
+-- lib/core/utils/progression.dart.
+--   Cohort anchor: 2026-10-05 (Denver calendar date). John must set the real one.
+--   With no schedule rows, a session is 14 Denver calendar days from that
+--   anchor. Session 1 starts on the anchor. Numbers are 1-based.
+--   The first adventure is 8 sessions (16 weeks at that pace).
+--   Each session: at most 3 Physical points from workouts, 1 per log.
+--   Each session: at most 3 points from goals. Constitution goals pay
+--   Constitution. Intelligence, Wisdom, and Charisma goals pay Mental.
+--   The point-buy budget is 27, including the 3 points already in the
+--   starting array. That total is the binding cap: 4 maxed sessions earn
+--   the remaining 24 points. Sessions 5 through 8 are for a slower pace.
+--   Automatic awards stop at 27 or outside a first-adventure session.
+--   A published cohort_sessions row replaces the cadence. A longer row is
+--   a three-parter and keeps one cap. A date in no row is an off-week and
+--   earns 0. Later scheduled sessions still award.
+--   A log within 14 days can still earn for the session of its own date.
 --   Older logs are saved and earn 0. Future dates are rejected.
---   The award uses the week of the workout's date, not the week it was entered.
---   The same log id cannot be awarded twice. Two logs on one date both count.
---   Once that week's cap is full, later logs for that week earn 0.
---   A full cap never reduces points already given.
---   The week id is the Monday of the workout's Denver calendar date.
---   The zone name is config, so another gym can switch zones without new rules.
+--   Staff grants are extra, require a reason, and may pass 27.
+--   Nothing already earned is removed.
 
 -- ============================================================
 -- POOL BALANCES
@@ -48,9 +56,9 @@ drop function if exists public.award_attribute_points(uuid, integer, text, text)
 
 alter table public.characters drop column attribute_points;
 
-comment on column public.characters.physical_points is 'Unspent Physical points. Workouts earn them. Strength and Dexterity spend them.';
-comment on column public.characters.constitution_points is 'Unspent Constitution points. Nutrition and sleep earn them. Constitution spends them.';
-comment on column public.characters.mental_points is 'Unspent Mental points. SMART goals earn them. Intelligence, Wisdom, and Charisma spend them.';
+comment on column public.characters.physical_points is 'Unspent Physical points. Workouts during the first adventure earn them. Strength and Dexterity spend them.';
+comment on column public.characters.constitution_points is 'Unspent Constitution points. Constitution goals earn them during the first adventure. Constitution spends them.';
+comment on column public.characters.mental_points is 'Unspent Mental points. Intelligence, Wisdom, and Charisma goals earn them during the first adventure. Those abilities spend them.';
 
 -- ============================================================
 -- LEDGER
@@ -58,10 +66,10 @@ comment on column public.characters.mental_points is 'Unspent Mental points. SMA
 
 alter table public.attribute_point_ledger
   add column pool text,
-  add column award_week date;
+  add column session_start date;
 
-comment on column public.attribute_point_ledger.award_week is
-  'Monday (UTC calendar) of the ISO week a workout award belongs to. Null for sources that are not weekly.';
+comment on column public.attribute_point_ledger.session_start is
+  'First Denver calendar day of the adventure session this automatic award counts against. From cohort_sessions when a schedule is published, otherwise the 14-day cadence. Null for staff grants and for dates in no session.';
 
 alter table public.attribute_point_ledger
   add constraint attribute_point_ledger_pool_check
@@ -74,11 +82,10 @@ create unique index attribute_point_ledger_source_once
   on public.attribute_point_ledger (source, source_id)
   where source_id is not null;
 
--- Supports the weekly cap count. The cap itself is enforced in
--- award_attribute_points, because it is a count rather than a single row.
-create index attribute_point_ledger_workout_week
-  on public.attribute_point_ledger (character_id, award_week)
-  where source = 'workout' and points_awarded > 0;
+-- Supports the per-session allotment sums.
+create index attribute_point_ledger_session
+  on public.attribute_point_ledger (character_id, session_start, source)
+  where points_awarded > 0;
 
 -- ============================================================
 -- COST TABLE
@@ -188,52 +195,176 @@ create trigger workout_logs_protect_points
 revoke all on function public.protect_workout_points() from public;
 
 -- ============================================================
--- WORKOUT AWARD CONFIG AND WEEK BOUNDARY
+-- FIRST ADVENTURE CONFIG
 -- ============================================================
 
--- Placeholders for John. Keep every column aligned with WorkoutAwardRule.
-create or replace function public.workout_award_config()
+-- The cohort anchor is data, so it can change without editing the function.
+-- 2026-10-05 is a placeholder. With no schedule rows, session 1 is that
+-- Denver date through the next 13 dates. A fallback session is 14 calendar
+-- dates, so DST does not add or drop a day.
+create table public.program_settings (
+  id int primary key check (id = 1),
+  cohort_start date not null
+);
+
+insert into public.program_settings (id, cohort_start)
+values (1, date '2026-10-05');
+
+comment on table public.program_settings is
+  'Singleton program clock. cohort_start is the first day of session 1 when cohort_sessions is empty. It is a Denver calendar date. A published schedule does not use it to place dates.';
+
+-- Staff-editable award windows. Empty means the 14-day cadence.
+-- A three-parter is one row whose inclusive end is later than the usual
+-- 13 days after start. That whole span shares one session cap.
+-- An off-week is not a row. It is any date no row covers, and it earns 0.
+-- Once any row exists, dates the table does not cover do not fall back to
+-- the cadence. Delete the rows to restore it.
+-- Session numbers above first_adventure_sessions may be stored and do not
+-- award automatic points. Numbers start at 1.
+create table public.cohort_sessions (
+  session_number int primary key check (session_number >= 1),
+  start_date date not null,
+  end_date date not null,
+  constraint cohort_sessions_ordered check (end_date >= start_date),
+  constraint cohort_sessions_no_overlap exclude using gist (
+    daterange(start_date, end_date, '[]') with &&
+  )
+);
+
+comment on table public.cohort_sessions is
+  'Staff schedule of award windows, inclusive Denver dates. Empty falls back to the 14-day cadence from program_settings.cohort_start. A longer row is a three-parter. A gap is an off-week and belongs to no session.';
+
+alter table public.cohort_sessions enable row level security;
+
+create policy "Authenticated read cohort sessions"
+  on public.cohort_sessions for select
+  to authenticated
+  using (true);
+
+revoke all on table public.cohort_sessions from public;
+grant select on table public.cohort_sessions to authenticated;
+
+alter table public.program_settings enable row level security;
+
+create policy "Authenticated read program settings"
+  on public.program_settings for select
+  to authenticated
+  using (true);
+
+-- Placeholders for John. Keep every column aligned with ProgressionRules.
+create or replace function public.progression_config()
 returns table (
-  points_per_log int,
-  weekly_cap int,
-  weekly_target int,
-  weekly_target_bonus int,
   time_zone text,
-  backfill_days int
+  backfill_days int,
+  points_per_workout int,
+  points_per_goal int,
+  exercise_points_per_session int,
+  goal_points_per_session int,
+  session_length_days int,
+  first_adventure_sessions int,
+  point_buy_budget int,
+  cohort_start date
 )
 language sql
-immutable
+stable
 as $$
-  select 1, 5, 3, 1, 'America/Denver'::text, 14
+  select
+    'America/Denver'::text,
+    14,
+    1,
+    1,
+    3,
+    3,
+    14,
+    8,
+    27,
+    (select cohort_start from public.program_settings where id = 1)
 $$;
 
-comment on function public.workout_award_config() is
-  'Placeholder workout award config. points_per_log, weekly_cap (awarded logs), weekly_target, weekly_target_bonus, time_zone (IANA), backfill_days. Mirror of WorkoutAwardRule.';
+comment on function public.progression_config() is
+  'First-adventure award config. Numbers are placeholders. cohort_start comes from program_settings. Mirror of ProgressionRules. first_adventure_sessions is 8. The 27-point budget still stops a maxed build at session 4.';
 
-revoke all on function public.workout_award_config() from public;
-grant execute on function public.workout_award_config() to authenticated;
+revoke all on function public.progression_config() from public;
+grant execute on function public.progression_config() to authenticated;
 
--- Monday of the civil week for a company-zone calendar date.
--- The date is already a calendar day in the configured zone, so this
--- truncation does not depend on the session TimeZone. DST does not move
--- the Monday: the week is seven calendar dates, not 168 hours.
-create or replace function public.workout_week_start(p_day date)
+-- The session containing p_day. No row when the date is before the cadence
+-- anchor, or in a gap of a published schedule.
+-- session_number is 1 for the first session. A published schedule wins over
+-- the cadence as soon as cohort_sessions has any row.
+create or replace function public.adventure_session(p_day date)
+returns table (
+  session_number int,
+  start_date date,
+  end_date date
+)
+language plpgsql
+stable
+as $$
+declare
+  v_anchor date;
+  v_length int;
+  v_index int;
+begin
+  if p_day is null then
+    return;
+  end if;
+
+  if exists (select 1 from public.cohort_sessions) then
+    return query
+      select s.session_number, s.start_date, s.end_date
+      from public.cohort_sessions s
+      where p_day between s.start_date and s.end_date
+      limit 1;
+    return;
+  end if;
+
+  select c.cohort_start, c.session_length_days
+    into v_anchor, v_length
+  from public.progression_config() c;
+
+  if v_anchor is null or v_length is null or v_length < 1 or p_day < v_anchor then
+    return;
+  end if;
+
+  v_index := (p_day - v_anchor) / v_length;
+  session_number := v_index + 1;
+  start_date := v_anchor + (v_index * v_length);
+  end_date := start_date + (v_length - 1);
+  return next;
+end;
+$$;
+
+comment on function public.adventure_session(date) is
+  'Award window for a Denver date. Schedule rows win when any exist. Otherwise a 14-day window from the cohort anchor. Session 1 is the first window.';
+
+revoke all on function public.adventure_session(date) from public;
+grant execute on function public.adventure_session(date) to authenticated;
+
+-- 1-based session number, or null when the date is in no window.
+create or replace function public.adventure_session_index(p_day date)
+returns int
+language sql
+stable
+as $$
+  select session_number from public.adventure_session(p_day)
+$$;
+
+revoke all on function public.adventure_session_index(date) from public;
+grant execute on function public.adventure_session_index(date) to authenticated;
+
+create or replace function public.adventure_session_start(p_day date)
 returns date
 language sql
-immutable
-strict
+stable
 as $$
-  select date_trunc('week', p_day::timestamp)::date
+  select start_date from public.adventure_session(p_day)
 $$;
 
-comment on function public.workout_week_start(date) is
-  'Monday of the week containing p_day. p_day is a calendar date in the company time zone.';
-
-revoke all on function public.workout_week_start(date) from public;
-grant execute on function public.workout_week_start(date) to authenticated;
+revoke all on function public.adventure_session_start(date) from public;
+grant execute on function public.adventure_session_start(date) to authenticated;
 
 -- Calendar date of an instant in the configured zone. DST-aware.
--- Matches WorkoutAwardRule.calendarDate for the same IANA name.
+-- Matches ProgressionRules.calendarDate for the same IANA name.
 create or replace function public.company_calendar_date(p_at timestamptz)
 returns date
 language sql
@@ -241,13 +372,13 @@ stable
 strict
 as $$
   select (timezone(
-    (select time_zone from public.workout_award_config()),
+    (select time_zone from public.progression_config()),
     p_at
   ))::date
 $$;
 
 comment on function public.company_calendar_date(timestamptz) is
-  'Calendar date of an instant in workout_award_config().time_zone.';
+  'Calendar date of an instant in progression_config().time_zone.';
 
 revoke all on function public.company_calendar_date(timestamptz) from public;
 grant execute on function public.company_calendar_date(timestamptz) to authenticated;
@@ -291,20 +422,31 @@ set search_path = public
 as $$
 declare
   v_owner uuid;
-  v_log_date date;
+  v_event_date date;
   v_log_character uuid;
-  v_awarded_this_week int;
+  v_goal_character uuid;
+  v_category text;
+  v_expected_pool text;
+  v_allotment text;
+  v_unit int;
+  v_cap int;
+  v_used int;
   v_award int;
-  v_week date;
-  v_points_per_log int;
-  v_weekly_cap int;
-  v_weekly_target int;
-  v_weekly_bonus int;
-  v_zone text;
+  v_session_index int;
+  v_session_start date;
+  v_budget int;
   v_backfill int;
   v_today date;
+  v_zone text;
+  v_length int;
+  v_sessions int;
+  v_target int;
+  v_points_per_workout int;
+  v_points_per_goal int;
+  v_exercise_cap int;
+  v_goal_cap int;
 begin
-  if p_points < 0 then
+  if p_points <= 0 then
     raise exception 'Points cannot be taken away';
   end if;
 
@@ -312,13 +454,9 @@ begin
     raise exception 'Unknown point pool';
   end if;
 
-  if p_source = 'workout' and p_pool <> 'physical' then
-    raise exception 'Workouts award Physical points';
-  elsif p_source in ('nutrition', 'sleep') and p_pool <> 'constitution' then
-    raise exception 'Nutrition and sleep award Constitution points';
-  elsif p_source = 'goal' and p_pool <> 'mental' then
-    raise exception 'SMART goals award Mental points';
-  elsif p_source not in ('workout', 'nutrition', 'sleep', 'goal') then
+  if p_source = 'staff' then
+    raise exception 'Staff grants use grant_staff_attribute_points';
+  elsif p_source not in ('workout', 'goal', 'nutrition', 'sleep') then
     raise exception 'Unknown point source';
   end if;
 
@@ -342,33 +480,42 @@ begin
     return 0;
   end if;
 
+  select time_zone, backfill_days, points_per_workout, points_per_goal,
+         exercise_points_per_session, goal_points_per_session,
+         session_length_days, first_adventure_sessions, point_buy_budget
+    into v_zone, v_backfill, v_points_per_workout, v_points_per_goal,
+         v_exercise_cap, v_goal_cap, v_length, v_sessions, v_target
+  from public.progression_config();
+
+  if v_points_per_workout < 1
+     or v_points_per_goal < 1
+     or v_exercise_cap < 1
+     or v_goal_cap < 1
+     or v_length < 1
+     or v_sessions < 1
+     or v_target < 1
+     or v_backfill < 0
+     or v_zone is null
+     or length(btrim(v_zone)) = 0
+     or (select cohort_start from public.progression_config()) is null
+  then
+    raise exception 'Progression config is invalid';
+  end if;
+
+  v_today := public.company_today();
+
   if p_source = 'workout' then
+    if p_pool <> 'physical' then
+      raise exception 'Workouts award Physical points';
+    end if;
     if p_source_id is null then
       raise exception 'Workout awards require a log id';
     end if;
-    select points_per_log, weekly_cap, weekly_target, weekly_target_bonus,
-           time_zone, backfill_days
-      into v_points_per_log, v_weekly_cap, v_weekly_target, v_weekly_bonus,
-           v_zone, v_backfill
-    from public.workout_award_config();
-
-    if v_points_per_log < 1
-       or v_weekly_cap < 1
-       or v_weekly_target < 1
-       or v_weekly_target > v_weekly_cap
-       or v_weekly_bonus < 0
-       or v_backfill < 0
-       or v_zone is null
-       or length(btrim(v_zone)) = 0
-    then
-      raise exception 'Workout award config is invalid';
+    if p_points <> v_points_per_workout then
+      raise exception 'A workout award must use the configured points per workout';
     end if;
 
-    if p_points <> v_points_per_log then
-      raise exception 'A workout award must use the configured points per log';
-    end if;
-
-    select character_id, date into v_log_character, v_log_date
+    select character_id, date into v_log_character, v_event_date
     from public.workout_logs
     where id = p_source_id
     for update;
@@ -377,47 +524,120 @@ begin
       raise exception 'Workout log not found';
     end if;
 
-    v_today := public.company_today();
-
-    if v_log_date > v_today then
-      raise exception 'Future workout dates are rejected';
+    v_allotment := 'exercise';
+    v_unit := v_points_per_workout;
+    v_cap := v_exercise_cap;
+  elsif p_source = 'goal' then
+    if p_source_id is null then
+      raise exception 'Goal awards require a goal id';
+    end if;
+    if p_points <> v_points_per_goal then
+      raise exception 'A goal award must use the configured points per goal';
     end if;
 
-    -- Outside the backfill window the log stays in the journal and earns 0.
-    -- Points already granted to other logs are left alone.
-    if v_log_date < v_today - v_backfill then
+    select character_id, category into v_goal_character, v_category
+    from public.goals
+    where id = p_source_id;
+
+    if not found or v_goal_character <> p_character_id then
+      raise exception 'Goal not found';
+    end if;
+
+    if v_category = 'constitution' then
+      v_expected_pool := 'constitution';
+    elsif v_category in ('intelligence', 'wisdom', 'charisma') then
+      v_expected_pool := 'mental';
+    else
+      raise exception 'Unknown goal category';
+    end if;
+    if p_pool <> v_expected_pool then
+      raise exception 'That goal awards % points', v_expected_pool;
+    end if;
+
+    v_event_date := v_today;
+    v_allotment := 'goal';
+    v_unit := v_points_per_goal;
+    v_cap := v_goal_cap;
+  else
+    if p_pool <> 'constitution' then
+      raise exception 'Nutrition and sleep award Constitution points';
+    end if;
+    if p_source_id is null then
+      raise exception 'Nutrition and sleep awards require a source id';
+    end if;
+    if p_points <> v_points_per_goal then
+      raise exception 'A goal award must use the configured points per goal';
+    end if;
+    v_event_date := v_today;
+    v_allotment := 'goal';
+    v_unit := v_points_per_goal;
+    v_cap := v_goal_cap;
+  end if;
+
+  if v_event_date > v_today then
+    raise exception 'Future workout dates are rejected';
+  end if;
+
+  -- Outside the backfill window a workout stays in the journal and earns 0.
+  if p_source = 'workout' and v_event_date < v_today - v_backfill then
+    update public.workout_logs
+    set points_awarded = 0
+    where id = p_source_id;
+    return 0;
+  end if;
+
+  v_session_index := public.adventure_session_index(v_event_date);
+  if v_session_index is null or v_session_index < 1 or v_session_index > v_sessions then
+    if p_source = 'workout' then
       update public.workout_logs
       set points_awarded = 0
       where id = p_source_id;
-      return 0;
     end if;
+    return 0;
+  end if;
 
-    v_week := public.workout_week_start(v_log_date);
+  v_session_start := public.adventure_session_start(v_event_date);
 
-    select count(*) into v_awarded_this_week
+  if v_allotment = 'exercise' then
+    select coalesce(sum(points_awarded), 0)::int into v_used
     from public.attribute_point_ledger
     where character_id = p_character_id
       and source = 'workout'
       and points_awarded > 0
-      and award_week = v_week;
+      and session_start = v_session_start;
+  else
+    select coalesce(sum(points_awarded), 0)::int into v_used
+    from public.attribute_point_ledger
+    where character_id = p_character_id
+      and source in ('goal', 'nutrition', 'sleep')
+      and points_awarded > 0
+      and session_start = v_session_start;
+  end if;
 
-    if v_awarded_this_week >= v_weekly_cap then
+  select
+    public.point_buy_cost(strength)
+    + public.point_buy_cost(dexterity)
+    + public.point_buy_cost(constitution)
+    + public.point_buy_cost(intelligence)
+    + public.point_buy_cost(wisdom)
+    + public.point_buy_cost(charisma)
+    + physical_points + constitution_points + mental_points
+  into v_budget
+  from public.characters
+  where id = p_character_id;
+
+  if v_budget is null then
+    raise exception 'Scores must stay between 8 and 15';
+  end if;
+
+  v_award := least(v_unit, v_cap - v_used, v_target - v_budget);
+  if v_award is null or v_award <= 0 then
+    if p_source = 'workout' then
       update public.workout_logs
       set points_awarded = 0
       where id = p_source_id;
-      return 0;
     end if;
-
-    v_award := v_points_per_log;
-    if v_awarded_this_week + 1 = v_weekly_target then
-      v_award := v_award + v_weekly_bonus;
-    end if;
-  else
-    if p_points = 0 then
-      return 0;
-    end if;
-    v_award := p_points;
-    v_log_date := null;
+    return 0;
   end if;
 
   perform set_config('emc.progression_write', 'on', true);
@@ -437,11 +657,9 @@ begin
   end if;
 
   insert into public.attribute_point_ledger (
-    character_id, source, source_id, points_awarded, attribute_target, pool, award_week, reason
+    character_id, source, source_id, points_awarded, attribute_target, pool, session_start, reason
   ) values (
-    p_character_id, p_source, p_source_id, v_award, p_pool, p_pool,
-    case when p_source = 'workout' then v_week else null end,
-    p_reason
+    p_character_id, p_source, p_source_id, v_award, p_pool, p_pool, v_session_start, p_reason
   );
 
   if p_source = 'workout' then
@@ -611,7 +829,7 @@ begin
 
   v_awarded := public.award_attribute_points(
     p_character_id,
-    (select points_per_log from public.workout_award_config()),
+    (select points_per_workout from public.progression_config()),
     'workout',
     'physical',
     btrim(p_exercise),
@@ -627,6 +845,293 @@ $$;
 
 revoke all on function public.record_workout(uuid, text, text, integer, integer, text, date) from public;
 grant execute on function public.record_workout(uuid, text, text, integer, integer, text, date) to authenticated;
+
+-- ============================================================
+-- GOAL COMPLETION
+-- ============================================================
+
+-- One award per goal. The pool comes from the goal category, not the client.
+create or replace function public.record_goal_completion(
+  p_character_id uuid,
+  p_goal_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_goal_character uuid;
+  v_category text;
+  v_pool text;
+  v_awarded int;
+  v_log_id uuid;
+begin
+  select user_id into v_owner
+  from public.characters
+  where id = p_character_id;
+
+  if not found then
+    raise exception 'Character not found';
+  end if;
+  if v_owner is distinct from auth.uid() then
+    raise exception 'Not your character';
+  end if;
+
+  select character_id, category into v_goal_character, v_category
+  from public.goals
+  where id = p_goal_id;
+
+  if not found or v_goal_character <> p_character_id then
+    raise exception 'Goal not found';
+  end if;
+
+  if v_category = 'constitution' then
+    v_pool := 'constitution';
+  elsif v_category in ('intelligence', 'wisdom', 'charisma') then
+    v_pool := 'mental';
+  else
+    raise exception 'Unknown goal category';
+  end if;
+
+  if exists (
+    select 1 from public.attribute_point_ledger
+    where source = 'goal' and source_id = p_goal_id
+  ) then
+    return jsonb_build_object('log_id', null, 'points_awarded', 0, 'pool', v_pool);
+  end if;
+
+  insert into public.goal_logs (goal_id, character_id, points_awarded)
+  values (p_goal_id, p_character_id, 0)
+  returning id into v_log_id;
+
+  v_awarded := public.award_attribute_points(
+    p_character_id,
+    (select points_per_goal from public.progression_config()),
+    'goal',
+    v_pool,
+    'Goal completed',
+    p_goal_id
+  );
+
+  update public.goal_logs
+  set points_awarded = v_awarded
+  where id = v_log_id;
+
+  return jsonb_build_object(
+    'log_id', v_log_id,
+    'points_awarded', v_awarded,
+    'pool', v_pool
+  );
+end;
+$$;
+
+revoke all on function public.record_goal_completion(uuid, uuid) from public;
+grant execute on function public.record_goal_completion(uuid, uuid) to authenticated;
+
+-- ============================================================
+-- STAFF
+-- ============================================================
+
+create or replace function public.is_staff()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.guild_memberships
+    where user_id = auth.uid()
+      and lower(role) in ('admin', 'curator', 'dm', 'captain')
+  )
+$$;
+
+revoke all on function public.is_staff() from public;
+grant execute on function public.is_staff() to authenticated;
+
+-- Extra attribute points for a special achievement. Allowed past the
+-- 27-point build. A reason is required. This does not remove points.
+create or replace function public.grant_staff_attribute_points(
+  p_character_id uuid,
+  p_points int,
+  p_pool text,
+  p_reason text
+)
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_found boolean;
+begin
+  if not public.is_staff() then
+    raise exception 'Staff role required';
+  end if;
+  if p_points <= 0 then
+    raise exception 'Points cannot be taken away';
+  end if;
+  if p_pool not in ('physical', 'constitution', 'mental') then
+    raise exception 'Unknown point pool';
+  end if;
+  if p_reason is null or length(btrim(p_reason)) = 0 then
+    raise exception 'A reason is required';
+  end if;
+
+  select true into v_found
+  from public.characters
+  where id = p_character_id
+  for update;
+
+  if not found then
+    raise exception 'Character not found';
+  end if;
+
+  perform set_config('emc.progression_write', 'on', true);
+
+  if p_pool = 'physical' then
+    update public.characters
+    set physical_points = physical_points + p_points
+    where id = p_character_id;
+  elsif p_pool = 'constitution' then
+    update public.characters
+    set constitution_points = constitution_points + p_points
+    where id = p_character_id;
+  else
+    update public.characters
+    set mental_points = mental_points + p_points
+    where id = p_character_id;
+  end if;
+
+  insert into public.attribute_point_ledger (
+    character_id, source, points_awarded, attribute_target, pool, reason
+  ) values (
+    p_character_id, 'staff', p_points, p_pool, p_pool, btrim(p_reason)
+  );
+
+  perform set_config('emc.progression_write', 'off', true);
+  return p_points;
+end;
+$$;
+
+revoke all on function public.grant_staff_attribute_points(uuid, integer, text, text) from public;
+grant execute on function public.grant_staff_attribute_points(uuid, integer, text, text) to authenticated;
+
+create or replace function public.set_cohort_start(p_start date)
+returns date
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_staff() then
+    raise exception 'Staff role required';
+  end if;
+  if p_start is null then
+    raise exception 'Cohort start is required';
+  end if;
+
+  update public.program_settings
+  set cohort_start = p_start
+  where id = 1;
+
+  return p_start;
+end;
+$$;
+
+revoke all on function public.set_cohort_start(date) from public;
+grant execute on function public.set_cohort_start(date) to authenticated;
+
+-- Insert or replace one award window. Dates are inclusive Denver calendar
+-- dates. A longer span is a three-parter. Leave a gap for an off-week.
+create or replace function public.set_cohort_session(
+  p_session_number int,
+  p_start date,
+  p_end date
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_staff() then
+    raise exception 'Staff role required';
+  end if;
+  if p_session_number is null or p_session_number < 1 then
+    raise exception 'Session numbers start at 1';
+  end if;
+  if p_start is null or p_end is null then
+    raise exception 'Session dates are required';
+  end if;
+  if p_end < p_start then
+    raise exception 'Session end is before its start';
+  end if;
+
+  begin
+    insert into public.cohort_sessions (session_number, start_date, end_date)
+    values (p_session_number, p_start, p_end)
+    on conflict (session_number) do update
+      set start_date = excluded.start_date,
+          end_date = excluded.end_date;
+  exception
+    when exclusion_violation then
+      raise exception 'Session windows overlap';
+  end;
+end;
+$$;
+
+revoke all on function public.set_cohort_session(integer, date, date) from public;
+grant execute on function public.set_cohort_session(integer, date, date) to authenticated;
+
+create or replace function public.delete_cohort_session(p_session_number int)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_staff() then
+    raise exception 'Staff role required';
+  end if;
+
+  delete from public.cohort_sessions
+  where session_number = p_session_number;
+
+  if not found then
+    raise exception 'Session not found';
+  end if;
+end;
+$$;
+
+revoke all on function public.delete_cohort_session(integer) from public;
+grant execute on function public.delete_cohort_session(integer) to authenticated;
+
+-- Removes the published schedule so awards use the 14-day cadence again.
+create or replace function public.clear_cohort_sessions()
+returns int
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_count int;
+begin
+  if not public.is_staff() then
+    raise exception 'Staff role required';
+  end if;
+
+  delete from public.cohort_sessions;
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$;
+
+revoke all on function public.clear_cohort_sessions() from public;
+grant execute on function public.clear_cohort_sessions() to authenticated;
 
 -- ============================================================
 -- CHARACTER CREATION NO LONGER WRITES attribute_points

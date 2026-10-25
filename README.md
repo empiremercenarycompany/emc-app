@@ -114,14 +114,14 @@ flutter analyze
 flutter test
 ```
 
-Unit tests cover the 5.5e point-buy table, the starting array, the three point pools, and the workout award cap. GitHub Actions (`.github/workflows/flutter.yml`) runs analyze and test on Flutter 3.47.8.
+Unit tests cover the 5.5e point-buy table, the starting array, the three point pools, and the first-adventure award rules. GitHub Actions (`.github/workflows/flutter.yml`) runs analyze and test on Flutter 3.47.8.
 
 ## Locked rules encoded today
 
 - Starting array: four 8s, one 10, and one 9, or three 8s and three 9s. The creator offers two presets. The SQL function accepts every placement.
-- Point-buy costs: 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9. Scores and pool balances change only through `spend_attribute_points` and `award_attribute_points`.
-- Three pools: Physical (Strength, Dexterity) from workouts, Constitution from nutrition and sleep, Mental (Intelligence, Wisdom, Charisma) from SMART goals. A pool spends only on its own abilities. Refunds return to that same pool.
-- Workout award numbers are placeholders until John sets them: 1 Physical point per log, at most 5 awarded logs per week, and +1 on the 3rd awarded log that week. The week is Monday–Sunday in `America/Denver` (DST-aware). A workout dated within the previous 14 Denver days still earns points for that week. Older logs are kept and earn 0. Future dates are rejected. The zone and the window live in `lib/core/utils/workout_awards.dart` and `workout_award_config()`.
+- Point-buy costs: 8:0, 9:1, 10:2, 11:3, 12:4, 13:5, 14:7, 15:9. Scores stay on 8 through 15. Scores and pool balances change only through `spend_attribute_points`, `award_attribute_points`, and `grant_staff_attribute_points`.
+- Three pools: Physical (Strength, Dexterity) from workouts, Constitution from nutrition and sleep goals, Mental (Intelligence, Wisdom, Charisma) from those goals. A pool spends only on its own abilities. Refunds return to that same pool.
+- Automatic points are earned only during the first adventure. Placeholders in `ProgressionRules` and `progression_config()`: cohort start `2026-10-05`, fallback sessions of 14 Denver days, 8 sessions (16 weeks), 1 point per workout up to 3 exercise points per session, 1 point per goal up to 3 goal points per session, and a 27-point build. The starting array's 3 points count toward 27, so 24 points remain. Four maxed sessions fill those 24. Sessions 5 through 8 stay open when earlier sessions were not maxed. The 27-point build or the end of session 8 stops automatic awards, whichever comes first. A workout within 14 days still earns for the session of its date. Older logs are kept and earn 0. Future dates are rejected. Staff can grant more than 27 with a reason. The live cohort date is `program_settings.cohort_start`. Staff can replace the 14-day cadence with `cohort_sessions`: a longer row is a three-parter, and a date in no row is an off-week that earns 0. With no rows, the cadence is used.
 - Later work is listed in `ROADMAP.md`. A lifting-journal proposal for review is `docs/design/lifting-journal.md`.
 - Goals can store a monthly period (`period_start`, `period_end` inside one calendar month) so Mental and Constitution awards can attach later. The goal creation flow is not built.
 - New characters are level 1, rank Recruit, with no class.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/workout_awards.dart';
+import '../../../core/utils/progression.dart';
 import '../../../services/supabase_service.dart';
 import '../../character/providers/character_provider.dart';
 
@@ -34,7 +34,7 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
   @override
   void initState() {
     super.initState();
-    _logDate = WorkoutAwardRule.calendarDate(DateTime.now());
+    _logDate = ProgressionRules.calendarDate(DateTime.now());
   }
 
   @override
@@ -85,8 +85,8 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
       return;
     }
 
-    final today = WorkoutAwardRule.calendarDate(DateTime.now());
-    if (WorkoutAwardRule.calendarDaysBetween(_logDate, today) < 0) {
+    final today = ProgressionRules.calendarDate(DateTime.now());
+    if (ProgressionRules.calendarDaysBetween(_logDate, today) < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Future workout dates are rejected.')),
       );
@@ -105,17 +105,13 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
       );
       ref.invalidate(characterProvider);
       if (!mounted) return;
-      final age = WorkoutAwardRule.calendarDaysBetween(_logDate, today);
+      final age = ProgressionRules.calendarDaysBetween(_logDate, today);
       final String message;
-      if (result.pointsAwarded <= 0 && age > WorkoutAwardRule.backfillDays) {
+      if (result.pointsAwarded <= 0 && age > ProgressionRules.backfillDays) {
         message =
-            'Work recorded. Logs older than ${WorkoutAwardRule.backfillDays} days are kept and earn no points.';
+            'Work recorded. Logs older than ${ProgressionRules.backfillDays} days are kept and earn no points.';
       } else if (result.pointsAwarded <= 0) {
-        message =
-            "Work recorded. That week's Physical awards are already at the cap.";
-      } else if (result.pointsAwarded > WorkoutAwardRule.pointsPerLog) {
-        message =
-            'Work recorded. +${result.pointsAwarded} Physical, including the weekly target bonus.';
+        message = 'Work recorded. No attribute points for this log.';
       } else {
         message = 'Work recorded. +${result.pointsAwarded} Physical.';
       }
@@ -136,17 +132,17 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
 
   String get _dateLabel {
     final day = DateTime.utc(_logDate.year, _logDate.month, _logDate.day);
-    return '${_weekdays[day.weekday - 1]}, ${WorkoutAwardRule.formatDate(day)}';
+    return '${_weekdays[day.weekday - 1]}, ${ProgressionRules.formatDate(day)}';
   }
 
   bool get _outsideBackfill {
-    final today = WorkoutAwardRule.calendarDate(DateTime.now());
-    return WorkoutAwardRule.calendarDaysBetween(_logDate, today) >
-        WorkoutAwardRule.backfillDays;
+    final today = ProgressionRules.calendarDate(DateTime.now());
+    return ProgressionRules.calendarDaysBetween(_logDate, today) >
+        ProgressionRules.backfillDays;
   }
 
   Future<void> _pickDate() async {
-    final today = WorkoutAwardRule.calendarDate(DateTime.now());
+    final today = ProgressionRules.calendarDate(DateTime.now());
     final picked = await showDatePicker(
       context: context,
       helpText: 'Workout date',
@@ -179,10 +175,13 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'Each workout can earn Physical points until that week\'s cap. '
-                      'The week is Monday through Sunday in ${WorkoutAwardRule.timeZone}. '
-                      'Two in one day both count. A log up to ${WorkoutAwardRule.backfillDays} days late '
-                      'still counts for the week it happened.',
+                      'During the first adventure, a logged workout can earn Physical points. '
+                      'The usual session is ${ProgressionRules.sessionLengthDays} days in ${ProgressionRules.timeZone}. '
+                      'Each session awards at most ${ProgressionRules.exercisePointsPerSession} from exercise. '
+                      'The first adventure is ${ProgressionRules.firstAdventureSessions} sessions. '
+                      'The ${ProgressionRules.pointBuyBudget}-point build stops awards sooner. '
+                      'Logs up to ${ProgressionRules.backfillDays} days late still count for the session they happened. '
+                      'An off-week, and anything after the first adventure, is kept and earns no attribute points.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: AppColors.steelGray,
                           ),
@@ -201,7 +200,7 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
                     if (_outsideBackfill) ...[
                       const SizedBox(height: 8),
                       Text(
-                        'This date is outside the ${WorkoutAwardRule.backfillDays}-day window. '
+                        'This date is outside the ${ProgressionRules.backfillDays}-day window. '
                         'The log will be kept and will earn 0 Physical points.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.weatheredBronze,
@@ -264,12 +263,15 @@ class _WorkoutLogScreenState extends ConsumerState<WorkoutLogScreen> {
               ),
             ),
             Text(
-              'Placeholders for John: ${WorkoutAwardRule.pointsPerLog} per workout, '
-              'cap ${WorkoutAwardRule.weeklyCap} awarded logs per week '
-              '(Monday–Sunday, ${WorkoutAwardRule.timeZone}). '
-              'The ${WorkoutAwardRule.weeklyTarget}th awarded log adds '
-              '+${WorkoutAwardRule.weeklyTargetBonus}. '
-              'Backfill window: ${WorkoutAwardRule.backfillDays} days.',
+              'Placeholders: ${ProgressionRules.pointsPerWorkout} per workout, '
+              '${ProgressionRules.exercisePointsPerSession} exercise points and '
+              '${ProgressionRules.goalPointsPerSession} goal points per session, '
+              '${ProgressionRules.firstAdventureSessions} sessions, '
+              '${ProgressionRules.pointBuyBudget}-point build. '
+              'Four full sessions complete that build. '
+              'Cohort start ${ProgressionRules.formatDate(ProgressionRules.cohortStart)}. '
+              'Backfill ${ProgressionRules.backfillDays} days. '
+              'Clock: ${ProgressionRules.timeZone}.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppColors.weatheredBronze,
                   ),

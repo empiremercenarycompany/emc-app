@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/attribute_pools.dart';
 import '../../../services/supabase_service.dart';
+import '../../character/providers/character_provider.dart';
 
 class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
@@ -32,28 +32,21 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   }
 
   Future<void> _completeGoal(String goalId, String characterId) async {
-    await SupabaseService.client.from('goal_logs').insert({
-      'goal_id': goalId,
-      'character_id': characterId,
-      'points_awarded': 1,
-    });
     // Existing complete button only. Goal creation is still not built.
-    // The award is Mental, and repeating the same goal does not add points again.
-    final awarded = await SupabaseService.awardAttributePoints(
+    // One award per goal, into that goal's pool, during the first adventure.
+    final result = await SupabaseService.recordGoalCompletion(
       characterId: characterId,
-      points: 1,
-      source: 'goal',
-      pool: AttributePools.mental,
-      sourceId: goalId,
-      reason: 'Goal completed',
+      goalId: goalId,
     );
+    ref.invalidate(characterProvider);
     if (mounted) {
+      final pool = result.pool == 'constitution' ? 'Constitution' : 'Mental';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            awarded > 0
-                ? 'Goal recorded. +$awarded Mental.'
-                : 'That goal was already counted.',
+            result.pointsAwarded > 0
+                ? 'Goal recorded. +${result.pointsAwarded} $pool.'
+                : 'No attribute points for that goal.',
           ),
         ),
       );

@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/config/supabase_config.dart';
-import '../core/utils/workout_awards.dart';
+import '../core/utils/progression.dart';
 
 class SupabaseService {
   static SupabaseClient get client => Supabase.instance.client;
@@ -128,7 +128,8 @@ class SupabaseService {
   }
 
   /// Returns the points actually added. Zero means the award was already
-  /// recorded, or a workout hit the weekly cap. The cap does not remove points.
+  /// recorded, or this log is outside the first-adventure allotment. Zero
+  /// does not remove points.
   static Future<int> awardAttributePoints({
     required String characterId,
     required int points,
@@ -185,12 +186,10 @@ class SupabaseService {
     return List<Map<String, dynamic>>.from(response);
   }
 
-  /// Saves the log and awards Physical points through the workout award rule.
-  ///
-  /// [date] is the company-zone calendar date the workout happened. A future
-  /// date is rejected. A date older than the backfill window is saved and
-  /// awards 0. [pointsAwarded] is whatever that week's cap and bonus allow.
-  /// Zero does not remove points already earned.
+  /// Saves the log. During the first adventure it may award Physical points
+  /// for the session that contains [date]. A future date is rejected. A date
+  /// older than the backfill window, outside the adventure, or past an
+  /// allotment is saved and awards 0. Zero does not remove points.
   static Future<({String logId, int pointsAwarded})> recordWorkout({
     required String characterId,
     required String type,
@@ -207,12 +206,31 @@ class SupabaseService {
       'p_sets': sets,
       'p_reps': reps,
       'p_notes': notes,
-      'p_date': WorkoutAwardRule.formatDate(date),
+      'p_date': ProgressionRules.formatDate(date),
     });
     final row = Map<String, dynamic>.from(response as Map);
     return (
       logId: row['log_id'] as String,
       pointsAwarded: row['points_awarded'] as int? ?? 0,
+    );
+  }
+
+  /// Completes a goal once. The server chooses Constitution or Mental from
+  /// the goal category and applies the first-adventure allotment.
+  static Future<({String? logId, int pointsAwarded, String pool})>
+      recordGoalCompletion({
+    required String characterId,
+    required String goalId,
+  }) async {
+    final response = await client.rpc('record_goal_completion', params: {
+      'p_character_id': characterId,
+      'p_goal_id': goalId,
+    });
+    final row = Map<String, dynamic>.from(response as Map);
+    return (
+      logId: row['log_id'] as String?,
+      pointsAwarded: row['points_awarded'] as int? ?? 0,
+      pool: row['pool'] as String? ?? '',
     );
   }
 
