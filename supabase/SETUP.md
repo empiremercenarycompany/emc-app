@@ -14,6 +14,7 @@
    1. `20261019000000_complete_schema.sql`
    2. `20261019000100_storage_setup.sql`
    3. `20261019000200_create_character_function.sql`
+   4. `20261025000000_attribute_pools.sql`
 
    Hosted projects can use `supabase db push` after linking, or paste those files into the SQL editor in that order.
 

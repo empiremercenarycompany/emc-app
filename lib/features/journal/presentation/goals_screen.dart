@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/supabase_service.dart';
+import '../../character/providers/character_provider.dart';
 
 class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
@@ -31,20 +32,23 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
   }
 
   Future<void> _completeGoal(String goalId, String characterId) async {
-    await SupabaseService.client.from('goal_logs').insert({
-      'goal_id': goalId,
-      'character_id': characterId,
-      'points_awarded': 1,
-    });
-    await SupabaseService.awardAttributePoints(
+    // Existing complete button only. Goal creation is still not built.
+    // One award per goal, into that goal's pool, during the first adventure.
+    final result = await SupabaseService.recordGoalCompletion(
       characterId: characterId,
-      points: 1,
-      source: 'goal',
-      reason: 'Goal completed',
+      goalId: goalId,
     );
+    ref.invalidate(characterProvider);
     if (mounted) {
+      final pool = result.pool == 'constitution' ? 'Constitution' : 'Mental';
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Goal recorded. +1 point.')),
+        SnackBar(
+          content: Text(
+            result.pointsAwarded > 0
+                ? 'Goal recorded. +${result.pointsAwarded} $pool.'
+                : 'No attribute points for that goal.',
+          ),
+        ),
       );
       _load();
     }
