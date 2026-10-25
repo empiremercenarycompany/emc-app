@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/*
+  Brand tokens. Dark first.
+  Mercenary red is a fill. Parchment is the text on that fill.
+  Red as text on iron fails contrast, so it is not used that way.
+  Bronze is for large headings only.
+  Steel is for borders, not for body text.
+  Secondary text uses the contrast-safe mute.
+  TODO: Corleone is the intended display face. The license is not cleared,
+  so the file is not in this repo. The stack falls back to League Spartan.
+*/
+@theme {
+  --color-iron: #111111;
+  --color-red: #b11217;
+  --color-parchment: #f4f1e8;
+  --color-steel: #5a5a5a;
+  --color-bronze: #8a6a3b;
+  --color-mute: #c4bfb2;
+  --font-sans: var(--font-spartan), "League Spartan", sans-serif;
+  --font-display: "Corleone", var(--font-spartan), "League Spartan", sans-serif;
+}
+
+html {
+  background: var(--color-iron);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--color-iron);
+  color: var(--color-parchment);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+h1,
+.display {
+  color: var(--color-bronze);
+}
+
+h2 {
+  color: var(--color-parchment);
+  font-size: 1.25rem;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-parchment);
+  outline-offset: 2px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--color-steel);
+  background: var(--color-iron);
+  color: var(--color-parchment);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+}
+
+button,
+.button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: var(--color-red);
+  color: var(--color-parchment);
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary,
+.button.secondary {
+  background: transparent;
+  border: 1px solid var(--color-steel);
+  color: var(--color-parchment);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
