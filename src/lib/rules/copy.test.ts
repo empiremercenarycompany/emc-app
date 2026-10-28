@@ -36,6 +36,7 @@ const PLAYER_COPY = [
   "src/app/journal/page.tsx",
   "src/app/missions/page.tsx",
   "src/app/calendar/page.tsx",
+  "src/app/check-in/page.tsx",
   "src/app/dice/page.tsx",
   "src/app/notes/page.tsx",
   "src/components/ui.tsx",

@@ -26,11 +26,13 @@ export function poolForGoalCategory(category: string): PoolName {
       return "constitution";
     case "intelligence":
     case "wisdom":
-    case "charisma":
     case "int":
     case "wis":
-    case "cha":
       return "mental";
+    case "charisma":
+    case "cha":
+    case "social":
+      return "social";
     default:
       throw new Error(`Unknown goal category: ${category}`);
   }
@@ -122,21 +124,29 @@ export function inFirstAdventure(
 
 function allotment(input: {
   unit: number;
-  already: number;
-  cap: number;
-  buildTotal: number;
+  weekAlready: number;
+  poolAlready: number;
+  awardedTotal: number;
+  weeklyCap: number;
+  poolCap: number;
   budget: number;
+  exempt: boolean;
 }): number {
-  const sessionRoom = input.cap - input.already;
-  const budgetRoom = input.budget - input.buildTotal;
-  if (sessionRoom <= 0 || budgetRoom <= 0) return 0;
-  return Math.min(input.unit, sessionRoom, budgetRoom);
+  const budgetRoom = input.budget - input.awardedTotal;
+  if (budgetRoom <= 0) return 0;
+  if (input.exempt) return Math.min(input.unit, budgetRoom);
+  const weekRoom = input.weeklyCap - input.weekAlready;
+  const poolRoom = input.poolCap - input.poolAlready;
+  if (weekRoom <= 0 || poolRoom <= 0) return 0;
+  return Math.min(input.unit, weekRoom, poolRoom, budgetRoom);
 }
 
 export function pointsForWorkout(input: {
   logId: string;
   alreadyAwardedLogIds: Set<string>;
   exercisePointsAlreadyInSession: number;
+  weekAlready?: number;
+  poolAlready?: number;
   buildTotal: number;
   logDate: Date;
   today: Date;
@@ -155,14 +165,20 @@ export function pointsForWorkout(input: {
   if (age < 0) throw new Error("Future workout dates are rejected");
   if (input.alreadyAwardedLogIds.has(input.logId)) return 0;
   if (age > config.backfillDays) return 0;
-  if (!inFirstAdventure(input.logDate, input)) return 0;
-  const unit = input.custom ? config.pointsPerCustomWorkout : config.pointsPerWorkout;
+  const anchor = asUtcDate(input.anchor ?? config.cohortStart);
+  if (asUtcDate(input.logDate).getTime() < anchor.getTime()) return 0;
+  void input.custom;
+  const weekAlready = input.weekAlready ?? input.exercisePointsAlreadyInSession;
+  const poolAlready = input.poolAlready ?? input.exercisePointsAlreadyInSession;
   return allotment({
-    unit,
-    already: input.exercisePointsAlreadyInSession,
-    cap: config.exercisePointsPerSession,
-    buildTotal: input.buildTotal,
+    unit: config.pointsPerWorkout,
+    weekAlready,
+    poolAlready,
+    awardedTotal: input.buildTotal,
+    weeklyCap: config.weeklyPointCap,
+    poolCap: config.poolPointCap,
     budget: config.pointBuyBudget,
+    exempt: false,
   });
 }
 
@@ -170,6 +186,7 @@ export function pointsForGoal(input: {
   goalId: string;
   alreadyAwardedGoalIds: Set<string>;
   goalPointsAlreadyInSession: number;
+  weekAlready?: number;
   buildTotal: number;
   completedOn: Date;
   today: Date;
@@ -187,13 +204,18 @@ export function pointsForGoal(input: {
   if (age < 0) throw new Error("Future workout dates are rejected");
   if (input.alreadyAwardedGoalIds.has(input.goalId)) return 0;
   if (age > config.goalBackfillDays) return 0;
-  if (!inFirstAdventure(input.completedOn, input)) return 0;
+  const anchor = asUtcDate(input.anchor ?? config.cohortStart);
+  if (asUtcDate(input.completedOn).getTime() < anchor.getTime()) return 0;
+  const poolAlready = input.goalPointsAlreadyInSession;
   return allotment({
     unit: config.pointsPerGoal,
-    already: input.goalPointsAlreadyInSession,
-    cap: config.goalPointsPerSession,
-    buildTotal: input.buildTotal,
+    weekAlready: input.weekAlready ?? poolAlready,
+    poolAlready,
+    awardedTotal: input.buildTotal,
+    weeklyCap: config.weeklyPointCap,
+    poolCap: config.poolPointCap,
     budget: config.pointBuyBudget,
+    exempt: false,
   });
 }
 

@@ -1,56 +1,40 @@
 # Open questions
 
-John has the final say. Each line is the placeholder this build uses until he changes the config or writes the rule. Do not treat a placeholder as decided.
+John has the final say. Decided lines record the 10/28 lock. Open lines are still config.
 
-## Points and scoring
+## Decided 10/28
 
-- Lifetime cap. Placeholder: the 27-point build, counting the starting array's 3. Staff grants may pass it and do not remove points. `point_buy_budget`.
-- Points per prescribed workout, custom workout, lifting session, and goal. Placeholder: 1 each. `points_per_prescribed_workout`, `points_per_custom_workout`, `points_per_lifting_session`, `points_per_goal`.
-- Session caps. Placeholder: 3 exercise and 3 goal points, first adventure only, 8 sessions. Workouts, including lifting, share the exercise cap. Goals use the goal cap.
-- Custom versus prescribed. Placeholder: the same unit. TODO(John).
-- STR drills. Publishing a STR drill requires overhead press, carry, horizontal push, horizontal pull, and a leg movement. The points still go to the Physical pool, not to Strength alone.
-- Scores above 15. Placeholder: spends stop where `point_buy_costs` stops (15). Columns allow 20 so a later cost can be inserted. TODO(John).
-- Starting 10. Placeholder: it is already paid, so 10 to 11 costs 1. The starting array can be refunded the same way. TODO(John) if those starting points should be locked.
-- Goal backfill. Placeholder: the same 14 days as workouts, counted on the completion date, once per goal log. TODO(John). The earlier app counted a goal once and used "today".
+- The 27 is a standard point buy. Scores stop at 15. The starting +2/+1 or three +1s are a background bonus and do not consume the 27. There is no further lifetime cap.
+- Weekly cap is 4 earned, and 2 from any one pool. Attendance (2, any ability) is outside the cap. Weeks use America/Boise.
+- Workouts bank Strength or Dexterity. Cardio may bank Constitution instead. Nutrition and sleep bank Constitution. Mental goals bank Intelligence or Wisdom. Social goals bank Charisma. The recruit places the exact ability. A saved Build plan is visible to the DM.
+- Awards wait for a DM, admin, curator, or approver. Custom and prescribed logs bank the same. No real account is given the approver role.
+- After the 27, logs pay a DM-editable bonus. Constitution bonuses stay tied to nutrition and sleep. A DM in-game grant still banks a free point the recruit places.
+- Logs are visible to squad and Company unless the recruit opts out.
+- Group goals pay a world effect, progress, or a narrative reward. Not loot.
+- Pre-induction HP is 6 + Constitution modifier, plus Tough and dwarven toughness when those labels match.
+- Induction classes are fighter, barbarian, monk, rogue, ranger, and paladin. Spell tables stay empty.
+- Skill labels: Arcana displays as Alchemy. Religion displays as Culture. The stored ids stay the rules names.
+- Origin labels on offer: Skilled, Lucky, Tough, Brawler. Magic Initiate is disallowed. No rules text is stored.
+- Veteran tier from level 3 is hooks only: personal goals, stepping-stone goals, milestone XP. Nothing awards them.
+- Sign-in is magic link. Discord and Google buttons are present and off.
+- One Company for now. The guild tables can hold another company later.
+- Bleakspire is a fortress with a small city around it. No other place description is written.
+- Next adventure starts Saturday 2027-01-02. Posters launch 2027-01-04. Saturday 2026-10-31 is skipped. Times are 9–12, 2–5, and 7–10 PM America/Boise. The 7–10 slot is adults only. Location: 1539 E Piper St, Idaho Falls, ID 83401.
+- Pricing is display only: Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No payments.
+- Weekly check-in is compliance, not a second attribute bank. Score is 2/1/0. Cutoff is Friday 11:59 PM America/Boise. Discord formatters exist and do not send.
 
-## Approval and who can see logs
+## Still open
 
-- Approval. Placeholder: a log awards immediately (`award_requires_approval` false). Flip the flag and logs wait for `approve_log`. TODO(John): whether points need staff approval.
-- Who may grant or approve. Placeholder: `dm`, `admin`, and `curator`, and only inside the character's company. A Captain rank is not included. TODO(John).
-- Workout log readers. Placeholder: owner plus staff in the same company (`log_visibility` `staff`). `owner`, `squad`, and `company` exist. TODO(John).
-
-## Squads and the table
-
-- Squad size. Placeholder: 6, from `squad_max_size`. Marketing said 5. TODO(John).
-- Who assigns squads. Placeholder: a DM or an admin, through `assign_squad`.
-- Group-goal rewards. Placeholder: `group_goal_payout` is the text `unset`. A barracks mission tracks progress and does not award attribute points. TODO(John): points, loot, a world change, or something else.
-- Attendance loot. Placeholder: `attendance_loot` is the text `unset`. Check-in copies it onto the attendance row and grants nothing. The loot flag can be corrected by the DM. TODO(John): what attendance pays.
-- Monthly world changes. Placeholder: `world_state` stores a summary. There is no editor yet. TODO(John).
-- Loot share. Placeholder: the attendance flag is stored and grants nothing. TODO(John).
-- Schedule gaps. Placeholder: if `cohort_sessions` has any row, a date in no row earns 0 and does not use the 14-day cadence. A table session on that date is saved and marked off-week. TODO(John) if a missing number should fall back instead, and if an off-week table should be refused.
-- Cohort start. Placeholder: `2027-01-04`, the first Monday of January 2027. TODO(John): the real first session.
-
-## Character
-
-- Pre-induction level, hit points, and armor. Placeholder: level 1, class reads "Not yet inducted", combat numbers are not calculated. TODO(John).
-- Induction classes. Placeholder: fighter, barbarian, monk, and rogue, every row disabled. Induction opens at company week 6 (`induction_week`). A DM can record it with no class. A disabled class is refused. TODO(John): which martial classes unlock, and whether a spellbook is in play. The spell tables are empty.
-- Milestone weeks. Placeholder: staff may record level 2 from week 16 and level 3 from week 32, one step at a time, with an audit row. Nothing levels by itself. A milestone never lowers a level. A DM correction may move the number either way and writes an audit row. TODO(John): whether those weeks mean the first day of that week or the day after it ends, and whether a correction must never go down. The first session date is still the cohort placeholder `2027-01-04`.
-- Origin word. Placeholder: required text, not mapped to a feat. TODO(John). TODO(lore: check with Sage/Master Canon) before any list of words is added.
-- Species. Placeholder: the SRD 5.2 name list in `content_species`. No rules text. TODO(John) if that list should shrink.
-- Levels after 3. Placeholder: not built. Level 2 and 3 are reminders in config. A DM sets the level. Nothing levels by itself. TODO(John): which long-term goals qualify.
-- Veteran tier. Placeholder: closed while `veteran_tier_start_week` is null. TODO(John).
-- Skill labels. Placeholder: the eighteen SRD names, display name included. The Religion label stays Religion until renamed in `skill_labels`. TODO(John).
-- Ranks. Placeholder: Recruit, Sergeant, Captain. How one is earned is open. TODO(John).
-- One character per user. Placeholder: the server rejects a second. TODO(John) if a second character should exist.
-
-## Product
-
-- Sign-in. Placeholder: magic link only. Discord and Google are not wired. TODO(John) if they should return.
-- One company. Placeholder: signup joins the seeded company (`single_guild`). TODO(John).
-- Fonts. Placeholder: `FONT_PAIR` in `src/lib/brand.ts` is `spartan`. Body is League Spartan, loaded with `next/font/google`. Headings use the same face because Corleone is not in the repo. The other switch value is `cinzel` (Cinzel headings, Lato body). TODO(John): Corleone with League Spartan, or Cinzel with Lato. Do not commit Corleone files.
-- Logo. Placeholder: the text wordmark `EMPIRE MERCENARY COMPANY` in the marked logo slot. No logo file is in the repo. TODO(John): the logo files and a dark version.
-- Point-buy wording. Placeholder: the sheet says Build, and the numbers stay in config. Player-facing copy describes attribute growth as coming from workouts and the goals you hit, and does not say points. TODO(John): the words recruits should see for the 27 and the three pools.
-- Bleakspire. The name is used. No description is written. TODO(lore: check with Sage/Master Canon). One table label for the place is not confirmed and is not used in the app.
-- Lifting menu. Placeholder: a shared pool, or a pool on an assigned template, or a pool the player already saved. TODO(John).
-- Flag reward. Placeholder: `reward_hook` text only. TODO(John).
-- Offline logs, push notifications, portraits, and achievements. Not built. See `ROADMAP.md`.
+- Squad size. Placeholder: 6. Marketing said 5.
+- Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Today it does not bank anything.
+- Whether a DM bonus after the 27 should become a bonus-table reward instead of an extra free point. Today the grant still banks.
+- Whether a refund that was paid from the free bank should return to that free bank. Today a refund returns to the ability's own bank.
+- Aasimar is not in this repo. John enters that species name if it is allowed. The seeded list is the SRD 5.2 set already here.
+- Lucky and Brawler are labels John named. Confirm they stay as labels with no rules text.
+- Fonts. `FONT_PAIR` is `spartan`. Corleone is not in the repo. The other switch is Cinzel and Lato.
+- Logo files, including a dark version. The slot is the wordmark.
+- Ranks. Recruit, Sergeant, and Captain are placeholders.
+- What each Clearance and depth tier unlocks. The text fields are empty.
+- Milestone week boundary: level 2 from the first day of week 16, level 3 from the first day of week 32.
+- `spend_only_at_session` is off.
+- Officer NPC bot roles are V2. See `ROADMAP.md`.

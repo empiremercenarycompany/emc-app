@@ -1,4 +1,4 @@
-export type AppRole = "player" | "dm" | "admin" | "curator";
+export type AppRole = "player" | "dm" | "admin" | "curator" | "approver";
 
 export type CharacterRow = {
   id: string;
@@ -23,6 +23,9 @@ export type CharacterRow = {
   physical_points: number;
   constitution_points: number;
   mental_points: number;
+  social_points?: number;
+  free_points?: number;
+  share_logs?: boolean;
   inducted_at: string | null;
   notes: string | null;
 };
@@ -55,6 +58,17 @@ export type ScoringRow = {
   group_goal_payout: string;
   veteran_tier_start_week: number | null;
   share_lifting_default: boolean;
+  weekly_point_cap?: number;
+  pool_point_cap?: number;
+  attendance_points?: number;
+  muster_week?: number;
+  posters_launch?: string | null;
+  location_address?: string | null;
+  price_member_cents?: number | null;
+  price_nonmember_cents?: number | null;
+  discord_enabled?: boolean;
+  discord_auth_enabled?: boolean;
+  google_auth_enabled?: boolean;
 };
 
 export type SessionWindow = {
@@ -83,6 +97,8 @@ export type Impact = {
     physical: number;
     constitution: number;
     mental: number;
+    social?: number;
+    free?: number;
   };
   affordable_increases?: Affordable[];
   scores?: Record<string, number>;
@@ -112,6 +128,10 @@ export type Viewer = {
 
 export function isStaff(role: AppRole | null): boolean {
   return role === "dm" || role === "admin" || role === "curator";
+}
+
+export function isLogApprover(role: AppRole | null): boolean {
+  return isStaff(role) || role === "approver";
 }
 
 export function isLibraryEditor(role: AppRole | null): boolean {

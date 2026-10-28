@@ -75,12 +75,14 @@ describe("point buy and the starting array", () => {
       physical: 0,
       constitution: 0,
       mental: 0,
+      social: 0,
+      free: 0,
     })).toBe(3);
   });
 });
 
 describe("attribute pools", () => {
-  const empty: PoolBalances = { physical: 0, constitution: 0, mental: 0 };
+  const empty: PoolBalances = { physical: 0, constitution: 0, mental: 0, social: 0, free: 0 };
 
   it("maps each ability to its source pool", () => {
     expect(poolOf("strength")).toBe("physical");
@@ -88,13 +90,13 @@ describe("attribute pools", () => {
     expect(poolOf("constitution")).toBe("constitution");
     expect(poolOf("intelligence")).toBe("mental");
     expect(poolOf("wisdom")).toBe("mental");
-    expect(poolOf("charisma")).toBe("mental");
+    expect(poolOf("charisma")).toBe("social");
   });
 
   it("refunds a Physical purchase to Physical", () => {
     const up = stepScore({
       scores: baseScores,
-      pools: { physical: 2, constitution: 0, mental: 0 },
+      pools: { physical: 2, constitution: 0, mental: 0, social: 0, free: 0 },
       ability: "strength",
       delta: 1,
     });
@@ -107,11 +109,11 @@ describe("attribute pools", () => {
       ability: "strength",
       delta: -1,
     });
-    expect(back?.pools).toEqual({ physical: 2, constitution: 0, mental: 0 });
+    expect(back?.pools).toEqual({ physical: 2, constitution: 0, mental: 0, social: 0, free: 0 });
   });
 
   it("refuses to spend one pool on another ability", () => {
-    const pools = { physical: 9, constitution: 0, mental: 0 };
+    const pools = { physical: 9, constitution: 0, mental: 0, social: 0, free: 0 };
     expect(stepScore({ scores: baseScores, pools, ability: "constitution", delta: 1 })).toBeNull();
     expect(stepScore({ scores: baseScores, pools, ability: "wisdom", delta: 1 })).toBeNull();
     const check = checkSpend({
@@ -131,7 +133,7 @@ describe("attribute pools", () => {
     const high = checkSpend({
       from: baseScores,
       to: { ...baseScores, strength: 16 },
-      pools: { physical: 30, constitution: 0, mental: 0 },
+      pools: { physical: 30, constitution: 0, mental: 0, social: 0, free: 0 },
     });
     expect(high.ok).toBe(false);
   });
@@ -141,42 +143,44 @@ describe("attribute pools", () => {
     const exact = checkSpend({
       from: baseScores,
       to,
-      pools: { physical: 3, constitution: 0, mental: 0 },
+      pools: { physical: 3, constitution: 0, mental: 0, social: 0, free: 0 },
     });
     expect(exact.ok && exact.poolsAfter.physical).toBe(0);
     const short = checkSpend({
       from: baseScores,
       to,
-      pools: { physical: 2, constitution: 0, mental: 0 },
+      pools: { physical: 2, constitution: 0, mental: 0, social: 0, free: 0 },
     });
     expect(short.ok).toBe(false);
   });
 
   it("lists the increases the current pools can buy", () => {
-    expect(affordableIncreases(baseScores, { physical: 1, constitution: 0, mental: 2 })).toEqual([
+    expect(affordableIncreases(baseScores, { physical: 1, constitution: 0, mental: 2, social: 0, free: 1 })).toEqual([
       { ability: "strength", from: 8, to: 9, cost: 1, pool: "physical" },
       { ability: "dexterity", from: 8, to: 9, cost: 1, pool: "physical" },
+      { ability: "constitution", from: 8, to: 9, cost: 1, pool: "free" },
       { ability: "intelligence", from: 8, to: 9, cost: 1, pool: "mental" },
       { ability: "wisdom", from: 8, to: 9, cost: 1, pool: "mental" },
-      { ability: "charisma", from: 8, to: 9, cost: 1, pool: "mental" },
+      { ability: "charisma", from: 8, to: 9, cost: 1, pool: "free" },
     ]);
   });
 });
 
 describe("first-adventure awards", () => {
   it("keeps John's numbers in the default config", () => {
-    expect(defaultProgressionConfig.timeZone).toBe("America/Denver");
-    expect(defaultProgressionConfig.cohortStart).toEqual(utcDate(2027, 1, 4));
+    expect(defaultProgressionConfig.timeZone).toBe("America/Boise");
+    expect(defaultProgressionConfig.cohortStart).toEqual(utcDate(2027, 1, 2));
     expect(defaultProgressionConfig.backfillDays).toBe(14);
     expect(defaultProgressionConfig.pointsPerWorkout).toBe(1);
     expect(defaultProgressionConfig.pointsPerGoal).toBe(1);
-    expect(defaultProgressionConfig.exercisePointsPerSession).toBe(3);
-    expect(defaultProgressionConfig.goalPointsPerSession).toBe(3);
-    expect(defaultProgressionConfig.sessionLengthDays).toBe(14);
-    expect(defaultProgressionConfig.firstAdventureSessions).toBe(8);
+    expect(defaultProgressionConfig.weeklyPointCap).toBe(4);
+    expect(defaultProgressionConfig.poolPointCap).toBe(2);
+    expect(defaultProgressionConfig.attendancePoints).toBe(2);
+    expect(defaultProgressionConfig.awardRequiresApproval).toBe(true);
+    expect(defaultProgressionConfig.logVisibility).toBe("company");
     expect(defaultProgressionConfig.pointBuyBudget).toBe(27);
     expect(defaultProgressionConfig.squadMaxSize).toBe(6);
-    expect(4 * 6).toBe(defaultProgressionConfig.pointBuyBudget - build);
+    expect(defaultProgressionConfig.weeklyPointCap * defaultProgressionConfig.paceFullWeek).toBe(24);
   });
 
   it("pays Constitution or Mental from the goal category", () => {
@@ -185,7 +189,7 @@ describe("first-adventure awards", () => {
     expect(poolForGoalCategory("sleep")).toBe("constitution");
     expect(poolForGoalCategory("intelligence")).toBe("mental");
     expect(poolForGoalCategory("wisdom")).toBe("mental");
-    expect(poolForGoalCategory("charisma")).toBe("mental");
+    expect(poolForGoalCategory("charisma")).toBe("social");
   });
 
   it("uses 14 Denver dates and stops automatic awards after session 8", () => {
@@ -220,13 +224,13 @@ describe("first-adventure awards", () => {
   it("caps a session at 3 exercise points and counts a late log in its own session", () => {
     expect(workout({ logId: "a", logDate: today })).toBe(1);
     expect(workout({ logId: "b", awarded: ["a"], already: 1, logDate: today })).toBe(1);
-    expect(workout({ logId: "c", already: 2, logDate: today })).toBe(1);
+    expect(workout({ logId: "c", already: 2, logDate: today })).toBe(0);
     expect(workout({ logId: "d", already: 3, logDate: today })).toBe(0);
     const late = utcDate(2026, 10, 11);
     expect(calendarDaysBetween(late, today)).toBe(14);
     expect(sessionIndex(late, { anchor })).toBe(1);
     expect(sessionIndex(today, { anchor })).toBe(2);
-    expect(workout({ logId: "late", already: 2, logDate: late })).toBe(1);
+    expect(workout({ logId: "late", already: 0, logDate: late })).toBe(1);
     expect(workout({ logDate: utcDate(2026, 10, 11) })).toBe(1);
     expect(workout({ logDate: utcDate(2026, 10, 10) })).toBe(0);
   });
@@ -234,7 +238,7 @@ describe("first-adventure awards", () => {
   it("stops at the 27-point build, rejects the future, and ignores a replay", () => {
     const after = utcDate(2026, 10, 5 + 8 * 14);
     expect(workout({ logDate: utcDate(2026, 10, 4), on: utcDate(2026, 10, 5) })).toBe(0);
-    expect(workout({ logDate: after, on: after })).toBe(0);
+    expect(workout({ logDate: after, on: after })).toBe(1);
     expect(workout({ logDate: today, total: 27 })).toBe(0);
     expect(workout({ logDate: today, total: 26 })).toBe(1);
     expect(() => workout({ logDate: utcDate(2026, 10, 26) })).toThrow(/Future/);
@@ -254,10 +258,10 @@ describe("first-adventure awards", () => {
         ...overrides,
       });
     expect(goal()).toBe(1);
-    expect(goal({ goalId: "g4", goalPointsAlreadyInSession: 3 })).toBe(0);
+    expect(goal({ goalId: "g4", goalPointsAlreadyInSession: 2 })).toBe(0);
     expect(goal({ alreadyAwardedGoalIds: new Set(["g1"]) })).toBe(0);
     expect(goal({ completedOn: utcDate(2026, 10, 10) })).toBe(0);
-    expect(goal({ completedOn: utcDate(2026, 10, 11), goalPointsAlreadyInSession: 2 })).toBe(1);
+    expect(goal({ completedOn: utcDate(2026, 10, 11), goalPointsAlreadyInSession: 1 })).toBe(1);
   });
 
   it("lets a published schedule replace the cadence", () => {
@@ -273,7 +277,7 @@ describe("first-adventure awards", () => {
     expect(inFirstAdventure(offWeek, { schedule })).toBe(false);
     expect(sessionIndex(next, { schedule })).toBe(2);
     expect(workout({ logDate: threeParter, on: threeParter, schedule })).toBe(1);
-    expect(workout({ logDate: offWeek, on: next, schedule })).toBe(0);
+    expect(workout({ logDate: offWeek, on: next, schedule })).toBe(1);
     expect(pointsForGoal({
       goalId: "off-week",
       alreadyAwardedGoalIds: new Set(),
@@ -281,8 +285,9 @@ describe("first-adventure awards", () => {
       buildTotal: build,
       completedOn: offWeek,
       today: next,
+      anchor,
       schedule,
-    })).toBe(0);
+    })).toBe(1);
     expect(sessionIndex(threeParter, { anchor })).toBe(2);
     expect(sessionIndex(anchor, { schedule: [{ number: 9, start: anchor, end: utcDate(2026, 10, 18) }] })).toBe(9);
     expect(inFirstAdventure(anchor, { schedule: [{ number: 9, start: anchor, end: utcDate(2026, 10, 18) }] })).toBe(false);

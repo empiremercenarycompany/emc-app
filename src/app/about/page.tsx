@@ -6,7 +6,7 @@ export default function AboutPage() {
       <Panel title="The Company">
         <p>Train. Record. Advance.</p>
         <p>
-          Setting name: Bleakspire. Place description is not written in this app. TODO(lore: check with Sage/Master Canon)
+          Bleakspire is a fortress with a small city around it.
         </p>
         <p className="text-mute">Skill labels come from company config. A rename of one label is still open.</p>
       </Panel>

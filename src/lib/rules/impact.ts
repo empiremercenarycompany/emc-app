@@ -22,6 +22,8 @@ export function affordableIncreases(scores: AbilityScores, pools: PoolBalances):
     const pool = POOL_FOR_ABILITY[ability];
     if (pools[pool] >= cost) {
       increases.push({ ability, from, to, cost, pool });
+    } else if (pools.free >= cost) {
+      increases.push({ ability, from, to, cost, pool: "free" });
     }
   }
   return increases;
@@ -29,5 +31,5 @@ export function affordableIncreases(scores: AbilityScores, pools: PoolBalances):
 
 export function buildTotal(scores: AbilityScores, pools: PoolBalances): number {
   const spent = ABILITIES.reduce((sum, ability) => sum + (pointBuyCost(scores[ability]) ?? 0), 0);
-  return spent + pools.physical + pools.constitution + pools.mental;
+  return spent + pools.physical + pools.constitution + pools.mental + pools.social + pools.free;
 }

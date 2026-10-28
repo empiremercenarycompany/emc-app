@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
+import { saveBuildPlan } from "@/lib/actions/campaign";
 import { saveNotes, spendIncrease } from "@/lib/actions/character";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
+import { preInductionHp } from "@/lib/rules/checkin";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
@@ -84,12 +86,21 @@ export default async function CharacterPage() {
           {character.profession}
           {character.origin_word ? ` · ${character.origin_word}` : ""}
         </p>
-        <p className="text-mute">Combat numbers are not set until induction. TODO(John): how those numbers are recorded before a class.</p>
-        <p>
-          Build {impact?.build_total ?? "—"} of {viewer.config?.point_buy_budget ?? 27}. Physical {character.physical_points}{" "}
-          · Constitution {character.constitution_points} · Mental {character.mental_points}
+        <p className="text-mute">
+          {character.inducted_at
+            ? "Combat numbers follow induction."
+            : `Before induction, HP is ${preInductionHp({
+                constitution: character.constitution,
+                species: character.species,
+                originWord: character.origin_word,
+              })}.`}
         </p>
-        <p className="text-mute">Attribute growth comes from your workouts and the goals you hit.</p>
+        <p>
+          Build {impact?.build_total ?? "—"} of {viewer.config?.point_buy_budget ?? 27}. Physical bank{" "}
+          {character.physical_points} · Constitution bank {character.constitution_points} · Mental bank{" "}
+          {character.mental_points} · Social bank {character.social_points ?? 0} · Free bank {character.free_points ?? 0}
+        </p>
+        <p className="text-mute">Attribute growth comes from your workouts and the goals you hit. You place the bank.</p>
       </Panel>
       <Panel title="Abilities">
         <ul className="grid grid-cols-2 gap-2">
@@ -138,6 +149,18 @@ export default async function CharacterPage() {
             </li>
           ))}
         </ul>
+      </Panel>
+      <Panel title="Build plan">
+        <p className="text-mute">Your target array. The DM can read it. You place every increase.</p>
+        <ResultForm action={saveBuildPlan} submit="Save Build plan">
+          <input type="hidden" name="character_id" value={character.id} />
+          <input name="strength" inputMode="numeric" defaultValue={character.strength} />
+          <input name="dexterity" inputMode="numeric" defaultValue={character.dexterity} />
+          <input name="constitution" inputMode="numeric" defaultValue={character.constitution} />
+          <input name="intelligence" inputMode="numeric" defaultValue={character.intelligence} />
+          <input name="wisdom" inputMode="numeric" defaultValue={character.wisdom} />
+          <input name="charisma" inputMode="numeric" defaultValue={character.charisma} />
+        </ResultForm>
       </Panel>
       <Panel title="Notes">
         <ResultForm action={saveNotes} submit="Save notes">

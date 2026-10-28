@@ -1,6 +1,6 @@
 # Empire Mercenary Company
 
-Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend three pools. The database decides the awards. The screen shows what the server returned. Brand rules are in `docs/BRAND.md`.
+Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend banks the server awards. Brand rules are in `docs/BRAND.md`. The 10/28 attribute rules and the weekly check-in are in `docs/OPEN_QUESTIONS.md`.
 
 This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only.
 
@@ -99,8 +99,8 @@ npm run test:e2e
 Numbers live in `scoring_config`, not in the pages. The seed is a placeholder John can change:
 
 - Time zone `America/Denver`
-- Cohort start `2027-01-04` until the real first session is set
-- First adventure: 8 sessions, 3 exercise points and 3 goal points each, stop at 27 or after session 8
+- Next adventure starts `2027-01-02`. Posters launch `2027-01-04`. Those are not the first session ever.
+- Weekly bank: 4 earned, 2 from any one pool, attendance outside the cap, stop at 27. Logs wait for approval.
 - Physical from workouts, Constitution from constitution goals, Mental from intelligence, wisdom, and charisma goals
 - 14-day backfill, no future dates, no clawback
 - Staff grants require a reason and may pass 27
@@ -115,4 +115,4 @@ The calendar, table check-in, week-6 induction, and milestone levels are in the 
 3. Apply `supabase/migrations` in order (`supabase db push`, or the SQL editor, one file at a time).
 4. Put the project URL and anon key in `.env.local`.
 5. Sign in once, then run the DM update above.
-6. Confirm the cohort date before anyone logs work they expect to score. Until then, logs before `2027-01-04` save and award nothing.
+6. Apply every file in `supabase/migrations` in order, including `20261028120000_attribute_awards.sql` and `20261028120100_weekly_checkin.sql`. Confirm the adventure date before anyone logs work they expect to bank.

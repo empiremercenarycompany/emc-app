@@ -27,15 +27,20 @@ export default async function SchedulePage() {
       : [];
 
   return (
-    <Page title="Schedule" lede="Award windows use Mountain time. An empty list falls back to the cadence from the cohort start.">
+    <Page title="Schedule" lede="Company time is America/Boise. Sessions are every other Saturday. An empty window list falls back to the cadence.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
       <Panel title="Company clock">
-        <p>Today {viewer.today ?? "—"} · {viewer.config?.time_zone ?? "America/Denver"}</p>
-        <p>Cohort start placeholder {viewer.config?.cohort_start ?? "unset"}</p>
+        <p>Today {viewer.today ?? "—"} · {viewer.config?.time_zone ?? "America/Boise"}</p>
+        <p>Next adventure {viewer.config?.cohort_start ?? "unset"} · posters {viewer.config?.posters_launch ?? "2027-01-04"}</p>
+        <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
+        <p className="text-mute">
+          Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included.
+          Display only.
+        </p>
         <p>
-          Exercise cap {viewer.config?.exercise_points_per_session ?? 3} · goal cap{" "}
-          {viewer.config?.goal_points_per_session ?? 3} · budget {viewer.config?.point_buy_budget ?? 27}
+          Weekly cap {viewer.config?.weekly_point_cap ?? 4} · one pool {viewer.config?.pool_point_cap ?? 2} · budget{" "}
+          {viewer.config?.point_buy_budget ?? 27}
         </p>
         {viewer.session ? (
           <p>

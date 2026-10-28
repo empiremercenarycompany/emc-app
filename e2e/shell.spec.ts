@@ -10,6 +10,7 @@ test("barracks shows the company lines", async ({ page }) => {
 
 test("about attributes the SRD and stays clear of invented place copy", async ({ page }) => {
   await page.goto("/about");
+  await expect(page.getByText("Bleakspire is a fortress with a small city around it.")).toBeVisible();
   await expect(page.getByText(/Creative Commons Attribution 4\.0/)).toBeVisible();
   await expect(page.getByText(/System Reference Document 5\.2/)).toBeVisible();
   const body = await page.locator("body").innerText();
@@ -34,6 +35,14 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByRole("button", { name: "Join the Company" })).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Discord" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
+});
+
+test("weekly check-in explains the Friday cutoff", async ({ page }) => {
+  await page.goto("/check-in");
+  await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
+  await expect(page.getByText(/Friday 11:59 PM/)).toBeVisible();
 });
 
 test("the sheet asks you to sign in", async ({ page }) => {

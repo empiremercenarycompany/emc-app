@@ -99,7 +99,7 @@ export function CharacterForm({
 
       <fieldset className="flex flex-col gap-2 border border-steel p-3">
         <legend>Starting array</legend>
-        <p className="text-sm text-mute">All 8s, then either +2 and +1, or +1 three times. Both use 3 of the 27.</p>
+        <p className="text-sm text-mute">All 8s, then either +2 and +1, or +1 three times. That background is separate from the 27.</p>
         <label className="flex items-center gap-2">
           <input
             type="radio"

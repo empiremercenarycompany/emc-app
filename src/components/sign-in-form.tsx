@@ -44,6 +44,13 @@ export function SignInForm() {
         {pending ? "Sending" : "Join the Company"}
       </button>
       <p className="text-sm text-mute">Already with the Company? The same link brings you back.</p>
+      <button type="button" disabled>
+        Discord
+      </button>
+      <button type="button" disabled>
+        Google
+      </button>
+      <p className="text-sm text-mute">Discord and Google stay off until the Company configures them.</p>
       {message ? <p role="status">{message}</p> : null}
     </form>
   );

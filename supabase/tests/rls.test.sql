@@ -176,11 +176,8 @@ begin
       'reps', 5,
       'client_id', gen_random_uuid()
     ))->>'points_delta')::int;
-    if i <= 3 and v_awarded <> 1 then
-      raise exception 'workout % awarded %', i, v_awarded;
-    end if;
-    if i = 4 and v_awarded <> 0 then
-      raise exception 'fourth workout should earn 0, got %', v_awarded;
+    if v_awarded <> 0 then
+      raise exception 'workout % banked before approval, got %', i, v_awarded;
     end if;
   end loop;
 
@@ -239,25 +236,33 @@ begin
   returning id into v_goal;
 
   v_awarded := (public.log_activity('goal', jsonb_build_object('goal_id', v_goal))->>'points_delta')::int;
-  v_pool := (
-    select pool from public.attribute_point_ledger
-    where source = 'goal' and character_id = (select id from public.characters where user_id = auth.uid())
-    order by created_at desc
-    limit 1
-  );
-  if v_awarded <> 1 or v_pool <> 'constitution' then
-    raise exception 'goal awarded % into %', v_awarded, v_pool;
+  if v_awarded <> 0 then
+    raise exception 'goal banked before approval, got %', v_awarded;
   end if;
 end $$;
+
+reset role;
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.approve_log('workout', id) from public.workout_logs where exercise in ('Swing 1', 'Swing 2');
+select public.approve_log('goal', id) from public.goal_logs
+where goal_id in (select id from public.goals where title = 'Sleep');
+reset role;
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
 
 do $$
 declare
   v_con int;
+  v_pool text;
 begin
   select constitution_points into v_con
   from public.characters where user_id = auth.uid();
-  if v_con <> 1 then
-    raise exception 'constitution pool is %', v_con;
+  select pool into v_pool from public.attribute_point_ledger
+  where source = 'goal' and character_id = (select id from public.characters where user_id = auth.uid())
+  order by created_at desc limit 1;
+  if v_con <> 1 or v_pool <> 'constitution' then
+    raise exception 'constitution pool is % via %', v_con, v_pool;
   end if;
 end $$;
 
@@ -269,8 +274,8 @@ begin
   select id into v_id from public.characters where user_id = auth.uid();
   perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
   select physical_points into v_physical from public.characters where id = v_id;
-  -- 10 to 11 costs 1. Three workout points minus that cost, and the fourth+old earned 0.
-  if v_physical <> 2 then
+  -- 10 to 11 costs 1. Two approved workouts banked 2, then this spend.
+  if v_physical <> 1 then
     raise exception 'physical pool after spend is %', v_physical;
   end if;
   begin
@@ -316,21 +321,31 @@ select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222224
 set role authenticated;
 do $$
 declare
-  v_points int;
   v_exercise uuid;
 begin
-  v_points := public.grant_staff_attribute_points(
-    (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
-    2, 'mental', 'A special achievement'
-  );
-  if v_points <> 2 then
-    raise exception 'grant returned %', v_points;
-  end if;
+  begin
+    perform public.grant_staff_attribute_points(
+      (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+      2, 'mental', 'A special achievement'
+    );
+    raise exception 'curator granted a bonus';
+  exception
+    when others then
+      if sqlerrm not ilike '%Staff role%' then raise; end if;
+  end;
   v_exercise := public.curator_save_exercise(null, 'Press', 'strength', 'Brace', 'approved');
   if v_exercise is null then
     raise exception 'exercise was not saved';
   end if;
 end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+select public.grant_staff_attribute_points(
+  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+  2, 'mental', 'A special achievement'
+);
 reset role;
 
 select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
@@ -604,11 +619,10 @@ declare
 begin
   -- Use the curator's character so the player's full session cap is not the reason.
   perform set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222224', false);
-  v_awarded := (public.log_activity('workout', jsonb_build_object(
+  if (public.log_activity('workout', jsonb_build_object(
     'is_custom', true, 'type', 'strength', 'exercise', 'Off week'
-  ))->>'points_delta')::int;
-  if v_awarded <> 0 then
-    raise exception 'off-week awarded %', v_awarded;
+  ))->>'status') is distinct from 'pending' then
+    raise exception 'off-week should wait for approval';
   end if;
 end $$;
 select public.clear_cohort_sessions();

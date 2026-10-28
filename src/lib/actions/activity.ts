@@ -27,6 +27,7 @@ export async function logWorkout(formData: FormData): Promise<ActionResult> {
     duration_minutes: String(formData.get("duration_minutes") ?? ""),
     client_id: crypto.randomUUID(),
     is_custom: custom ? "true" : "false",
+    bank_pool: String(formData.get("bank_pool") ?? "physical"),
   };
   if (custom) {
     payload.exercise = String(formData.get("exercise") ?? "");

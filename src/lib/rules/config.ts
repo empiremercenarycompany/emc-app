@@ -8,7 +8,7 @@ import { utcDate } from "./dates";
  */
 export type ProgressionConfig = {
   timeZone: string;
-  /** TODO(John): placeholder for the January 2027 cohort. Confirm the first session date. */
+  /** Next adventure start. Posters launch on a later config date. Not the first session ever. */
   cohortStart: Date;
   backfillDays: number;
   /** TODO(John): confirm goals use the same backfill window as workouts. */
@@ -17,8 +17,16 @@ export type ProgressionConfig = {
   /** TODO(John): confirm custom workouts earn the same as prescribed ones. */
   pointsPerCustomWorkout: number;
   pointsPerGoal: number;
+  /** Retired session caps. Awards use weeklyPointCap and poolPointCap. */
   exercisePointsPerSession: number;
   goalPointsPerSession: number;
+  weeklyPointCap: number;
+  poolPointCap: number;
+  attendancePoints: number;
+  musterWeek: number;
+  paceFullWeek: number;
+  paceLightWeek: number;
+  paceLightLogs: number;
   sessionLengthDays: number;
   firstAdventureSessions: number;
   pointBuyBudget: number;
@@ -27,9 +35,7 @@ export type ProgressionConfig = {
   pointBuyMax: number;
   /** TODO(John): marketing says 5, the spec says 6. */
   squadMaxSize: number;
-  /** TODO(John): self-report awards immediately. Flip only if approval is required. */
   awardRequiresApproval: boolean;
-  /** TODO(John): who can read another player's logs. */
   logVisibility: "owner" | "staff" | "squad" | "company";
   inductionWeek: number;
   adventureWeeks: number;
@@ -40,8 +46,8 @@ export type ProgressionConfig = {
 };
 
 export const defaultProgressionConfig: ProgressionConfig = {
-  timeZone: "America/Denver",
-  cohortStart: utcDate(2027, 1, 4),
+  timeZone: "America/Boise",
+  cohortStart: utcDate(2027, 1, 2),
   backfillDays: 14,
   goalBackfillDays: 14,
   pointsPerWorkout: 1,
@@ -49,14 +55,21 @@ export const defaultProgressionConfig: ProgressionConfig = {
   pointsPerGoal: 1,
   exercisePointsPerSession: 3,
   goalPointsPerSession: 3,
+  weeklyPointCap: 4,
+  poolPointCap: 2,
+  attendancePoints: 2,
+  musterWeek: 10,
+  paceFullWeek: 6,
+  paceLightWeek: 10,
+  paceLightLogs: 2,
   sessionLengthDays: 14,
   firstAdventureSessions: 8,
   pointBuyBudget: 27,
   pointBuyMin: 8,
   pointBuyMax: 15,
   squadMaxSize: 6,
-  awardRequiresApproval: false,
-  logVisibility: "staff",
+  awardRequiresApproval: true,
+  logVisibility: "company",
   inductionWeek: 6,
   adventureWeeks: 16,
   levelAfterAdventure1: 2,
@@ -71,6 +84,9 @@ export function assertProgressionConfig(config: ProgressionConfig): void {
     config.pointsPerGoal,
     config.exercisePointsPerSession,
     config.goalPointsPerSession,
+    config.weeklyPointCap,
+    config.poolPointCap,
+    config.attendancePoints,
     config.sessionLengthDays,
     config.firstAdventureSessions,
     config.pointBuyBudget,

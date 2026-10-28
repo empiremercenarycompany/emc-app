@@ -35,7 +35,7 @@ export default async function WorkPage() {
       : [];
 
   return (
-    <Page title="Work" lede="A log saves immediately. Attribute growth comes from your workouts and the goals you hit.">
+    <Page title="Work" lede="A log waits for approval. Attribute growth comes from your workouts and the goals you hit.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
         <p>
@@ -77,6 +77,10 @@ export default async function WorkPage() {
                   <input name="sets" inputMode="numeric" placeholder="Sets" />
                   <input name="reps" inputMode="numeric" placeholder="Reps" />
                   <input name="weight" inputMode="decimal" placeholder="Weight" />
+                  <select name="bank_pool" defaultValue="physical">
+                    <option value="physical">Strength or Dexterity</option>
+                    <option value="constitution">Constitution, if this is cardio</option>
+                  </select>
                   <textarea name="notes" placeholder="Notes" />
                 </ResultForm>
               ))
@@ -92,11 +96,13 @@ export default async function WorkPage() {
               <input name="reps" inputMode="numeric" placeholder="Reps" />
               <input name="weight" inputMode="decimal" placeholder="Weight" />
               <input name="duration_minutes" inputMode="numeric" placeholder="Minutes" />
+              <select name="bank_pool" defaultValue="physical">
+                <option value="physical">Strength or Dexterity</option>
+                <option value="constitution">Constitution, if this is cardio</option>
+              </select>
               <textarea name="notes" placeholder="Notes" />
             </ResultForm>
-            <p className="text-sm text-mute">
-              TODO(John): custom workouts currently use the same unit as prescribed ones. That number is in scoring config.
-            </p>
+            <p className="text-sm text-mute">A custom log and a prescribed log bank the same way.</p>
           </Panel>
           <Panel title="Recent">
             {(recent ?? []).length === 0 ? <p className="text-mute">No logs yet.</p> : null}

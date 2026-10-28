@@ -13,6 +13,57 @@ function refresh() {
   revalidatePath("/character");
 }
 
+export async function submitCheckin(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("submit_weekly_checkin", {
+    p_week_start: String(formData.get("week_start") ?? ""),
+    p_workouts: Number(formData.get("workouts") ?? 0),
+    p_bonus_count: Number(formData.get("bonus_count") ?? 0),
+    p_bonus_activities: String(formData.get("bonus_activities") ?? ""),
+    p_wis: formData.get("wis") === "on",
+    p_int: formData.get("int_mark") === "on",
+    p_cha: formData.get("cha") === "on",
+    p_note: String(formData.get("note") ?? ""),
+    p_injury: formData.get("injury_sub") === "on",
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/check-in");
+  return { ok: true };
+}
+
+export async function saveBuildPlan(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("save_build_plan", {
+    p_character_id: String(formData.get("character_id") ?? ""),
+    p_strength: Number(formData.get("strength") ?? 8),
+    p_dexterity: Number(formData.get("dexterity") ?? 8),
+    p_constitution: Number(formData.get("constitution") ?? 8),
+    p_intelligence: Number(formData.get("intelligence") ?? 8),
+    p_wisdom: Number(formData.get("wisdom") ?? 8),
+    p_charisma: Number(formData.get("charisma") ?? 8),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/character");
+  return { ok: true };
+}
+
+export async function approveActivity(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("approve_log", {
+    p_kind: String(formData.get("kind") ?? ""),
+    p_log_id: String(formData.get("log_id") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  refresh();
+  return { ok: true };
+}
+
 export async function advanceMilestone(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };

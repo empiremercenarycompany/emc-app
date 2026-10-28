@@ -1,7 +1,7 @@
 import { pointBuyCost } from "./point-buy";
 import { ABILITIES, type AbilityName, type AbilityScores } from "./starting-array";
 
-export const POOLS = ["physical", "constitution", "mental"] as const;
+export const POOLS = ["physical", "constitution", "mental", "social", "free"] as const;
 export type PoolName = (typeof POOLS)[number];
 
 export type PoolBalances = Record<PoolName, number>;
@@ -9,7 +9,9 @@ export type PoolBalances = Record<PoolName, number>;
 export const ABILITIES_BY_POOL: Record<PoolName, AbilityName[]> = {
   physical: ["strength", "dexterity"],
   constitution: ["constitution"],
-  mental: ["intelligence", "wisdom", "charisma"],
+  mental: ["intelligence", "wisdom"],
+  social: ["charisma"],
+  free: [],
 };
 
 export const POOL_FOR_ABILITY: Record<AbilityName, PoolName> = {
@@ -18,7 +20,7 @@ export const POOL_FOR_ABILITY: Record<AbilityName, PoolName> = {
   constitution: "constitution",
   intelligence: "mental",
   wisdom: "mental",
-  charisma: "mental",
+  charisma: "social",
 };
 
 export function poolOf(ability: string): PoolName {
@@ -32,6 +34,8 @@ export const EMPTY_POOLS: PoolBalances = {
   physical: 0,
   constitution: 0,
   mental: 0,
+  social: 0,
+  free: 0,
 };
 
 export type SpendRejection = "scoreOutOfRange" | "insufficientPoints";
@@ -50,7 +54,7 @@ export function checkSpend(input: {
   to: AbilityScores;
   pools: PoolBalances;
 }): SpendCheck {
-  const deltas: PoolBalances = { physical: 0, constitution: 0, mental: 0 };
+  const deltas: PoolBalances = { physical: 0, constitution: 0, mental: 0, social: 0, free: 0 };
 
   for (const ability of ABILITIES) {
     const oldCost = pointBuyCost(input.from[ability]);
@@ -62,12 +66,19 @@ export function checkSpend(input: {
     deltas[pool] += newCost - oldCost;
   }
 
-  const poolsAfter: PoolBalances = { ...input.pools };
-  for (const pool of POOLS) {
+  const poolsAfter: PoolBalances = { ...input.pools, free: input.pools.free };
+  let freeNeed = 0;
+  for (const pool of ["physical", "constitution", "mental", "social"] as const) {
     const balance = input.pools[pool] - deltas[pool];
-    if (balance < 0) return { ok: false, rejection: "insufficientPoints" };
-    poolsAfter[pool] = balance;
+    if (balance < 0) {
+      freeNeed += -balance;
+      poolsAfter[pool] = 0;
+    } else {
+      poolsAfter[pool] = balance;
+    }
   }
+  if (input.pools.free < freeNeed) return { ok: false, rejection: "insufficientPoints" };
+  poolsAfter.free = input.pools.free - freeNeed;
   return { ok: true, poolsAfter };
 }
 
