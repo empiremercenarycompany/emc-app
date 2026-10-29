@@ -46,9 +46,11 @@ export function Notice({ children }: { children: ReactNode }) {
 }
 
 const POOL_LABEL: Record<string, string> = {
-  physical: "Physical",
-  constitution: "Constitution",
+  physical: "Workouts",
+  constitution: "Nutrition and sleep",
   mental: "Mental",
+  social: "Social",
+  free: "Attendance",
 };
 
 export function ImpactCard({ impact }: { impact: Impact }) {
@@ -58,8 +60,8 @@ export function ImpactCard({ impact }: { impact: Impact }) {
   if (impact.replayed) headline = "This log was already saved.";
   else if (impact.status === "pending") headline = "Saved. Waiting for staff.";
   else if (impact.status === "awarded" && delta > 0 && pool) {
-    headline = `Saved. ${pool} grew from your workouts and the goals you hit.`;
-  } else if (impact.status === "none") headline = "Saved. This log does not change your attributes.";
+    headline = `Saved. ${pool} is ready to place.`;
+  } else if (impact.status === "none") headline = "Saved. Nothing new is ready to place.";
 
   return (
     <div className="border border-steel bg-iron p-3" data-testid="impact">
@@ -69,8 +71,10 @@ export function ImpactCard({ impact }: { impact: Impact }) {
       ) : null}
       {impact.unspent_after ? (
         <p className="text-mute">
-          Unspent Physical {impact.unspent_after.physical}, Constitution {impact.unspent_after.constitution}, Mental{" "}
-          {impact.unspent_after.mental}
+          Ready to place · Workouts {impact.unspent_after.physical} · Nutrition and sleep{" "}
+          {impact.unspent_after.constitution} · Mental {impact.unspent_after.mental}
+          {impact.unspent_after.social != null ? ` · Social ${impact.unspent_after.social}` : ""}
+          {impact.unspent_after.free != null ? ` · Attendance ${impact.unspent_after.free}` : ""}
         </p>
       ) : null}
       {impact.objective_progress?.current_value != null ? (

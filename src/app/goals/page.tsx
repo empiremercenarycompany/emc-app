@@ -5,7 +5,12 @@ import { createGoal, logGoal } from "@/lib/actions/activity";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 
-const CATEGORIES = ["constitution", "intelligence", "wisdom", "charisma"] as const;
+const CATEGORIES = [
+  ["constitution", "Nutrition and sleep"],
+  ["intelligence", "Intelligence"],
+  ["wisdom", "Wisdom"],
+  ["charisma", "Charisma"],
+] as const;
 
 export default async function GoalsPage() {
   const viewer = await loadViewer();
@@ -23,7 +28,7 @@ export default async function GoalsPage() {
       : [];
 
   return (
-    <Page title="Goals" lede="Constitution goals feed the Constitution pool. The other three feed Mental.">
+    <Page title="Goals" lede="Nutrition and sleep feed Constitution. Mental goals feed Intelligence or Wisdom. Social goals feed Charisma.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
         <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
@@ -32,17 +37,29 @@ export default async function GoalsPage() {
       ) : (
         <>
           <Panel title="New goal">
-            <ResultForm action={createGoal} submit="Save goal">
-              <input name="title" required placeholder="Title" />
-              <select name="category" defaultValue="constitution">
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              <textarea name="description" placeholder="What done looks like" />
-              <input name="target_frequency" placeholder="How often" />
+            <ResultForm action={createGoal} submit="Save goal" primary>
+              <label>
+                Goal
+                <input name="title" required />
+              </label>
+              <label>
+                Kind
+                <select name="category" defaultValue="constitution">
+                  {CATEGORIES.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                What done looks like
+                <textarea name="description" />
+              </label>
+              <label>
+                How often
+                <input name="target_frequency" />
+              </label>
               <label className="flex items-center gap-2">
                 <input className="w-auto" type="checkbox" name="is_long_term" /> Long term
               </label>
@@ -63,7 +80,7 @@ export default async function GoalsPage() {
           {(goals ?? []).map((goal) => (
             <Panel key={goal.id} title={goal.title}>
               <p className="text-mute">
-                {goal.category}
+                {CATEGORIES.find(([value]) => value === goal.category)?.[1] ?? goal.category}
                 {goal.period_start ? ` · ${goal.period_start} to ${goal.period_end}` : ""}
               </p>
               {goal.description ? <p>{goal.description}</p> : null}

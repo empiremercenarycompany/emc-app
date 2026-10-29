@@ -57,12 +57,22 @@ test("the buff menu names the temporary awards", async ({ page }) => {
 test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
   await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
-  await expect(page.getByText(/Friday 11:59 PM/)).toBeVisible();
+  await expect(page.getByText(/Friday at 11:59 PM/)).toBeVisible();
+});
+
+test("work opens on one record form", async ({ page }) => {
+  await page.goto("/work");
+  await expect(page.getByRole("heading", { name: "Record work" })).toBeVisible();
+  await expect(page.getByLabel("What you did")).toBeVisible();
+  await expect(page.getByLabel("This counts toward")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Record work" })).toBeVisible();
 });
 
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
+  await expect(page.getByText("Ready to move")).toBeVisible();
+  await expect(page.getByText("Locked")).toBeVisible();
 });
 
 test("the calendar shows off-weeks and three-parters", async ({ page }) => {

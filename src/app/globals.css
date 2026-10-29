@@ -60,10 +60,19 @@ h2 {
   outline-offset: 2px;
 }
 
+button,
+.button,
+input,
+select,
+textarea {
+  scroll-margin-bottom: 5.5rem;
+}
+
 input,
 select,
 textarea {
   width: 100%;
+  min-height: 2.75rem;
   border: 1px solid var(--color-steel);
   background: var(--color-iron);
   color: var(--color-parchment);
@@ -99,6 +108,15 @@ nav button.secondary {
   border: 0;
   background: transparent;
   min-height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 button:disabled {

@@ -41,20 +41,22 @@ export default async function BarracksPage() {
     <Page title="Barracks" lede="A squad, a story, and a reason to keep showing up.">
       <p className="text-mute">Train. Record. Advance.</p>
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <Panel>
-          <p>The Company book is locked until you join.</p>
-          <Link className="button primary" href="/sign-in">
-            Join the Company
-          </Link>
-        </Panel>
-      ) : null}
-      {viewer.userId && !viewer.character ? (
-        <Panel title="Recruit">
-          <p>You have not taken the Recruit Oath.</p>
-          <Link className="button primary" href="/character/new">
-            Sign the Recruit Oath
-          </Link>
+      {!viewer.character ? (
+        <Panel title="Start here">
+          <ol className="list-decimal pl-5">
+            <li>Join the Company</li>
+            <li>Sign the Recruit Oath</li>
+            <li>Record work</li>
+          </ol>
+          {!viewer.userId ? (
+            <Link className="button primary" href="/sign-in">
+              Join the Company
+            </Link>
+          ) : (
+            <Link className="button primary" href="/character/new">
+              Sign the Recruit Oath
+            </Link>
+          )}
         </Panel>
       ) : null}
       {viewer.character ? (
@@ -64,30 +66,32 @@ export default async function BarracksPage() {
             {viewer.character.class ?? "Not yet inducted"}
           </p>
           <p>
-            Physical {viewer.character.physical_points} · Constitution {viewer.character.constitution_points} · Mental{" "}
-            {viewer.character.mental_points}
+            Ready to place · Workouts {viewer.character.physical_points} · Nutrition and sleep{" "}
+            {viewer.character.constitution_points} · Mental {viewer.character.mental_points} · Social{" "}
+            {viewer.character.social_points ?? 0} · Attendance {viewer.character.free_points ?? 0}
           </p>
-          <p className="text-mute">Attribute growth comes from your workouts and the goals you hit.</p>
           {viewer.session ? (
-            <p>
-              This session {viewer.session.session_number}: {viewer.session.start_date} to {viewer.session.end_date}. Logs
-              in the window: {logsThisWindow}.
+            <p className="text-mute">
+              This session runs {viewer.session.start_date} to {viewer.session.end_date}. Logs saved: {logsThisWindow}.
             </p>
           ) : (
-            <p>No award window covers today. Logs still save.</p>
+            <p className="text-mute">No session covers today. Logs still save.</p>
           )}
-          {viewer.week ? <p className="text-mute">Company week {viewer.week}. Induction is a DM record, not this number.</p> : null}
           <Link className="button primary" href="/work">
-            Record Work
+            Record work
           </Link>
         </Panel>
       ) : null}
       {viewer.userId ? (
-        <Panel title="What the company calls you">
+        <details className="border border-steel p-4">
+          <summary>Your name</summary>
           <ResultForm action={saveDisplayName} submit="Save name">
-            <input name="display_name" defaultValue={viewer.displayName ?? ""} maxLength={80} />
+            <label>
+              What the Company calls you
+              <input name="display_name" defaultValue={viewer.displayName ?? ""} maxLength={80} />
+            </label>
           </ResultForm>
-        </Panel>
+        </details>
       ) : null}
       <Panel title="Announcements">
         {announcements.length === 0 ? <p className="text-mute">Nothing posted.</p> : null}

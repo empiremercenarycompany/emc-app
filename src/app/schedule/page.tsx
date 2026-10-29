@@ -40,8 +40,8 @@ export default async function SchedulePage() {
           Display only.
         </p>
         <p>
-          Weekly cap {viewer.config?.weekly_point_cap ?? 4} · one pool {viewer.config?.pool_point_cap ?? 2} · budget{" "}
-          {viewer.config?.point_buy_budget ?? 27}
+          Each week you can place {viewer.config?.weekly_point_cap ?? 4}, and {viewer.config?.pool_point_cap ?? 2} from one
+          kind of work. The Build stops at {viewer.config?.point_buy_budget ?? 27}.
         </p>
         {viewer.session ? (
           <p>
@@ -60,7 +60,7 @@ export default async function SchedulePage() {
             </li>
           ))}
         </ul>
-        <p className="text-sm text-mute">A longer row is a three-parter and shares one cap. A gap earns nothing and does not end the adventure.</p>
+        <p className="text-sm text-mute">A longer row is a three-parter. A gap is an off-week. Work still records.</p>
       </Panel>
       <Panel title="Buff menu">
         <ul>
@@ -146,7 +146,7 @@ export default async function SchedulePage() {
             </select>
             <input name="level" required inputMode="numeric" placeholder="Level" />
           </ResultForm>
-          <p className="text-sm text-mute">A level change is written to the audit. It does not touch point pools.</p>
+          <p className="text-sm text-mute">A level change is written down. It does not move the Build.</p>
           <ResultForm action={setAppRole} submit="Set role">
             <input name="user_id" required placeholder="User id" />
             <select name="role" defaultValue="player">

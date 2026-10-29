@@ -19,6 +19,26 @@ const LABELS: Record<AbilityName, string> = {
   charisma: "Charisma",
 };
 
+const BANK: Record<string, string> = {
+  physical: "workouts",
+  constitution: "nutrition and sleep",
+  mental: "mental goals",
+  social: "social goals",
+  free: "attendance",
+};
+
+const SOURCE: Record<string, string> = {
+  workout: "Work",
+  goal: "Goal",
+  attendance: "Attendance",
+  spend: "Build",
+  muster: "Table Muster",
+};
+
+function abilityLabel(name: string) {
+  return LABELS[name as AbilityName] ?? name;
+}
+
 export default async function CharacterPage() {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
@@ -27,6 +47,11 @@ export default async function CharacterPage() {
       <Page title="Character">
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
+        <Panel title="How your Build moves">
+          <p>Ready to move. What you placed this session can go back where it came from.</p>
+          <p>Locked. When the next session starts, that placement stays.</p>
+          <p className="text-mute">What you have not placed stays ready, however old it is.</p>
+        </Panel>
         <Link className="button primary" href="/sign-in">
           Join the Company
         </Link>
@@ -66,6 +91,11 @@ export default async function CharacterPage() {
       ).data
     : [];
   const impact = supabase ? (await supabase.rpc("character_impact", { p_character_id: character.id })).data : null;
+  const mobility = supabase
+    ? (await supabase.rpc("build_mobility", { p_character_id: character.id })).data
+    : null;
+  const ready = Array.isArray(mobility?.ready) ? mobility.ready : [];
+  const locked = Array.isArray(mobility?.locked) ? mobility.locked : [];
   const buffs =
     supabase
       ? (
@@ -111,7 +141,25 @@ export default async function CharacterPage() {
           {character.physical_points} · Constitution bank {character.constitution_points} · Mental bank{" "}
           {character.mental_points} · Social bank {character.social_points ?? 0} · Free bank {character.free_points ?? 0}
         </p>
-        <p className="text-mute">Attribute growth comes from your workouts and the goals you hit. You place the bank.</p>
+        <p className="text-mute">What you have not placed stays ready. What you place locks when the next session starts.</p>
+        <div>
+          <p className="font-bold">Ready to move</p>
+          {ready.length === 0 ? <p className="text-mute">Nothing placed this session.</p> : null}
+          {ready.map((row: { ability: string; pool: string; amount: number }) => (
+            <p key={`${row.ability}-${row.pool}`}>
+              {abilityLabel(row.ability)} · {row.amount} · {BANK[row.pool] ?? row.pool}
+            </p>
+          ))}
+        </div>
+        <div>
+          <p className="font-bold">Locked</p>
+          {locked.length === 0 ? <p className="text-mute">Nothing has locked yet.</p> : null}
+          {locked.map((row: { ability: string; amount: number }) => (
+            <p key={row.ability}>
+              {abilityLabel(row.ability)} · {row.amount} · set when this session started
+            </p>
+          ))}
+        </div>
       </Panel>
       <Panel title="Abilities">
         <ul className="grid grid-cols-2 gap-2">
@@ -126,13 +174,14 @@ export default async function CharacterPage() {
         {increases.map((increase: { ability: string; to: number; cost: number; pool: string }) => {
           const next = { ...scores, [increase.ability]: increase.to };
           return (
-            <ResultForm key={`${increase.ability}-${increase.to}`} action={spendIncrease} submit={`Raise ${increase.ability} for ${increase.cost}`}>
+            <ResultForm key={`${increase.ability}-${increase.to}`} action={spendIncrease} submit={`Raise ${abilityLabel(increase.ability)}`}>
               <input type="hidden" name="character_id" value={character.id} />
               {ABILITIES.map((ability) => (
                 <input key={ability} type="hidden" name={ability} value={next[ability]} />
               ))}
               <p className="text-sm text-mute">
-                {increase.pool} pool · {increase.ability} {scores[increase.ability as AbilityName]} to {increase.to}
+                From {BANK[increase.pool] ?? "workouts"} · {abilityLabel(increase.ability)} {scores[increase.ability as AbilityName]} to{" "}
+                {increase.to}
               </p>
             </ResultForm>
           );
@@ -154,8 +203,9 @@ export default async function CharacterPage() {
         <ul className="flex flex-col gap-2">
           {(ledger ?? []).map((row) => (
             <li key={row.id}>
-              {row.source}
-              {row.pool ? ` · ${row.pool}` : ""} {row.points_awarded > 0 ? `+${row.points_awarded}` : row.points_awarded}{" "}
+              {SOURCE[row.source] ?? row.source}
+              {row.pool ? ` · ${BANK[row.pool] ?? row.pool}` : ""}{" "}
+              {row.points_awarded > 0 ? `+${row.points_awarded}` : row.points_awarded}{" "}
               <span className="text-mute">{row.reason}</span>
             </li>
           ))}
@@ -184,12 +234,12 @@ export default async function CharacterPage() {
         <p className="text-mute">Your target array. The DM can read it. You place every increase.</p>
         <ResultForm action={saveBuildPlan} submit="Save Build plan">
           <input type="hidden" name="character_id" value={character.id} />
-          <input name="strength" inputMode="numeric" defaultValue={character.strength} />
-          <input name="dexterity" inputMode="numeric" defaultValue={character.dexterity} />
-          <input name="constitution" inputMode="numeric" defaultValue={character.constitution} />
-          <input name="intelligence" inputMode="numeric" defaultValue={character.intelligence} />
-          <input name="wisdom" inputMode="numeric" defaultValue={character.wisdom} />
-          <input name="charisma" inputMode="numeric" defaultValue={character.charisma} />
+          {ABILITIES.map((ability) => (
+            <label key={ability}>
+              {LABELS[ability]}
+              <input name={ability} inputMode="numeric" defaultValue={scores[ability]} />
+            </label>
+          ))}
         </ResultForm>
       </Panel>
       <Panel title="Notes">

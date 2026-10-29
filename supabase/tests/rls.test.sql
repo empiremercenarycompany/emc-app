@@ -279,11 +279,12 @@ begin
     raise exception 'physical pool after spend is %', v_physical;
   end if;
   begin
-    perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 8);
-    raise exception 'physical points bought constitution';
+    perform public.spend_attribute_points(v_id, 11, 9, 12, 8, 8, 8);
+    raise exception 'constitution rose without a bank';
   exception
     when others then
-      if sqlerrm not ilike '%Constitution%' then raise; end if;
+      if sqlerrm ilike '%constitution rose without a bank%' then raise; end if;
+      if sqlerrm not ilike '%Not enough%' then raise; end if;
   end;
 end $$;
 
@@ -296,7 +297,7 @@ begin
   raise exception 'player granted points';
 exception
   when others then
-    if sqlerrm not ilike '%Staff role%' then raise; end if;
+    if sqlerrm not ilike '%Staff role%' and sqlerrm not ilike '%permission denied%' then raise; end if;
 end $$;
 
 do $$
@@ -331,7 +332,7 @@ begin
     raise exception 'curator granted a bonus';
   exception
     when others then
-      if sqlerrm not ilike '%Staff role%' then raise; end if;
+      if sqlerrm not ilike '%Staff role%' and sqlerrm not ilike '%permission denied%' then raise; end if;
   end;
   v_exercise := public.curator_save_exercise(null, 'Press', 'strength', 'Brace', 'approved');
   if v_exercise is null then
@@ -351,7 +352,7 @@ begin
   raise exception 'permanent grant still exists';
 exception
   when others then
-    if sqlerrm not ilike '%Permanent grants are retired%' then raise; end if;
+    if sqlerrm not ilike '%Permanent grants are retired%' and sqlerrm not ilike '%permission denied%' then raise; end if;
 end $$;
 reset role;
 
@@ -1088,3 +1089,77 @@ begin
   end if;
 end $$;
 reset role;
+
+-- Refund returns to the bank that paid. A placement locks when the next session has started.
+-- An unspent bank never locks.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_con int;
+  v_free int;
+  v_place uuid;
+begin
+  select id into v_id from public.characters where user_id = auth.uid();
+  perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 8);
+  select constitution_points into v_con from public.characters where id = v_id;
+  if v_con <> 0 then
+    raise exception 'nutrition bank was not used, left %', v_con;
+  end if;
+  perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
+  select constitution_points into v_con from public.characters where id = v_id;
+  if v_con <> 1 then
+    raise exception 'refund did not return to nutrition and sleep, left %', v_con;
+  end if;
+  if exists (
+    select 1 from public.attribute_point_ledger
+    where character_id = v_id and reason = 'Refund' and pool = 'free'
+  ) then
+    raise exception 'refund went to attendance instead of nutrition and sleep';
+  end if;
+
+  perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 8);
+end $$;
+reset role;
+update public.build_placements
+set session_start = public.company_today() - 20
+where id = (
+  select id from public.build_placements
+  where ability = 'constitution' and remaining > 0
+  order by created_at desc
+  limit 1
+);
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_free int;
+begin
+  select id, free_points into v_id, v_free from public.characters where user_id = auth.uid();
+  begin
+    perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
+    raise exception 'locked placement was refunded';
+  exception
+    when others then
+      if sqlerrm ilike '%locked placement was refunded%' then raise; end if;
+      if sqlerrm not ilike '%locked%' then raise; end if;
+  end;
+  perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 9);
+  if (select free_points from public.characters where id = v_id) <> v_free - 1 then
+    raise exception 'an old unspent attendance bank was locked';
+  end if;
+end $$;
+reset role;
+
+do $$
+begin
+  if has_function_privilege(
+    'authenticated',
+    'public.grant_staff_attribute_points(uuid,integer,text,text)',
+    'execute'
+  ) then
+    raise exception 'retired grant is still executable';
+  end if;
+end $$;

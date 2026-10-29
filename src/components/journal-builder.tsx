@@ -134,13 +134,13 @@ export function JournalBuilder({
   }
 
   if (pools.length === 0) {
-    return <p className="text-mute">No exercise pool is on your menu yet. A curator shares one, or assigns a template.</p>;
+    return <p className="text-mute">No exercise list is on your menu yet. A curator shares one, or assigns a template.</p>;
   }
 
   return (
     <div className="flex flex-col gap-4">
       <label>
-        Pool
+        List
         <select
           value={poolId}
           onChange={(event) => {

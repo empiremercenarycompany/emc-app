@@ -24,6 +24,10 @@ export default async function MusterPage() {
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("squads").select("id, name").eq("guild_id", viewer.guildId).order("name")).data
       : [];
+  const people =
+    supabase && viewer.guildId && isStaff(viewer.role)
+      ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId).order("name")).data
+      : [];
 
   return (
     <Page title="Table Muster" lede="In-person check-in before the episode. Confirm the week, then approve the squad.">
@@ -62,32 +66,20 @@ export default async function MusterPage() {
         </form>
       </Panel>
       <Panel title="Roster">
-        <p className="text-mute">
-          Workouts, nutrition and sleep, mental, and social. Only the gap that is not already logged this week is
-          created.
-        </p>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Workouts</th>
-                <th>Nutrition and sleep</th>
-                <th>Mental</th>
-                <th>Social</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Roster</td>
-                <td>0</td>
-                <td>0</td>
-                <td>0</td>
-                <td>0</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <p className="text-mute">Enter the week. Only what is not already logged is added. Then approve the squad.</p>
+        <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          <li>Name</li>
+          <li>Workouts</li>
+          <li>Nutrition and sleep</li>
+          <li>Mental</li>
+          <li>Social</li>
+        </ul>
+        {(people ?? []).length === 0 ? <p>No roster loaded.</p> : null}
+        <ul>
+          {(people ?? []).map((person) => (
+            <li key={person.id}>{person.name}</li>
+          ))}
+        </ul>
         {isStaff(viewer.role) ? (
           <ResultForm action={recordMuster} submit="Record muster">
             <select name="session_id" required defaultValue="">
@@ -110,11 +102,35 @@ export default async function MusterPage() {
                 </option>
               ))}
             </select>
-            <input name="character_id" required placeholder="Recruit id" />
-            <input name="workouts" inputMode="numeric" defaultValue="0" />
-            <input name="nutrition" inputMode="numeric" defaultValue="0" />
-            <input name="mental" inputMode="numeric" defaultValue="0" />
-            <input name="social" inputMode="numeric" defaultValue="0" />
+            <label>
+              Recruit
+              <select name="character_id" required defaultValue="">
+                <option value="" disabled>
+                  Name
+                </option>
+                {(people ?? []).map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Workouts
+              <input name="workouts" inputMode="numeric" defaultValue="0" />
+            </label>
+            <label>
+              Nutrition and sleep
+              <input name="nutrition" inputMode="numeric" defaultValue="0" />
+            </label>
+            <label>
+              Mental
+              <input name="mental" inputMode="numeric" defaultValue="0" />
+            </label>
+            <label>
+              Social
+              <input name="social" inputMode="numeric" defaultValue="0" />
+            </label>
           </ResultForm>
         ) : null}
         {isStaff(viewer.role) ? (

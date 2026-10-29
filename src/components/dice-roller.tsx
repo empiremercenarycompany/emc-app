@@ -64,7 +64,7 @@ export function DiceRoller({
             {roll.mode} · kept {roll.kept.join(", ")}
             {roll.modifier ? ` ${roll.modifier > 0 ? "+" : ""}${roll.modifier}` : ""}
           </p>
-          {roll.otherRolls ? <p className="text-mute">Other pool {roll.otherRolls.join(", ")}</p> : null}
+          {roll.otherRolls ? <p className="text-mute">Other roll {roll.otherRolls.join(", ")}</p> : null}
           {canSave ? (
             <form
               className="mt-3"

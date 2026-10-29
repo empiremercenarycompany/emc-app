@@ -23,11 +23,11 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Next adventure starts Saturday 2027-01-02. Posters launch 2027-01-04. Saturday 2026-10-31 is skipped. Times are 9–12, 2–5, and 7–10 PM America/Boise. The 7–10 slot is adults only. Location: 1539 E Piper St, Idaho Falls, ID 83401.
 - Pricing is display only: Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No payments.
 - Weekly check-in is compliance, not a second attribute bank. Score is 2/1/0. Cutoff is Friday 11:59 PM America/Boise. Discord formatters exist and do not send.
+- A refund returns to the bank that paid: workouts, nutrition and sleep, mental, social, or attendance. A placement locks when the next session starts. What you have not placed never locks.
 
 ## Still open
 
 - Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Table Muster creates the missing logs. A check-in submitted by the recruit still does not.
-- Whether a refund that was paid from the free bank should return to that free bank. Today a refund returns to the ability's own bank.
 - Fonts. `FONT_PAIR` is `spartan`. Corleone is not in the repo. The other switch is Cinzel and Lato.
 - Logo files, including a dark version. The slot is the wordmark.
 - Ranks. Recruit, Sergeant, and Captain are placeholders.

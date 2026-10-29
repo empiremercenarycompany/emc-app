@@ -67,7 +67,7 @@ export function SiteNav({ signedIn }: { signedIn: boolean }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center px-1 py-2 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
+                className={`flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
               >
                 <span className={active ? "text-bronze" : "text-steel"}>
                   <LineIcon name={item.icon} />

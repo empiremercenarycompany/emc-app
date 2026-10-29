@@ -150,8 +150,11 @@ export default async function JournalPage() {
               <option value="retired">Retired</option>
             </select>
           </ResultForm>
-          <ResultForm action={savePool} submit="Save pool">
-            <input name="title" required placeholder="Pool title" />
+          <ResultForm action={savePool} submit="Save list">
+            <label>
+              List title
+              <input name="title" required />
+            </label>
             <label className="flex items-center gap-2">
               <input className="w-auto" type="checkbox" name="shared" defaultChecked /> Shared with the company
             </label>
@@ -168,7 +171,7 @@ export default async function JournalPage() {
             <input name="title" required placeholder="Template title" />
             <select name="pool_id" required defaultValue="">
               <option value="" disabled>
-                Pool
+                List
               </option>
               {(pools ?? []).map((pool) => (
                 <option key={pool.id} value={pool.id}>

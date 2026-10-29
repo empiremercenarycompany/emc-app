@@ -24,7 +24,7 @@ export default async function CheckInPage() {
       : [];
 
   return (
-    <Page title="Check-in" lede="Friday 11:59 PM Mountain time. Four objectives, scored 2, 1, or 0.">
+    <Page title="Check-in" lede="Due Friday at 11:59 PM. Four objectives, scored 2, 1, or 0.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? (
         <p>
@@ -50,7 +50,10 @@ export default async function CheckInPage() {
               Bonus count
               <input name="bonus_count" inputMode="numeric" defaultValue="0" />
             </label>
-            <textarea name="bonus_activities" placeholder="Bonus activities" />
+            <label>
+              Bonus activities
+              <textarea name="bonus_activities" />
+            </label>
             <label className="flex items-center gap-2">
               <input className="w-auto" type="checkbox" name="wis" /> Wisdom objective
             </label>
@@ -60,7 +63,10 @@ export default async function CheckInPage() {
             <label className="flex items-center gap-2">
               <input className="w-auto" type="checkbox" name="cha" /> Charisma objective
             </label>
-            <textarea name="note" placeholder="Note" />
+            <label>
+              Note
+              <textarea name="note" />
+            </label>
             <label className="flex items-center gap-2">
               <input className="w-auto" type="checkbox" name="injury_sub" /> Injury or at-home substitution
             </label>
