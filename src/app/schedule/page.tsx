@@ -2,7 +2,8 @@ import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { advanceMilestone } from "@/lib/actions/campaign";
-import { clearSessions, grantPoints, induct, setAppRole, setCohortSession, setCohortStart, setLevel } from "@/lib/actions/staff";
+import { awardBuff } from "@/lib/actions/muster";
+import { clearSessions, induct, setAppRole, setCohortSession, setCohortStart, setLevel } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
@@ -61,6 +62,14 @@ export default async function SchedulePage() {
         </ul>
         <p className="text-sm text-mute">A longer row is a three-parter and shares one cap. A gap earns nothing and does not end the adventure.</p>
       </Panel>
+      <Panel title="Buff menu">
+        <ul>
+          <li>Heroic inspiration · one use</li>
+          <li>+2 damage on one attack · one use</li>
+          <li>Advantage on one check · one session</li>
+        </ul>
+        <p className="text-mute">The DM awards these. They do not change the Build.</p>
+      </Panel>
       {isStaff(viewer.role) ? (
         <Panel title="Staff">
           <ResultForm action={setCohortStart} submit="Set cohort start">
@@ -74,7 +83,7 @@ export default async function SchedulePage() {
           <ResultForm action={clearSessions} submit="Clear windows" secondary>
             <input type="hidden" name="confirm" value="yes" />
           </ResultForm>
-          <ResultForm action={grantPoints} submit="Grant points">
+          <ResultForm action={awardBuff} submit="Award buff">
             <select name="character_id" required defaultValue="">
               <option value="" disabled>
                 Character
@@ -85,15 +94,15 @@ export default async function SchedulePage() {
                 </option>
               ))}
             </select>
-            <input name="points" required inputMode="numeric" placeholder="Points" />
-            <select name="pool" defaultValue="physical">
-              <option value="physical">Physical</option>
-              <option value="constitution">Constitution</option>
-              <option value="mental">Mental</option>
+            <select name="buff_id" defaultValue="heroic_inspiration">
+              <option value="heroic_inspiration">Heroic inspiration</option>
+              <option value="damage_plus_two">+2 damage on one attack</option>
+              <option value="advantage_one_check">Advantage on one check</option>
             </select>
-            <textarea name="reason" required placeholder="Reason" />
+            <input name="session_id" placeholder="Session id, if it lasts the session" />
+            <textarea name="note" placeholder="Note" />
           </ResultForm>
-          <p className="text-sm text-mute">A grant needs a reason, writes a ledger row, and may pass 27. It does not take points away.</p>
+          <p className="text-sm text-mute">A buff expires after one use or at the end of the session. It does not raise an ability.</p>
         </Panel>
       ) : null}
       {viewer.role === "dm" ? (

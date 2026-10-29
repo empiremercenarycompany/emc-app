@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveBuildPlan } from "@/lib/actions/campaign";
+import { useBuff } from "@/lib/actions/muster";
 import { saveNotes, spendIncrease } from "@/lib/actions/character";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -65,6 +66,16 @@ export default async function CharacterPage() {
       ).data
     : [];
   const impact = supabase ? (await supabase.rpc("character_impact", { p_character_id: character.id })).data : null;
+  const buffs =
+    supabase
+      ? (
+          await supabase
+            .from("character_buffs")
+            .select("id, status, buff_id, buff_catalog(name, duration)")
+            .eq("character_id", character.id)
+            .eq("status", "active")
+        ).data
+      : [];
   const increases = Array.isArray(impact?.affordable_increases) ? impact.affordable_increases : [];
   const scores = {
     strength: character.strength,
@@ -149,6 +160,25 @@ export default async function CharacterPage() {
             </li>
           ))}
         </ul>
+      </Panel>
+      <Panel title="Active buffs">
+        {(buffs ?? []).length === 0 ? <p className="text-mute">No active buffs.</p> : null}
+        {(buffs ?? []).map((buff) => {
+          const catalog = Array.isArray(buff.buff_catalog) ? buff.buff_catalog[0] : buff.buff_catalog;
+          return (
+            <div key={buff.id}>
+              <p>
+                {catalog?.name ?? buff.buff_id}
+                {catalog?.duration === "one_use" ? " · one use" : " · this session"}
+              </p>
+              {catalog?.duration === "one_use" ? (
+                <ResultForm action={useBuff} submit="Mark used">
+                  <input type="hidden" name="buff_row_id" value={buff.id} />
+                </ResultForm>
+              ) : null}
+            </div>
+          );
+        })}
       </Panel>
       <Panel title="Build plan">
         <p className="text-mute">Your target array. The DM can read it. You place every increase.</p>

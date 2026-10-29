@@ -32,7 +32,7 @@ export default async function SquadPage() {
   const canLead = viewer.role === "dm" || viewer.role === "admin";
 
   return (
-    <Page title="Squad" lede={`Company cap is ${cap}. TODO(John): 5 or 6.`}>
+    <Page title="Squad" lede={`Company cap is ${cap}.`}>
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
       {(squads ?? []).map((squad) => {

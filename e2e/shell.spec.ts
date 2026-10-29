@@ -39,6 +39,21 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
 });
 
+test("table muster lists the roster columns", async ({ page }) => {
+  await page.goto("/muster");
+  await expect(page.getByRole("heading", { name: "Table Muster" })).toBeVisible();
+  await expect(page.getByText("Nutrition and sleep").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve all" })).toBeVisible();
+});
+
+test("the buff menu names the temporary awards", async ({ page }) => {
+  await page.goto("/schedule");
+  await expect(page.getByRole("heading", { name: "Buff menu" })).toBeVisible();
+  await expect(page.getByText("Heroic inspiration")).toBeVisible();
+  await expect(page.getByText("+2 damage on one attack")).toBeVisible();
+  await expect(page.getByText("Advantage on one check")).toBeVisible();
+});
+
 test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
   await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();

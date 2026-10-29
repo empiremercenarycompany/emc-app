@@ -342,10 +342,17 @@ reset role;
 
 select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
 set role authenticated;
-select public.grant_staff_attribute_points(
-  (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
-  2, 'mental', 'A special achievement'
-);
+do $$
+begin
+  perform public.grant_staff_attribute_points(
+    (select id from public.characters where user_id = '22222222-2222-4222-8222-222222222221'),
+    2, 'mental', 'A special achievement'
+  );
+  raise exception 'permanent grant still exists';
+exception
+  when others then
+    if sqlerrm not ilike '%Permanent grants are retired%' then raise; end if;
+end $$;
 reset role;
 
 select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
@@ -365,8 +372,8 @@ declare
 begin
   select mental_points into v_mental
   from public.characters where user_id = auth.uid();
-  if v_mental <> 2 then
-    raise exception 'staff grant did not land, mental is %', v_mental;
+  if v_mental <> 0 then
+    raise exception 'a retired grant changed the mental bank to %', v_mental;
   end if;
 end $$;
 reset role;
@@ -978,3 +985,106 @@ begin
     raise exception 'auth.uid() is still per-row in %', v_bare;
   end if;
 end $$;
+
+-- Table Muster dedupes logs already in the week, then Approve all banks attendance outside the cap.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+do $$
+declare
+  v_character uuid;
+  v_squad uuid;
+  v_session uuid;
+  v_before int;
+  v_after int;
+  v_made int;
+  v_free int;
+  v_buff uuid;
+  v_status text;
+begin
+  select id into v_character from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  select squad_id into v_squad from public.characters where id = v_character;
+  select id into v_session from public.sessions where title = 'Week table';
+  if v_squad is null or v_session is null then
+    raise exception 'muster fixture missing';
+  end if;
+  select count(*) into v_before from public.workout_logs where character_id = v_character and exercise = 'Table muster';
+  v_made := public.record_table_muster(
+    v_session,
+    v_squad,
+    jsonb_build_array(jsonb_build_object(
+      'character_id', v_character,
+      'workouts', (select count(*) from public.workout_logs where character_id = v_character) + 1,
+      'nutrition', 1,
+      'mental', 0,
+      'social', 0
+    ))
+  );
+  if v_made < 1 then
+    raise exception 'muster created nothing';
+  end if;
+  select count(*) into v_after from public.workout_logs where character_id = v_character and exercise = 'Table muster';
+  if v_after <= v_before then
+    raise exception 'muster workout gap is %', v_after - v_before;
+  end if;
+  perform public.record_table_muster(
+    v_session,
+    v_squad,
+    jsonb_build_array(jsonb_build_object(
+      'character_id', v_character,
+      'workouts', 0,
+      'nutrition', 1,
+      'mental', 0,
+      'social', 0
+    ))
+  );
+  select count(*) into v_before from public.workout_logs where character_id = v_character and exercise = 'Table muster';
+  if v_before <> v_after then
+    raise exception 'muster duplicated a workout';
+  end if;
+  perform public.approve_squad_muster(v_session, v_squad);
+  select award_status into v_status
+  from public.session_attendance
+  where session_id = v_session and character_id = v_character;
+  if v_status is distinct from 'awarded' then
+    raise exception 'attendance after muster is %', v_status;
+  end if;
+  select free_points into v_free from public.characters where id = v_character;
+  if v_free <> 2 then
+    raise exception 'attendance bank is %', v_free;
+  end if;
+  v_buff := public.award_buff(v_character, 'heroic_inspiration', null, 'At the table');
+  if v_buff is null then
+    raise exception 'buff was not awarded';
+  end if;
+  if (select physical_points + mental_points + social_points + constitution_points + free_points
+      from public.characters where id = v_character) <>
+     (select physical_points + mental_points + social_points + constitution_points + free_points - 0
+      from public.characters where id = v_character)
+  then
+    null;
+  end if;
+  if exists (
+    select 1 from public.attribute_point_ledger
+    where character_id = v_character and reason ilike '%heroic%'
+  ) then
+    raise exception 'a buff wrote the bank';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+begin
+  select cb.id into v_id
+  from public.character_buffs cb
+  join public.characters c on c.id = cb.character_id
+  where c.user_id = auth.uid() and cb.status = 'active';
+  perform public.use_character_buff(v_id);
+  if (select status from public.character_buffs where id = v_id) is distinct from 'used' then
+    raise exception 'one-use buff stayed active';
+  end if;
+end $$;
+reset role;
