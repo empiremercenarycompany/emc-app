@@ -26,6 +26,8 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - A refund returns to the bank that paid: workouts, nutrition and sleep, mental, social, or attendance. A placement is provisional until a DM or trainer finalizes it in person. Only a finalized placement locks, and only once the next session starts. Provisional placements never lock. What you have not placed never locks.
 - A player's own weekly check-in does not finalize anything. Only the in-person DM or trainer check-in does.
 - Type is Barlow for body and Barlow Condensed for UI and big titles. `FONT_PAIR` may be `corleone`, which loads only `public/brand/local/Corleone.woff2` when that gitignored file is present. Otherwise titles stay Barlow Condensed.
+- Player-facing species labels: Aasimar is shown as Seraph, and Tiefling as Inferni. Inferni is a placeholder in `src/lib/rules/species-names.ts`. The stored ids stay `aasimar` and `tiefling`. See `docs/SPECIES.md`.
+- A player NPC note is approved only when `profiles.can_approve_lore` is true. An admin sets that in SQL. Other DMs can read a note and send it back. The flag defaults to false.
 
 ## Still open
 

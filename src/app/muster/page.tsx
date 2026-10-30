@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
+import { approveNpc, returnNpc } from "@/lib/actions/npcs";
 import { approveSquadMuster, finalizeSquadStats, finalizeStats, recordMuster } from "@/lib/actions/muster";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -44,6 +45,16 @@ export default async function MusterPage() {
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId).order("name")).data
+      : [];
+  const npcQueue =
+    supabase && isStaff(viewer.role)
+      ? (
+          await supabase
+            .from("character_npcs")
+            .select("id, name, relationship, likeness, status, review_note, character_id")
+            .in("status", ["pending", "draft", "approved"])
+            .order("updated_at", { ascending: false })
+        ).data
       : [];
   const waiting =
     supabase && isStaff(viewer.role)
@@ -234,6 +245,47 @@ export default async function MusterPage() {
             </button>
             <button className="secondary" type="button">
               Finalize all
+            </button>
+          </>
+        )}
+      </Panel>
+      <Panel title="NPC review">
+        <p>A lore approver confirms a note. A DM can read it and send it back.</p>
+        {isStaff(viewer.role) ? (
+          <>
+            {(npcQueue ?? []).length === 0 ? <p className="text-mute">No notes waiting.</p> : null}
+            {(npcQueue ?? []).map((npc) => (
+              <article key={npc.id} className="border border-steel p-3">
+                <p>
+                  {npc.name} · {npc.status}
+                </p>
+                <p className="text-mute">{npc.relationship}</p>
+                <p>{npc.likeness}</p>
+                {viewer.canApproveLore && npc.status !== "approved" ? (
+                  <ResultForm action={approveNpc} submit="Approve">
+                    <input type="hidden" name="npc_id" value={npc.id} />
+                  </ResultForm>
+                ) : (
+                  <p className="text-mute">Only a lore approver can approve.</p>
+                )}
+                <ResultForm action={returnNpc} submit="Send back" secondary>
+                  <input type="hidden" name="npc_id" value={npc.id} />
+                  <label>
+                    Note
+                    <textarea name="note" required />
+                  </label>
+                </ResultForm>
+              </article>
+            ))}
+          </>
+        ) : (
+          <>
+            <p className="text-mute">No notes waiting.</p>
+            <button className="primary" type="button">
+              Approve
+            </button>
+            <button className="secondary" type="button">
+              Send back
             </button>
           </>
         )}

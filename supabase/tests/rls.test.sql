@@ -1323,3 +1323,128 @@ begin
     raise exception 'retired grant is still executable';
   end if;
 end $$;
+
+-- Player NPC notes. Only can_approve_lore approves. A DM can still send one back.
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+begin
+  update public.profiles set can_approve_lore = true where id = auth.uid();
+  raise exception 'player set lore approval';
+exception
+  when insufficient_privilege then null;
+  when others then
+    if sqlerrm ilike '%player set lore approval%' then raise; end if;
+end $$;
+do $$
+declare
+  v_id uuid;
+  v_npc uuid;
+begin
+  select id into v_id from public.characters where user_id = auth.uid();
+  v_npc := public.save_character_npc(null, 'Mara', 'Sister', 'Keeps the watch', true);
+  if (select status from public.character_npcs where id = v_npc) is distinct from 'pending' then
+    raise exception 'npc was not pending';
+  end if;
+  begin
+    perform public.save_character_npc(null, 'Too long', repeat('a', 501), '', false);
+    raise exception 'overlong npc was saved';
+  exception
+    when others then
+      if sqlerrm ilike '%overlong%' then raise; end if;
+      if sqlerrm not ilike '%500%' then raise; end if;
+  end;
+  begin
+    perform public.approve_character_npc(v_npc);
+    raise exception 'player approved a note';
+  exception
+    when others then
+      if sqlerrm ilike '%player approved%' then raise; end if;
+      if sqlerrm not ilike '%lore approver%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222225', false);
+set role authenticated;
+do $$
+begin
+  if exists (select 1 from public.character_npcs) then
+    raise exception 'outsider read npc notes';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+do $$
+declare
+  v_npc uuid;
+begin
+  if not exists (select 1 from public.character_npcs) then
+    raise exception 'DM could not read npc notes';
+  end if;
+  select id into v_npc from public.character_npcs limit 1;
+  begin
+    perform public.approve_character_npc(v_npc);
+    raise exception 'DM approved without the lore flag';
+  exception
+    when others then
+      if sqlerrm ilike '%without the lore flag%' then raise; end if;
+      if sqlerrm not ilike '%lore approver%' then raise; end if;
+  end;
+  perform public.return_character_npc(v_npc, 'Say where they live');
+  if (select status from public.character_npcs where id = v_npc) is distinct from 'draft' then
+    raise exception 'send back did not reopen the note';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_npc uuid;
+begin
+  select id into v_npc from public.character_npcs limit 1;
+  perform public.save_character_npc(v_npc, 'Mara', 'Sister', 'Keeps the north watch', true);
+end $$;
+reset role;
+
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles set can_approve_lore = true where id = '22222222-2222-4222-8222-222222222222';
+select set_config('emc.profile_admin', 'off', false);
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+do $$
+declare
+  v_npc uuid;
+begin
+  select id into v_npc from public.character_npcs limit 1;
+  perform public.approve_character_npc(v_npc);
+  if (select status from public.character_npcs where id = v_npc) is distinct from 'approved' then
+    raise exception 'lore approver did not approve';
+  end if;
+  if (select approved_by from public.character_npcs where id = v_npc) is distinct from auth.uid() then
+    raise exception 'approved_by was not stored';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_npc uuid;
+begin
+  select id into v_npc from public.character_npcs limit 1;
+  begin
+    perform public.save_character_npc(v_npc, 'Mara', 'Sister', 'Changed', false);
+    raise exception 'player edited an approved note';
+  exception
+    when others then
+      if sqlerrm ilike '%player edited%' then raise; end if;
+      if sqlerrm not ilike '%approved%' then raise; end if;
+  end;
+end $$;
+reset role;

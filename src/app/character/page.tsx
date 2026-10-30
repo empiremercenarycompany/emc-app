@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { CharacterSheet } from "@/components/character-sheet";
+import { NpcForm } from "@/components/npc-form";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveBuildPlan } from "@/lib/actions/campaign";
@@ -8,6 +10,7 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
+import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
 const LABELS: Record<AbilityName, string> = {
@@ -47,12 +50,22 @@ export default async function CharacterPage() {
       <Page title="Character">
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
-        <Panel title="How your Build moves">
+        <CharacterSheet
+          name="Recruit"
+          classLabel="Not yet inducted"
+          level={1}
+          scores={{ strength: 8, dexterity: 8, constitution: 8, intelligence: 8, wisdom: 8, charisma: 8 }}
+          hp={preInductionHp({ constitution: 8, species: null, originWord: null })}
+          skillId={null}
+          features={<p className="text-mute">Features arrive with induction.</p>}
+          inventory={<p className="text-mute">Nothing carried yet.</p>}
+          npcs={<NpcForm characterId={null} />}
+        >
           <p>Not final yet: see your DM or trainer to lock these in.</p>
           <p>Ready to move. A finalized placement can go back until the next session starts.</p>
           <p>Locked. When the next session starts, a finalized placement stays.</p>
           <p className="text-mute">What you have not placed stays ready, however old it is.</p>
-        </Panel>
+        </CharacterSheet>
         <Link className="button primary" href="/sign-in">
           Join the Company
         </Link>
@@ -108,6 +121,16 @@ export default async function CharacterPage() {
             .eq("status", "active")
         ).data
       : [];
+  const npcs =
+    supabase
+      ? (
+          await supabase
+            .from("character_npcs")
+            .select("id, name, relationship, likeness, status, review_note")
+            .eq("character_id", character.id)
+            .order("created_at", { ascending: false })
+        ).data
+      : [];
   const increases = Array.isArray(impact?.affordable_increases) ? impact.affordable_increases : [];
   const scores = {
     strength: character.strength,
@@ -120,10 +143,23 @@ export default async function CharacterPage() {
 
   return (
     <Page title={character.name} lede={character.class ?? "Not yet inducted"}>
+      <CharacterSheet
+        name={character.name}
+        classLabel={`${character.rank} · ${character.class ?? "Not yet inducted"}`}
+        level={character.level}
+        scores={scores}
+        hp={preInductionHp({
+          constitution: character.constitution,
+          species: character.species,
+          originWord: character.origin_word,
+        })}
+        skillId={character.profession_skill}
+        features={
+          <>
       <Panel>
         <p>
           {character.rank} · level {character.level}
-          {character.species ? ` · ${character.species}` : ""}
+          {character.species ? ` · ${speciesLabel(character.species)}` : ""}
         </p>
         <p>
           {character.profession}
@@ -258,6 +294,35 @@ export default async function CharacterPage() {
           <textarea name="notes" defaultValue={character.notes ?? ""} />
         </ResultForm>
       </Panel>
+          </>
+        }
+        inventory={<p className="text-mute">Nothing carried yet.</p>}
+        npcs={
+          <>
+            <NpcForm characterId={character.id} />
+            {(npcs ?? []).map((npc) => (
+              <article key={npc.id} className="border border-steel p-3">
+                <p>
+                  {npc.name} · {npc.status === "approved" ? "Approved" : npc.status === "pending" ? "Pending" : "Draft"}
+                </p>
+                {npc.status !== "approved" ? <p>Pending: your DM will review this</p> : <p>Approved. This is canon for the Company.</p>}
+                <p className="text-mute">{npc.relationship}</p>
+                <p>{npc.likeness}</p>
+                {npc.review_note ? <p className="text-mute">{npc.review_note}</p> : null}
+                {npc.status !== "approved" ? (
+                  <NpcForm
+                    characterId={character.id}
+                    npcId={npc.id}
+                    initialName={npc.name}
+                    initialRelationship={npc.relationship}
+                    initialLikeness={npc.likeness}
+                  />
+                ) : null}
+              </article>
+            ))}
+          </>
+        }
+      />
     </Page>
   );
 }

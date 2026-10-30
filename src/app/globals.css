@@ -163,12 +163,40 @@ nav button.secondary {
   min-height: 0;
 }
 
+.sheet-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+}
+
+.sheet-panel {
+  flex: 0 0 100%;
+  min-width: 100%;
+  scroll-snap-align: start;
+}
+
+@keyframes dice-tumble {
+  from {
+    transform: rotate(-12deg) scale(0.92);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.dice-tumble {
+  animation: dice-tumble 280ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation: none !important;
     transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
 

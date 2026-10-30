@@ -118,6 +118,7 @@ export type Viewer = {
   displayName: string | null;
   role: AppRole | null;
   guildId: string | null;
+  canApproveLore: boolean;
   rank: string | null;
   character: CharacterRow | null;
   config: ScoringRow | null;

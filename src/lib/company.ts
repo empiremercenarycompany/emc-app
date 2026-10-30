@@ -9,6 +9,7 @@ const EMPTY: Viewer = {
   displayName: null,
   role: null,
   guildId: null,
+  canApproveLore: false,
   rank: null,
   character: null,
   config: null,
@@ -28,7 +29,7 @@ export async function loadViewer(): Promise<Viewer> {
   }
 
   const [profile, membership, character, config, todayResult] = await Promise.all([
-    supabase.from("profiles").select("display_name, app_role").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("display_name, app_role, can_approve_lore").eq("id", user.id).maybeSingle(),
     supabase.from("guild_memberships").select("guild_id, rank").eq("user_id", user.id).maybeSingle(),
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
@@ -63,6 +64,7 @@ export async function loadViewer(): Promise<Viewer> {
     displayName: profile.data?.display_name ?? null,
     role: (profile.data?.app_role as AppRole | undefined) ?? "player",
     guildId: membership.data?.guild_id ?? null,
+    canApproveLore: Boolean(profile.data?.can_approve_lore),
     rank: membership.data?.rank ?? null,
     character: (character.data as CharacterRow | null) ?? null,
     config: (config.data as ScoringRow | null) ?? null,

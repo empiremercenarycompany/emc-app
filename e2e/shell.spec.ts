@@ -108,6 +108,39 @@ test("staff notes are not on the player sheet", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Record milestone" })).toHaveCount(0);
 });
 
+test("the sheet sections swipe", async ({ page }) => {
+  await page.goto("/character");
+  const skills = page.getByRole("tab", { name: "Skills" });
+  await skills.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("tab", { name: "Attacks" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("button", { name: /Unarmed strike/ })).toBeVisible();
+});
+
+test("the dice roller keeps a d20", async ({ page }) => {
+  await page.goto("/dice");
+  await page.getByRole("button", { name: "d20" }).click();
+  await page.getByRole("button", { name: "Roll" }).click();
+  await expect(page.getByTestId("dice-result")).toBeVisible();
+});
+
+test("an NPC note can be submitted for review", async ({ page }) => {
+  await page.goto("/character");
+  await page.getByRole("tab", { name: "NPCs" }).click();
+  await page.getByLabel("Name").fill("Mara");
+  await page.getByLabel("Relationship to me").fill("Sister");
+  await expect(page.getByTestId("npc-counter")).toHaveText("6 / 500");
+  await page.getByRole("button", { name: "Submit for review" }).click();
+  await expect(page.getByText("Pending: your DM will review this")).toBeVisible();
+});
+
+test("the muster queue can approve or send a note back", async ({ page }) => {
+  await page.goto("/muster");
+  await expect(page.getByRole("heading", { name: "NPC review" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send back" })).toBeVisible();
+});
+
 test("the manifest names the company", async ({ request }) => {
   const response = await request.get("/manifest.webmanifest");
   expect(response.ok()).toBeTruthy();

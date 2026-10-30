@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ResultForm } from "@/components/result-form";
 import { createCharacter } from "@/lib/actions/character";
+import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, scoresFromBonuses, isValidStartingArray, type AbilityName } from "@/lib/rules/starting-array";
 
 const LABELS: Record<AbilityName, string> = {
@@ -65,7 +66,7 @@ export function CharacterForm({
           </option>
           {species.map((row) => (
             <option key={row.id} value={row.id}>
-              {row.name}
+              {speciesLabel(row.id, row.name)}
             </option>
           ))}
         </select>

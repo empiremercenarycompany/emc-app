@@ -27,6 +27,12 @@ export function parseDice(input: string): ParsedDice | null {
   return { count, sides, modifier };
 }
 
+function cryptoUnit(): number {
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  return buf[0]! / 4294967296;
+}
+
 function rollPool(parsed: ParsedDice, rng: () => number): number[] {
   return Array.from({ length: parsed.count }, () => 1 + Math.floor(rng() * parsed.sides));
 }
@@ -45,7 +51,7 @@ export function rollDice(
 ): DiceRoll {
   const parsed = parseDice(input);
   if (!parsed) throw new Error("Could not read that dice expression. Use NdX+M, such as 1d20+3.");
-  const rng = options.rng ?? Math.random;
+  const rng = options.rng ?? cryptoUnit;
   const advantage = Boolean(options.advantage);
   const disadvantage = Boolean(options.disadvantage);
   const mode: DiceRoll["mode"] =

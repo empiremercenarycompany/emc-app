@@ -46,9 +46,22 @@ const PLAYER_COPY = [
   "src/components/journal-builder.tsx",
   "src/components/sign-in-form.tsx",
   "src/components/nav.tsx",
+  "src/components/character-sheet.tsx",
+  "src/components/npc-form.tsx",
+  "src/components/dice-roller.tsx",
 ];
 
 describe("player-facing copy", () => {
+  it("calls the company the Company", () => {
+    const hits: string[] = [];
+    for (const file of PLAYER_COPY) {
+      const text = readFileSync(path.join(ROOT, file), "utf8");
+      if (/\bguilds?\b/i.test(text)) hits.push(file);
+      if (/\b(Aasimar|Tiefling)\b/.test(text)) hits.push(file);
+    }
+    expect(hits).toEqual([]);
+  });
+
   it("does not call attribute growth points", () => {
     const hits: string[] = [];
     for (const file of PLAYER_COPY) {
