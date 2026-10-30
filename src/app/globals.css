@@ -52,8 +52,7 @@ button,
 label,
 nav,
 summary,
-.signoff,
-.wordmark {
+.signoff {
   font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
 }
 
@@ -88,6 +87,12 @@ h2 {
   width: auto;
   max-width: 100%;
   object-fit: contain;
+}
+
+.logo-on-iron {
+  background: #111111;
+  padding: 0.875rem;
+  width: fit-content;
 }
 
 .logo-badge {

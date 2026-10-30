@@ -10,8 +10,10 @@ The marks in `public/brand/` are part of the repo:
 
 - `logo_dark.png` — full badge on black. Dark splash and About.
 - `emc_logo.png` — transparent white and red, for dark backgrounds only.
+- `emc_mark_helm_square.png` — helm crop on Iron Black, 1024. Working app icon, not yet approved.
+- `emc_mark_helm_square_transparent.png` — the same crop with a clear ground.
 
-Light backgrounds use the wordmark. There is no light-background file and no SVG. The app icon is the badge on Iron Black until a standalone helm mark arrives.
+No light-background logo is made. On a light screen the dark mark sits on an Iron Black panel. The app icon files are downscales of the helm crop. The full badge is not scaled up into an icon.
 
 Corleone stays local. Add `public/brand/local/Corleone.woff2` and leave it untracked, then set `FONT_PAIR` in `src/lib/brand.ts` to `"corleone"`. If the file is missing, titles stay Barlow Condensed.
 

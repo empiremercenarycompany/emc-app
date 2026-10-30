@@ -115,4 +115,5 @@ test("the manifest names the company", async ({ request }) => {
   expect(body.short_name).toBe("EMC");
   expect(body.display).toBe("standalone");
   expect(body.background_color).toBe("#111111");
+  expect(body.icons.some((icon: { src: string }) => icon.src === "/brand/emc_mark_helm_square.png")).toBe(true);
 });

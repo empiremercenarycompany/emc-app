@@ -31,6 +31,12 @@ export const LOGO_DARK = "public/brand/logo_dark.png";
 /** Transparent white and red. Dark backgrounds only. */
 export const LOGO_MARK = "public/brand/emc_logo.png";
 
+/** Helm crop on Iron Black, 1024. Working app icon. Not yet approved. */
+export const HELM_ICON = "public/brand/emc_mark_helm_square.png";
+
+/** Same helm crop, transparent. Not a light-background logo. */
+export const HELM_ICON_CLEAR = "public/brand/emc_mark_helm_square_transparent.png";
+
 export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));
 }

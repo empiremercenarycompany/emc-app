@@ -33,9 +33,9 @@ Two marks are committed. Neither is recolored, stretched, or given a glow. Clear
 
 - `public/brand/logo_dark.png` is the full badge on black, 800×800. It is the dark splash (Join the Company) and the About screen.
 - `public/brand/emc_logo.png` is the same badge with a transparent ground, white and red. It is for dark backgrounds only, including the slot at the top of the book.
-- Light backgrounds keep the wordmark `EMPIRE MERCENARY COMPANY`. There is no light-background file and no SVG yet.
+- A light screen does not get its own logo. The dark mark is shown on an Iron Black panel. No light-background file is made, and nothing is recolored.
 
-The app icon is that badge placed on Iron Black (`#111111`), with the same clear space. A standalone helm mark may replace it later.
+The working PWA and app icon is the helm crop `public/brand/emc_mark_helm_square.png` (1024, already on `#111111`). Smaller icon files are downscales of that crop. The full badge is not scaled up into an icon. `public/brand/emc_mark_helm_square_transparent.png` is the same crop with a clear ground. John has not approved the crop as the icon yet.
 
 ## Icons
 

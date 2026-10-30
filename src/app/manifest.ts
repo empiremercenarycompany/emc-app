@@ -11,10 +11,11 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#111111",
     theme_color: "#111111",
     icons: [
-      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { src: "/brand/emc_mark_helm_square.png", sizes: "1024x1024", type: "image/png" },
       { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
-      { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { src: "/icons/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/icons/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
     ],
   };
 }

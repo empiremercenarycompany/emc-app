@@ -31,8 +31,8 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 
 - Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Table Muster creates the missing logs. A check-in submitted by the recruit still does not.
 - Corleone's license. The file stays out of the repo until that is confirmed.
-- A light-background logo, and an SVG. The dark files are in the repo: `public/brand/logo_dark.png` and `public/brand/emc_logo.png`. Light surfaces still use the wordmark.
-- A standalone helm mark for the app icon. The icon is the full badge on Iron Black until that mark comes from Canva.
+- John has not approved the helm crop as the app icon. `public/brand/emc_mark_helm_square.png` is the working PWA and app icon until he does. The transparent crop is `public/brand/emc_mark_helm_square_transparent.png`.
+- An SVG of the mark. No light-background logo will be made. A light screen shows the dark mark on an Iron Black panel.
 - Ranks. Recruit, Sergeant, and Captain are placeholders.
 - What each Clearance and depth tier unlocks. The text fields stay empty until a later version.
 - Milestone week boundary: level 2 from the first day of week 16, level 3 from the first day of week 32.
