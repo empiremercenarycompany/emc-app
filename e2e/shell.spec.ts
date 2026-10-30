@@ -4,6 +4,8 @@ test("barracks shows the company lines", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("A squad, a story, and a reason to keep showing up.")).toBeVisible();
   await expect(page.getByText("Train. Record. Advance.").first()).toBeVisible();
+  await expect(page.getByText("Your week shapes your character and the story.")).toBeVisible();
+  await expect(page.getByText("Go forth and conquer.")).toBeVisible();
   await expect(page.getByText("EMPIRE MERCENARY COMPANY").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
 });

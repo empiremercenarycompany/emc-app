@@ -7,7 +7,8 @@
   Bronze is for large headings, the logo frame, and active line icons.
   Steel is for borders and inactive line icons, not for body text.
   Secondary text uses the contrast-safe mute.
-  The font pair is the data-font switch on the document element.
+  data-font=barlow uses Barlow Condensed for big titles.
+  data-font=corleone uses the local Corleone file, then Barlow Condensed.
 */
 @theme {
   --color-iron: #111111;
@@ -16,13 +17,13 @@
   --color-steel: #5a5a5a;
   --color-bronze: #8a6a3b;
   --color-mute: #c4bfb2;
-  --font-sans: var(--font-spartan), "League Spartan", sans-serif;
-  --font-display: var(--font-spartan), "League Spartan", sans-serif;
+  --font-sans: var(--font-barlow), Barlow, sans-serif;
+  --font-condensed: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
+  --font-display: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
 }
 
-html[data-font="cinzel"] {
-  --font-sans: var(--font-lato), Lato, sans-serif;
-  --font-display: var(--font-cinzel), Cinzel, serif;
+html[data-font="corleone"] {
+  --font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
 }
 
 html {
@@ -38,21 +39,67 @@ body {
 }
 
 h1,
-h2,
 .display {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.01em;
+  color: var(--color-bronze);
 }
 
-h1,
-.display {
-  color: var(--color-bronze);
+h2,
+button,
+.button,
+label,
+nav,
+summary,
+.signoff,
+.wordmark {
+  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
 }
 
 h2 {
   color: var(--color-parchment);
   font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.signoff {
+  margin-top: 2rem;
+  color: var(--color-parchment);
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.notice {
+  border: 1px solid var(--color-bronze);
+  background: var(--color-parchment);
+  color: var(--color-iron);
+  padding: 0.75rem;
+}
+
+.logo-slot {
+  position: relative;
+}
+
+.logo-slot[data-logo-slot="image"] {
+  padding: 0.625rem;
+}
+
+.logo-img {
+  display: block;
+  height: 2.5rem;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.logo-probe {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 :focus-visible {
@@ -92,7 +139,8 @@ button.secondary,
   background: transparent;
   color: var(--color-parchment);
   padding: 0.55rem 1rem;
-  font: inherit;
+  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
 }

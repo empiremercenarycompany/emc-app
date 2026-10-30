@@ -25,12 +25,13 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Weekly check-in is compliance, not a second attribute bank. Score is 2/1/0. Cutoff is Friday 11:59 PM America/Boise. Discord formatters exist and do not send.
 - A refund returns to the bank that paid: workouts, nutrition and sleep, mental, social, or attendance. A placement is provisional until a DM or trainer finalizes it in person. Only a finalized placement locks, and only once the next session starts. Provisional placements never lock. What you have not placed never locks.
 - A player's own weekly check-in does not finalize anything. Only the in-person DM or trainer check-in does.
+- Type is Barlow for body and Barlow Condensed for UI and big titles. `FONT_PAIR` may be `corleone`, which loads only `public/brand/local/Corleone.woff2` when that gitignored file is present. Otherwise titles stay Barlow Condensed.
 
 ## Still open
 
 - Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Table Muster creates the missing logs. A check-in submitted by the recruit still does not.
-- Fonts. `FONT_PAIR` is `spartan`. Corleone is not in the repo. The other switch is Cinzel and Lato.
-- Logo files, including a dark version. The slot is the wordmark.
+- Corleone's license. The file stays out of the repo until that is confirmed.
+- The company mark, including a light-background version. The dark-background PNG, if you have it, goes in `public/brand/local/logo.png` and is not committed.
 - Ranks. Recruit, Sergeant, and Captain are placeholders.
 - What each Clearance and depth tier unlocks. The text fields stay empty until a later version.
 - Milestone week boundary: level 2 from the first day of week 16, level 3 from the first day of week 32.

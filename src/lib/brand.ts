@@ -1,20 +1,40 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
+
 /**
- * One switch for the heading face and the body face.
- * John has not chosen. The default body is League Spartan.
- * Corleone is the display face associated with that pair and is never committed.
- * The other value loads Cinzel for headings and Lato for body.
+ * One switch.
+ * barlow: body is Barlow, and headings are Barlow Condensed.
+ * corleone: the same, except big titles use Corleone when the gitignored file is present.
+ * Corleone is never committed. A missing file keeps Barlow Condensed.
  */
-export const FONT_PAIR = "spartan" as "spartan" | "cinzel";
+export const FONT_PAIR = "barlow" as "barlow" | "corleone";
 
 export const FONT_PAIRS = {
-  spartan: {
-    body: "League Spartan",
-    heading: "League Spartan",
-    intendedHeading: "Corleone",
+  barlow: {
+    body: "Barlow",
+    ui: "Barlow Condensed",
+    heading: "Barlow Condensed",
   },
-  cinzel: {
-    body: "Lato",
-    heading: "Cinzel",
-    intendedHeading: "Cinzel",
+  corleone: {
+    body: "Barlow",
+    ui: "Barlow Condensed",
+    heading: "Corleone",
   },
 } as const;
+
+/** Gitignored. Drop the file here locally. Do not commit it. */
+export const CORLEONE_FILE = "public/brand/local/Corleone.woff2";
+
+/** Gitignored. Transparent white/red mark for dark backgrounds only. */
+export const LOGO_FILE = "public/brand/local/logo.png";
+
+export function localFileReady(relativePath: string): boolean {
+  return existsSync(path.join(process.cwd(), relativePath));
+}
+
+/** Big titles only. Subheads, buttons, labels, and tabs stay Barlow Condensed. */
+export function headingFace(): "Barlow Condensed" | "Corleone" {
+  if (FONT_PAIR !== "corleone") return "Barlow Condensed";
+  if (!localFileReady(CORLEONE_FILE)) return "Barlow Condensed";
+  return "Corleone";
+}

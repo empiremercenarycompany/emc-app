@@ -20,16 +20,16 @@ Red audit: the only red fill is `button.primary` and `.button.primary` in `src/a
 
 ## Type
 
-`FONT_PAIR` in `src/lib/brand.ts` is the only switch. It sets both the heading face and the body face.
+`FONT_PAIR` in `src/lib/brand.ts` is the only switch.
 
-- `spartan` (default). Body is League Spartan, loaded with `next/font/google`. The intended heading is Corleone. That file is not licensed and is not in this repo, so headings use League Spartan too.
-- `cinzel`. Headings are Cinzel. Body is Lato. Both load with `next/font/google`.
+- `barlow` (default). Body and UI text are Barlow Regular, from Google Fonts, SIL Open Font License. Subheads, buttons, labels, and tabs are Barlow Condensed. Big titles (screen titles, rank and induction titles) are Barlow Condensed too.
+- `corleone`. Same Barlow pair, except those big titles use Corleone when `public/brand/local/Corleone.woff2` is on disk. If that file is missing, titles stay Barlow Condensed. The `@font-face` is not emitted unless the file is there.
 
-League Spartan, Cinzel, and Lato are SIL Open Font License. Never commit Corleone font files.
+League Spartan is not used. Never commit Corleone font files. The license is unconfirmed.
 
 ## Logo
 
-No logo file is committed. `LogoSlot` in `src/components/ui.tsx` is the slot (`data-logo-slot="wordmark"`), framed in bronze. The fallback wordmark is `EMPIRE MERCENARY COMPANY`. The PWA icon is a plain letter mark for the home screen, not the company logo.
+No logo file is committed. Put a transparent white/red PNG at `public/brand/local/logo.png` (gitignored). It is for dark backgrounds only. The slot does not recolor it, stretch it, or add a glow. Clear space around it is at least a quarter of its height. Until that file loads, the slot is the wordmark `EMPIRE MERCENARY COMPANY` (`data-logo-slot="wordmark"`). The PWA icon is a plain letter mark for the home screen, not the company logo.
 
 ## Icons
 
@@ -44,5 +44,7 @@ Use these lines where they fit:
 - A squad, a story, and a reason to keep showing up.
 - Join the Company.
 - Train. Record. Advance.
+- Your week shapes your character and the story.
+- Go forth and conquer.
 
-Player-facing copy does not call attribute growth "points." Say that it comes from your workouts and the goals you hit. Staff tools and the database may keep the internal names.
+Player-facing copy does not call attribute growth "points," and it does not use video-game framing. Say that the week shapes the character and the story. Staff tools and the database may keep the internal names. In-world notices sit on parchment with iron text. Red is a fill, not text on iron or on parchment.

@@ -40,6 +40,7 @@ export default async function BarracksPage() {
   return (
     <Page title="Barracks" lede="A squad, a story, and a reason to keep showing up.">
       <p className="text-mute">Train. Record. Advance.</p>
+      <p>Your week shapes your character and the story.</p>
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
         <Panel title="Start here">

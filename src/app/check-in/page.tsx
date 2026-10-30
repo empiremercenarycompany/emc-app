@@ -24,7 +24,10 @@ export default async function CheckInPage() {
       : [];
 
   return (
-    <Page title="Check-in" lede="Due Friday at 11:59 PM. Four objectives, scored 2, 1, or 0. This does not lock your Build.">
+    <Page
+      title="Check-in"
+      lede="Due Friday at 11:59 PM. Four objectives, scored 2, 1, or 0. Your week shapes your character and the story. This does not lock your Build."
+    >
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? (
         <p>

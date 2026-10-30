@@ -2,7 +2,7 @@
 
 John asked for the simplest Company book a new recruit can use, and a DM can run at the table. Features stay. The presentation is quieter.
 
-Brand colors and League Spartan stay. No font files were added.
+Brand colors stay. Body is Barlow. UI and titles are Barlow Condensed. No font files were added.
 
 ## Barracks
 

@@ -2,7 +2,16 @@
 
 Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend banks the server awards. Brand rules are in `docs/BRAND.md`. The 10/28 attribute rules and the weekly check-in are in `docs/OPEN_QUESTIONS.md`.
 
-This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only.
+This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only. Do not commit font files or logo files.
+
+## Local brand files
+
+The wordmark is the logo until a file is present. For a local mark, add these and leave them untracked (`public/brand/local/` is gitignored):
+
+- `public/brand/local/logo.png` — transparent white/red PNG for dark backgrounds only. The app does not recolor, stretch, or glow it. Clear space is at least a quarter of the image height.
+- `public/brand/local/Corleone.woff2` — big titles only. Set `FONT_PAIR` in `src/lib/brand.ts` to `"corleone"`. If the file is missing, titles stay Barlow Condensed.
+
+Body text is Barlow. Subheads, buttons, labels, and tabs are Barlow Condensed. Both load from Google Fonts. League Spartan is not used.
 
 The Flutter app on the other pull requests is reference material. Leave those branches and pull requests alone.
 

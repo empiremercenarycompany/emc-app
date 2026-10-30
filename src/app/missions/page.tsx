@@ -89,7 +89,7 @@ export default async function MissionsPage() {
           </ResultForm>
         ) : null}
         <p className="text-sm text-mute">
-          Attendance loot is {viewer.config?.attendance_loot ?? "unset"}. Check-in copies that placeholder and grants nothing.
+          The attendance reward is {viewer.config?.attendance_loot ?? "unset"}. Check-in copies that placeholder and grants nothing.
           TODO(John): what it should pay. Group-goal payout is {viewer.config?.group_goal_payout ?? "unset"}.
         </p>
         {viewer.role === "dm" ? (
@@ -119,8 +119,8 @@ export default async function MissionsPage() {
               <option value="false">Absent</option>
             </select>
             <select name="loot_share" defaultValue="true">
-              <option value="true">Loot flag on</option>
-              <option value="false">Loot flag off</option>
+              <option value="true">Reward flag on</option>
+              <option value="false">Reward flag off</option>
             </select>
           </ResultForm>
         ) : null}

@@ -129,7 +129,7 @@ export default async function CalendarPage() {
           </article>
         ))}
         <p className="text-sm text-mute">
-          Attendance stores the loot placeholder ({viewer.config?.attendance_loot ?? "unset"}) and grants nothing. TODO(John):
+          Attendance stores a reward placeholder ({viewer.config?.attendance_loot ?? "unset"}) and grants nothing. TODO(John):
           what attendance pays.
         </p>
         {isStaff(viewer.role) ? (

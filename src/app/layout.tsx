@@ -1,28 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, Lato, League_Spartan } from "next/font/google";
+import { Barlow, Barlow_Condensed } from "next/font/google";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
-import { FONT_PAIR } from "@/lib/brand";
+import { headingFace } from "@/lib/brand";
 import { loadViewer } from "@/lib/company";
 import "./globals.css";
 
-const spartan = League_Spartan({
-  subsets: ["latin"],
-  variable: "--font-spartan",
-  display: "swap",
-});
-
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-cinzel",
-  display: "swap",
-});
-
-const lato = Lato({
+const barlow = Barlow({
   subsets: ["latin"],
   weight: ["400", "700"],
-  variable: "--font-lato",
+  variable: "--font-barlow",
+  display: "swap",
+});
+
+const condensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+  variable: "--font-barlow-condensed",
   display: "swap",
 });
 
@@ -52,9 +46,13 @@ export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await loadViewer();
+  const corleone = headingFace() === "Corleone";
   return (
-    <html lang="en" data-font={FONT_PAIR} className={`${spartan.variable} ${cinzel.variable} ${lato.variable}`}>
+    <html lang="en" data-font={corleone ? "corleone" : "barlow"} className={`${barlow.variable} ${condensed.variable}`}>
       <body>
+        {corleone ? (
+          <style>{`@font-face{font-family:Corleone;src:url("/brand/local/Corleone.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap;}`}</style>
+        ) : null}
         <RegisterSw />
         {children}
         <SiteNav signedIn={Boolean(viewer.userId)} />

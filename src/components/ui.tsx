@@ -1,17 +1,8 @@
 import type { ReactNode } from "react";
+import { LogoSlot } from "@/components/logo-slot";
 import type { Impact } from "@/lib/types";
 
-/**
- * Logo slot. No logo file is committed.
- * The wordmark is the fallback until the mark and a dark version arrive.
- */
-export function LogoSlot() {
-  return (
-    <div className="logo-slot border border-bronze px-3 py-2" data-logo-slot="wordmark">
-      <p className="text-xs font-bold uppercase tracking-[0.22em] text-parchment">EMPIRE MERCENARY COMPANY</p>
-    </div>
-  );
-}
+export { LogoSlot };
 
 export function Page({
   title,
@@ -28,6 +19,7 @@ export function Page({
       <h1 className="mt-4 text-4xl">{title}</h1>
       {lede ? <p className="mt-2 text-mute">{lede}</p> : null}
       <div className="mt-6 flex flex-col gap-4">{children}</div>
+      <p className="signoff">Go forth and conquer.</p>
     </main>
   );
 }
@@ -42,7 +34,7 @@ export function Panel({ title, children }: { title?: string; children: ReactNode
 }
 
 export function Notice({ children }: { children: ReactNode }) {
-  return <p className="border border-steel p-3 text-mute">{children}</p>;
+  return <p className="notice">{children}</p>;
 }
 
 const POOL_LABEL: Record<string, string> = {

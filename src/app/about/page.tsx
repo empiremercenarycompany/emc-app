@@ -21,10 +21,9 @@ export default function AboutPage() {
         <p>Homebrew rows use their own source and attribution columns. This app does not copy rules text.</p>
       </Panel>
       <Panel title="Type">
-        <p>Body text is League Spartan, under the SIL Open Font License. Cinzel and Lato, the other pair, use the same license.</p>
+        <p>Body text is Barlow. Subheads, buttons, and labels are Barlow Condensed. Both are under the SIL Open Font License.</p>
         <p className="text-mute">
-          Heading and body are one switch. The default uses League Spartan for both, because Corleone is not in this repo.
-          TODO(John): Corleone with League Spartan, or Cinzel with Lato.
+          Big titles use Barlow Condensed. Corleone is a local file only, and only when the switch asks for it. That file is not in this repo.
         </p>
       </Panel>
     </Page>
