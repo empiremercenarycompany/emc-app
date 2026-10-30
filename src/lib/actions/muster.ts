@@ -6,6 +6,7 @@ import type { ActionResult } from "@/lib/types";
 
 function touch() {
   revalidatePath("/muster");
+  revalidatePath("/trainer");
   revalidatePath("/character");
   revalidatePath("/check-in");
   revalidatePath("/schedule");
@@ -38,6 +39,30 @@ export async function approveSquadMuster(formData: FormData): Promise<ActionResu
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("approve_squad_muster", {
     p_session_id: String(formData.get("session_id") ?? ""),
+    p_squad_id: String(formData.get("squad_id") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+export async function finalizeStats(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("finalize_character_build", {
+    p_character_id: String(formData.get("character_id") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+export async function finalizeSquadStats(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("finalize_squad_build", {
     p_squad_id: String(formData.get("squad_id") ?? ""),
   });
   const message = dbError(rpcError);

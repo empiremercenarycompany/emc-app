@@ -21,6 +21,7 @@ const MORE = [
   { href: "/calendar", label: "Calendar" },
   { href: "/check-in", label: "Check-in" },
   { href: "/muster", label: "Table Muster" },
+  { href: "/trainer", label: "Trainer" },
   { href: "/notes", label: "Notes" },
   { href: "/schedule", label: "Schedule" },
   { href: "/dice", label: "Dice" },

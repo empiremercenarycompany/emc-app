@@ -14,7 +14,7 @@ Brand colors and League Spartan stay. No font files were added.
 
 - Problem: banks, the ledger, and the plan were one wall, and a placement did not say whether it could move.
 - Principle: recognition over recall.
-- Change: the sheet says Ready to move and Locked, with ability names and the kind of work that paid. Unplaced banks stay labeled as ready. Raising an ability says where it comes from. The Build plan fields are labeled. The ledger uses the same words. Notes stay after the sheet.
+- Change: the sheet says Not final yet, Ready to move, and Locked. Not final yet is a placement a DM or trainer has not confirmed. Ready to move is finalized and still refundable. Locked is finalized after the next session starts. Unplaced banks stay labeled as ready. Raising an ability says where it comes from. The Build plan fields are labeled. The ledger uses the same words. Notes stay after the sheet.
 
 ## Work
 
@@ -32,7 +32,13 @@ Brand colors and League Spartan stay. No font files were added.
 
 - Problem: the instructions were longer than the table.
 - Principle: speed at the table, bulk action.
-- Change: one sentence, then session, squad, and Approve all. The roster names recruits instead of asking for an id. The five columns wrap on a phone instead of running together. The red button is the bulk confirm.
+- Change: one sentence, then session, squad, and Approve all. The roster names recruits instead of asking for an id. The five columns wrap on a phone instead of running together. The red button is the bulk confirm. Finalize stats sits under that, one recruit at a time, with Finalize all for the squad. The waiting lines show before the button.
+
+## Trainer
+
+- Problem: a gym trainer had no place to confirm a Build without opening the whole table.
+- Principle: one primary action, and show the state before the confirm.
+- Change: Trainer lists each waiting change, then Finalize stats for the recruit you pick. A player cannot open it. The weekly check-in says it does not lock the Build.
 
 ## Buffs
 

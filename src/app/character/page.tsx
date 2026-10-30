@@ -48,8 +48,9 @@ export default async function CharacterPage() {
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
         <Panel title="How your Build moves">
-          <p>Ready to move. What you placed this session can go back where it came from.</p>
-          <p>Locked. When the next session starts, that placement stays.</p>
+          <p>Not final yet: see your DM or trainer to lock these in.</p>
+          <p>Ready to move. A finalized placement can go back until the next session starts.</p>
+          <p>Locked. When the next session starts, a finalized placement stays.</p>
           <p className="text-mute">What you have not placed stays ready, however old it is.</p>
         </Panel>
         <Link className="button primary" href="/sign-in">
@@ -94,6 +95,7 @@ export default async function CharacterPage() {
   const mobility = supabase
     ? (await supabase.rpc("build_mobility", { p_character_id: character.id })).data
     : null;
+  const provisional = Array.isArray(mobility?.provisional) ? mobility.provisional : [];
   const ready = Array.isArray(mobility?.ready) ? mobility.ready : [];
   const locked = Array.isArray(mobility?.locked) ? mobility.locked : [];
   const buffs =
@@ -141,12 +143,21 @@ export default async function CharacterPage() {
           {character.physical_points} · Constitution bank {character.constitution_points} · Mental bank{" "}
           {character.mental_points} · Social bank {character.social_points ?? 0} · Free bank {character.free_points ?? 0}
         </p>
-        <p className="text-mute">What you have not placed stays ready. What you place locks when the next session starts.</p>
+        <p className="text-mute">What you have not placed stays ready. A DM or trainer locks a placement in person. It stays when the next session starts.</p>
+        <div>
+          <p className="font-bold">Not final yet: see your DM or trainer to lock these in</p>
+          {provisional.length === 0 ? <p className="text-mute">Nothing is waiting.</p> : null}
+          {provisional.map((row: { ability: string; pool: string; amount: number }) => (
+            <p key={`provisional-${row.ability}-${row.pool}`}>
+              {abilityLabel(row.ability)} · {row.amount} · {BANK[row.pool] ?? row.pool}
+            </p>
+          ))}
+        </div>
         <div>
           <p className="font-bold">Ready to move</p>
-          {ready.length === 0 ? <p className="text-mute">Nothing placed this session.</p> : null}
+          {ready.length === 0 ? <p className="text-mute">Nothing final is still movable.</p> : null}
           {ready.map((row: { ability: string; pool: string; amount: number }) => (
-            <p key={`${row.ability}-${row.pool}`}>
+            <p key={`ready-${row.ability}-${row.pool}`}>
               {abilityLabel(row.ability)} · {row.amount} · {BANK[row.pool] ?? row.pool}
             </p>
           ))}

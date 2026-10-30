@@ -1090,8 +1090,9 @@ begin
 end $$;
 reset role;
 
--- Refund returns to the bank that paid. A placement locks when the next session has started.
--- An unspent bank never locks.
+-- Refund returns to the bank that paid.
+-- Provisional placements move freely. Finalized placements lock at the next session.
+-- An unspent bank never locks. A weekly check-in does not finalize.
 select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
 set role authenticated;
 do $$
@@ -1135,9 +1136,112 @@ set role authenticated;
 do $$
 declare
   v_id uuid;
-  v_free int;
+  v_con int;
 begin
-  select id, free_points into v_id, v_free from public.characters where user_id = auth.uid();
+  select id into v_id from public.characters where user_id = auth.uid();
+  perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
+  select constitution_points into v_con from public.characters where id = v_id;
+  if v_con <> 1 then
+    raise exception 'provisional refund was locked, bank left %', v_con;
+  end if;
+  perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 8);
+  perform public.submit_weekly_checkin(public.company_today() + 10, 3, 0, '', true, true, true, '', false);
+  if exists (
+    select 1 from public.build_placements
+    where character_id = v_id and remaining > 0 and status <> 'provisional'
+  ) then
+    raise exception 'a weekly check-in finalized the Build';
+  end if;
+  begin
+    perform public.finalize_character_build(v_id);
+    raise exception 'player finalized own stats';
+  exception
+    when others then
+      if sqlerrm ilike '%player finalized own stats%' then raise; end if;
+      if sqlerrm not ilike '%DM or trainer%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles set app_role = 'dm' where id = '22222222-2222-4222-8222-222222222221';
+select set_config('emc.profile_admin', 'off', false);
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+begin
+  select id into v_id from public.characters where user_id = auth.uid();
+  begin
+    perform public.finalize_character_build(v_id);
+    raise exception 'player finalized own stats';
+  exception
+    when others then
+      if sqlerrm ilike '%player finalized own stats%' then raise; end if;
+      if sqlerrm not ilike '%own%' then raise; end if;
+  end;
+end $$;
+reset role;
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles set app_role = 'player' where id = '22222222-2222-4222-8222-222222222221';
+select set_config('emc.profile_admin', 'off', false);
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222225', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+begin
+  select id into v_id from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  begin
+    perform public.finalize_character_build(v_id);
+    raise exception 'outsider finalized a Build';
+  exception
+    when others then
+      if sqlerrm ilike '%outsider finalized%' then raise; end if;
+      if sqlerrm not ilike '%DM or trainer%' then raise; end if;
+  end;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222224', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_n int;
+begin
+  select id into v_id from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  perform public.finalize_character_build(v_id);
+  select count(*) into v_n from public.build_placements
+  where character_id = v_id and ability = 'constitution' and remaining > 0 and status = 'finalized';
+  if v_n < 1 then
+    raise exception 'trainer did not finalize';
+  end if;
+  if not exists (
+    select 1 from public.award_audit
+    where character_id = v_id and kind = 'finalize' and actor_id = auth.uid()
+  ) then
+    raise exception 'finalize was not audited';
+  end if;
+end $$;
+reset role;
+
+update public.build_placements
+set session_start = public.company_today() - 20
+where ability = 'constitution' and status = 'finalized' and remaining > 0;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_free int;
+  v_squad uuid;
+begin
+  select id, free_points, squad_id into v_id, v_free, v_squad
+  from public.characters where user_id = auth.uid();
   begin
     perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
     raise exception 'locked placement was refunded';
@@ -1150,8 +1254,64 @@ begin
   if (select free_points from public.characters where id = v_id) <> v_free - 1 then
     raise exception 'an old unspent attendance bank was locked';
   end if;
+  if v_squad is null then
+    raise exception 'player has no squad to finalize';
+  end if;
 end $$;
 reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_squad uuid;
+  v_n int;
+begin
+  select id, squad_id into v_id, v_squad
+  from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  perform public.finalize_squad_build(v_squad);
+  select count(*) into v_n from public.build_placements
+  where character_id = v_id and ability = 'charisma' and remaining > 0 and status = 'finalized';
+  if v_n < 1 then
+    raise exception 'DM did not finalize the squad';
+  end if;
+end $$;
+reset role;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+begin
+  select id into v_id from public.characters where user_id = auth.uid();
+  perform public.spend_attribute_points(v_id, 11, 9, 9, 9, 8, 9);
+end $$;
+reset role;
+
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles set app_role = 'approver' where id = '22222222-2222-4222-8222-222222222223';
+select set_config('emc.profile_admin', 'off', false);
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222223', false);
+set role authenticated;
+do $$
+declare
+  v_id uuid;
+  v_n int;
+begin
+  select id into v_id from public.characters where user_id = '22222222-2222-4222-8222-222222222221';
+  perform public.finalize_character_build(v_id);
+  select count(*) into v_n from public.build_placements
+  where character_id = v_id and ability = 'intelligence' and remaining > 0 and status = 'finalized';
+  if v_n < 1 then
+    raise exception 'approver did not finalize';
+  end if;
+end $$;
+reset role;
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles set app_role = 'admin' where id = '22222222-2222-4222-8222-222222222223';
+select set_config('emc.profile_admin', 'off', false);
 
 do $$
 begin

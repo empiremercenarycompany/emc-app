@@ -71,8 +71,22 @@ test("work opens on one record form", async ({ page }) => {
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
+  await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
   await expect(page.getByText("Locked")).toBeVisible();
+});
+
+test("trainer check-in shows the finalize step", async ({ page }) => {
+  await page.goto("/trainer");
+  await expect(page.getByRole("heading", { name: "Trainer" })).toBeVisible();
+  await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Finalize stats" })).toBeVisible();
+});
+
+test("table muster can finalize the squad", async ({ page }) => {
+  await page.goto("/muster");
+  await expect(page.getByRole("button", { name: "Finalize stats" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Finalize all" })).toBeVisible();
 });
 
 test("the calendar shows off-weeks and three-parters", async ({ page }) => {

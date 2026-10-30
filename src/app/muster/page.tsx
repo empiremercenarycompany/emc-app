@@ -1,10 +1,27 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
-import { approveSquadMuster, recordMuster } from "@/lib/actions/muster";
+import { approveSquadMuster, finalizeSquadStats, finalizeStats, recordMuster } from "@/lib/actions/muster";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
+
+const ABILITY: Record<string, string> = {
+  strength: "Strength",
+  dexterity: "Dexterity",
+  constitution: "Constitution",
+  intelligence: "Intelligence",
+  wisdom: "Wisdom",
+  charisma: "Charisma",
+};
+
+const BANK: Record<string, string> = {
+  physical: "workouts",
+  constitution: "nutrition and sleep",
+  mental: "mental goals",
+  social: "social goals",
+  free: "attendance",
+};
 
 export default async function MusterPage() {
   const viewer = await loadViewer();
@@ -27,6 +44,16 @@ export default async function MusterPage() {
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId).order("name")).data
+      : [];
+  const waiting =
+    supabase && isStaff(viewer.role)
+      ? (
+          await supabase
+            .from("build_placements")
+            .select("character_id, ability, pool, remaining")
+            .eq("status", "provisional")
+            .gt("remaining", 0)
+        ).data
       : [];
 
   return (
@@ -160,6 +187,55 @@ export default async function MusterPage() {
           <button className="primary" type="button">
             Approve all
           </button>
+        )}
+      </Panel>
+      <Panel title="Finalize the Build">
+        <p>Not final yet: see your DM or trainer to lock these in.</p>
+        {isStaff(viewer.role) ? (
+          <>
+            {(people ?? []).map((person) => {
+              const lines = (waiting ?? []).filter((row) => row.character_id === person.id);
+              return (
+                <div key={person.id}>
+                  <p>{person.name}</p>
+                  {lines.length === 0 ? <p className="text-mute">Nothing waiting.</p> : null}
+                  {lines.map((line) => (
+                    <p key={`${person.id}-${line.ability}-${line.pool}`} className="text-mute">
+                      {ABILITY[line.ability] ?? line.ability} · {line.remaining} · {BANK[line.pool] ?? line.pool}
+                    </p>
+                  ))}
+                  <ResultForm action={finalizeStats} submit="Finalize stats" secondary>
+                    <input type="hidden" name="character_id" value={person.id} />
+                  </ResultForm>
+                </div>
+              );
+            })}
+            <ResultForm action={finalizeSquadStats} submit="Finalize all" secondary>
+              <label>
+                Squad
+                <select name="squad_id" required defaultValue="">
+                  <option value="" disabled>
+                    Squad
+                  </option>
+                  {(squads ?? []).map((squad) => (
+                    <option key={squad.id} value={squad.id}>
+                      {squad.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </ResultForm>
+          </>
+        ) : (
+          <>
+            <p className="text-mute">Nothing is waiting.</p>
+            <button className="secondary" type="button">
+              Finalize stats
+            </button>
+            <button className="secondary" type="button">
+              Finalize all
+            </button>
+          </>
         )}
       </Panel>
     </Page>
