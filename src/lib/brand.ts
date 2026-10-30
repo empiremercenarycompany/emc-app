@@ -25,8 +25,11 @@ export const FONT_PAIRS = {
 /** Gitignored. Drop the file here locally. Do not commit it. */
 export const CORLEONE_FILE = "public/brand/local/Corleone.woff2";
 
-/** Gitignored. Transparent white/red mark for dark backgrounds only. */
-export const LOGO_FILE = "public/brand/local/logo.png";
+/** Full badge on black. Splash and About. */
+export const LOGO_DARK = "public/brand/logo_dark.png";
+
+/** Transparent white and red. Dark backgrounds only. */
+export const LOGO_MARK = "public/brand/emc_logo.png";
 
 export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));

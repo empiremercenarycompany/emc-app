@@ -78,28 +78,28 @@ h2 {
   padding: 0.75rem;
 }
 
-.logo-slot {
-  position: relative;
-}
-
 .logo-slot[data-logo-slot="image"] {
-  padding: 0.625rem;
+  padding: 0.875rem;
 }
 
 .logo-img {
   display: block;
-  height: 2.5rem;
+  height: 3.5rem;
   width: auto;
   max-width: 100%;
   object-fit: contain;
 }
 
-.logo-probe {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
+.logo-badge {
+  padding: 3.5rem 0;
+}
+
+.logo-badge-img {
+  display: block;
+  width: 14rem;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
 }
 
 :focus-visible {

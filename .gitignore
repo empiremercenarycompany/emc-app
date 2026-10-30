@@ -16,6 +16,6 @@ supabase/.temp
 coverage
 .DS_Store
 
-# Local brand files. Never commit Corleone or the company mark.
+# Local Corleone file. Never commit font files. Logo PNGs in public/brand/ are tracked.
 public/brand/local/*
 !public/brand/local/.gitkeep

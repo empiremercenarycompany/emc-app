@@ -2,14 +2,18 @@
 
 Companion app for the company: a Next.js PWA that talks to Supabase. Players sign in with a magic link, take a recruit oath, record work and goals, and spend banks the server awards. Brand rules are in `docs/BRAND.md`. The 10/28 attribute rules and the weekly check-in are in `docs/OPEN_QUESTIONS.md`.
 
-This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only. Do not commit font files or logo files.
+This repository is public. Do not commit keys, service-role secrets, or a hosted project URL that is private to you. `.env.example` holds placeholders only. Do not commit font files.
 
-## Local brand files
+## Brand files
 
-The wordmark is the logo until a file is present. For a local mark, add these and leave them untracked (`public/brand/local/` is gitignored):
+The marks in `public/brand/` are part of the repo:
 
-- `public/brand/local/logo.png` — transparent white/red PNG for dark backgrounds only. The app does not recolor, stretch, or glow it. Clear space is at least a quarter of the image height.
-- `public/brand/local/Corleone.woff2` — big titles only. Set `FONT_PAIR` in `src/lib/brand.ts` to `"corleone"`. If the file is missing, titles stay Barlow Condensed.
+- `logo_dark.png` — full badge on black. Dark splash and About.
+- `emc_logo.png` — transparent white and red, for dark backgrounds only.
+
+Light backgrounds use the wordmark. There is no light-background file and no SVG. The app icon is the badge on Iron Black until a standalone helm mark arrives.
+
+Corleone stays local. Add `public/brand/local/Corleone.woff2` and leave it untracked, then set `FONT_PAIR` in `src/lib/brand.ts` to `"corleone"`. If the file is missing, titles stay Barlow Condensed.
 
 Body text is Barlow. Subheads, buttons, labels, and tabs are Barlow Condensed. Both load from Google Fonts. League Spartan is not used.
 

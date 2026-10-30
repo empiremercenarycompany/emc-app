@@ -29,7 +29,13 @@ League Spartan is not used. Never commit Corleone font files. The license is unc
 
 ## Logo
 
-No logo file is committed. Put a transparent white/red PNG at `public/brand/local/logo.png` (gitignored). It is for dark backgrounds only. The slot does not recolor it, stretch it, or add a glow. Clear space around it is at least a quarter of its height. Until that file loads, the slot is the wordmark `EMPIRE MERCENARY COMPANY` (`data-logo-slot="wordmark"`). The PWA icon is a plain letter mark for the home screen, not the company logo.
+Two marks are committed. Neither is recolored, stretched, or given a glow. Clear space around each is at least a quarter of its height.
+
+- `public/brand/logo_dark.png` is the full badge on black, 800×800. It is the dark splash (Join the Company) and the About screen.
+- `public/brand/emc_logo.png` is the same badge with a transparent ground, white and red. It is for dark backgrounds only, including the slot at the top of the book.
+- Light backgrounds keep the wordmark `EMPIRE MERCENARY COMPANY`. There is no light-background file and no SVG yet.
+
+The app icon is that badge placed on Iron Black (`#111111`), with the same clear space. A standalone helm mark may replace it later.
 
 ## Icons
 

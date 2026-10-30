@@ -6,12 +6,13 @@ test("barracks shows the company lines", async ({ page }) => {
   await expect(page.getByText("Train. Record. Advance.").first()).toBeVisible();
   await expect(page.getByText("Your week shapes your character and the story.")).toBeVisible();
   await expect(page.getByText("Go forth and conquer.")).toBeVisible();
-  await expect(page.getByText("EMPIRE MERCENARY COMPANY").first()).toBeVisible();
+  await expect(page.locator("img[src='/brand/emc_logo.png']")).toBeVisible();
   await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
 });
 
 test("about attributes the SRD and stays clear of invented place copy", async ({ page }) => {
   await page.goto("/about");
+  await expect(page.locator("img[src='/brand/logo_dark.png']")).toBeVisible();
   await expect(page.getByText("Bleakspire is a fortress with a small city around it.")).toBeVisible();
   await expect(page.getByText(/Creative Commons Attribution 4\.0/)).toBeVisible();
   await expect(page.getByText(/System Reference Document 5\.2/)).toBeVisible();
@@ -34,6 +35,7 @@ test("dice roller keeps a total", async ({ page }) => {
 test("sign-in asks for an email link", async ({ page }) => {
   await page.goto("/sign-in");
   await expect(page.getByRole("heading", { name: "Join the Company" })).toBeVisible();
+  await expect(page.locator("img[src='/brand/logo_dark.png']")).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByRole("button", { name: "Join the Company" })).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();

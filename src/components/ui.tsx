@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LogoSlot } from "@/components/logo-slot";
+import { CompanyBadge, LogoSlot } from "@/components/logo-slot";
 import type { Impact } from "@/lib/types";
 
 export { LogoSlot };
@@ -7,15 +7,18 @@ export { LogoSlot };
 export function Page({
   title,
   lede,
+  badge = false,
   children,
 }: {
   title: string;
   lede?: string;
+  /** Full badge on black. Splash and About only. */
+  badge?: boolean;
   children: ReactNode;
 }) {
   return (
     <main className="mx-auto w-full max-w-lg px-4 pb-28 pt-6">
-      <LogoSlot />
+      {badge ? <CompanyBadge /> : <LogoSlot />}
       <h1 className="mt-4 text-4xl">{title}</h1>
       {lede ? <p className="mt-2 text-mute">{lede}</p> : null}
       <div className="mt-6 flex flex-col gap-4">{children}</div>
