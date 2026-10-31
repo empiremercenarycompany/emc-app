@@ -6,7 +6,6 @@ import type { ActionResult } from "@/lib/types";
 
 function refresh() {
   revalidatePath("/");
-  revalidatePath("/calendar");
   revalidatePath("/missions");
   revalidatePath("/notes");
   revalidatePath("/schedule");
@@ -140,6 +139,6 @@ export async function saveCalendarEvent(formData: FormData): Promise<ActionResul
   });
   const message = dbError(insertError);
   if (message) return { error: message };
-  revalidatePath("/calendar");
+  revalidatePath("/schedule");
   return { ok: true };
 }

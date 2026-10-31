@@ -90,9 +90,20 @@ test("trainer check-in is closed to a player", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Finalize stats" })).toHaveCount(0);
 });
 
-test("the calendar does not show a sample or a second time zone", async ({ page }) => {
+test("the old calendar route opens the schedule", async ({ page }) => {
   await page.goto("/calendar");
-  await expect(page.getByRole("heading", { name: "Calendar" })).toBeVisible();
+  await expect(page).toHaveURL(/\/schedule$/);
+  await expect(page.getByRole("heading", { name: "Schedule", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Calendar", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Next session" })).toBeVisible();
+  await expect(page.getByText(/Today \d{4}-\d{2}-\d{2}/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Times" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
+  await expect(page.getByText("9–12")).toBeVisible();
+  await expect(page.getByText("2–5")).toBeVisible();
+  await expect(page.getByText("7–10 PM")).toBeVisible();
+  await expect(page.getByText("(18+)")).toBeVisible();
+  await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
   await expect(page.getByText("America/Boise")).toHaveCount(0);
@@ -140,6 +151,8 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await menu.click();
   const overlay = page.getByRole("dialog", { name: "Menu" });
   await expect(overlay).toBeVisible();
+  await expect(overlay.getByRole("link", { name: "Schedule", exact: true })).toHaveCount(1);
+  await expect(overlay.getByRole("link", { name: "Calendar", exact: true })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Table Muster" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Trainer" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);

@@ -190,7 +190,7 @@ export async function createSession(formData: FormData): Promise<ActionResult> {
   const message = dbError(rpcError);
   if (message) return { error: message };
   revalidatePath("/missions");
-  revalidatePath("/calendar");
+  revalidatePath("/schedule");
   return { ok: true };
 }
 

@@ -26,7 +26,6 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
       title: "Play",
       items: [
         { href: "/missions", label: "Missions" },
-        { href: "/calendar", label: "Calendar" },
         { href: "/schedule", label: "Schedule" },
         { href: "/dice", label: "Dice" },
       ],

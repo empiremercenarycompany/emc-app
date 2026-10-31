@@ -157,7 +157,29 @@ export function calendarBlocks(input: {
   return blocks;
 }
 
-/** A fixed illustration so the calendar page can show both shapes without a database. */
+export type SessionFocus = {
+  block: CalendarBlock;
+  when: "now" | "next";
+};
+
+/**
+ * The session a recruit should look at.
+ * A block that contains today is current. Otherwise the next session after today.
+ * Off-weeks are skipped. With no today, the first session is the next one.
+ * `today` is a YYYY-MM-DD company date.
+ */
+export function nextSessionBlock(blocks: CalendarBlock[], today: string | null): SessionFocus | null {
+  const sessions = blocks.filter((block) => block.kind !== "off-week");
+  if (sessions.length === 0) return null;
+  const day = today?.slice(0, 10) ?? null;
+  if (!day) return { block: sessions[0], when: "next" };
+  const current = sessions.find((block) => block.start <= day && day <= block.end);
+  if (current) return { block: current, when: "now" };
+  const upcoming = sessions.find((block) => block.start > day);
+  return upcoming ? { block: upcoming, when: "next" } : null;
+}
+
+/** A fixed illustration so tests can show both shapes without a database. */
 export function sampleCalendar(): CalendarBlock[] {
   return calendarBlocks({
     anchor: new Date(Date.UTC(2027, 0, 4)),

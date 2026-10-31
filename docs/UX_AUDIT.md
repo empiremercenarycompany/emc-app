@@ -50,7 +50,7 @@ Brand colors stay. Body is Barlow. UI and titles are Barlow Condensed. No font f
 
 - Problem: ledes used internal words, and several screens had no single next step.
 - Principle: plain EMC voice and the same card and button styles.
-- Change: goals name nutrition, mental, and social, with labeled fields and one red save. The lifting journal calls a shared list a list. Dice says the other roll. The schedule states the weekly limit and the Build limit without internal names, and an off-week still records work. Empty states still say what is missing. Sign-in keeps one red action. Discord and Google stay disabled. Cards stay one border, one spacing scale, no extra decoration. Nav targets and fields are at least 44px.
+- Change: goals name nutrition, mental, and social, with labeled fields and one red save. The lifting journal calls a shared list a list. Dice says the other roll. Calendar and Schedule are one page, named Schedule. It shows the next session, the session times, and the company calendar. `/calendar` redirects there, and the menu has one Schedule link. The page states the weekly limit and the Build limit without internal names, and an off-week still records work. The company date is shown. The zone name is not. Empty states still say what is missing. Sign-in keeps one red action. Discord and Google stay disabled. Cards stay one border, one spacing scale, no extra decoration. Nav targets and fields are at least 44px.
 
 ## Accessibility
 

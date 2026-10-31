@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { utcDate } from "./dates";
-import { calendarBlocks, companyWeekNumber, milestoneAdvance, sampleCalendar } from "./calendar";
+import { calendarBlocks, companyWeekNumber, milestoneAdvance, nextSessionBlock, sampleCalendar } from "./calendar";
 
 describe("company calendar", () => {
   const anchor = utcDate(2027, 1, 4);
@@ -34,6 +34,21 @@ describe("company calendar", () => {
     expect(blocks.some((block) => block.kind === "off-week" && block.sessionNumber === null)).toBe(true);
     const gap = blocks.find((block) => block.kind === "off-week");
     expect(gap).toMatchObject({ start: "2027-02-01", end: "2027-02-14" });
+  });
+
+  it("chooses the session that contains today, or the next one after an off-week", () => {
+    const blocks = sampleCalendar();
+    expect(nextSessionBlock(blocks, "2027-01-31")).toMatchObject({
+      when: "now",
+      block: { sessionNumber: 1, kind: "three-parter" },
+    });
+    expect(nextSessionBlock(blocks, "2027-02-10")).toMatchObject({
+      when: "next",
+      block: { sessionNumber: 2, start: "2027-02-15" },
+    });
+    expect(nextSessionBlock(blocks, "2026-12-01")?.block.sessionNumber).toBe(1);
+    expect(nextSessionBlock(blocks, null)?.when).toBe("next");
+    expect(nextSessionBlock(blocks, "2027-03-01")).toBeNull();
   });
 
   it("opens milestones one step at a time and never lowers a level", () => {
