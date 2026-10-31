@@ -32,14 +32,19 @@ describe("posted table sessions", () => {
 
 describe("adventure labels", () => {
   const adventures = [
-    { title: "Adventure 2", start_date: null, status: "active" },
-    { title: "Adventure 3", start_date: "2027-01-02", status: "upcoming" },
+    { title: "Old campaign", number: 1, start_date: "2026-01-01", status: "closed" },
+    { title: "Adventure 2", number: 2, start_date: null, status: "active" },
+    { title: "Adventure 3", number: 3, start_date: "2027-01-02", status: "upcoming" },
+    { title: "Adventure 4", number: 4, start_date: "2027-06-01", status: "upcoming" },
   ];
 
-  it("names the cohort adventure from the row that starts with the cohort", () => {
+  it("names the lowest-numbered open adventure that already has a start", () => {
     expect(cohortAdventure(adventures, "2027-01-02")).toEqual({ title: "Adventure 3", start: "2027-01-02" });
     expect(cohortBeginsLine("Adventure 3", "2027-01-02")).toBe("Adventure 3 begins Saturday, Jan 2");
-    expect(cohortAdventure(adventures, "2026-11-07")).toBeNull();
+    expect(cohortAdventure(adventures, null)).toBeNull();
+    expect(
+      cohortAdventure([{ title: "Adventure 2", number: 2, start_date: null, status: "active" }], "2027-01-02"),
+    ).toBeNull();
   });
 
   it("shows a table session's adventure without repeating the spoken date", () => {

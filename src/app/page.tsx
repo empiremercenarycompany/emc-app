@@ -138,7 +138,7 @@ export default async function BarracksPage() {
       : [];
   const adventureRows =
     supabase && viewer.guildId
-      ? (await supabase.from("adventures").select("title, start_date, status").eq("guild_id", viewer.guildId)).data
+      ? (await supabase.from("adventures").select("number, title, start_date, status").eq("guild_id", viewer.guildId)).data
       : [];
   const companyDay = viewer.today ?? formatDate(calendarDate(new Date(), COMPANY_ZONE));
   const posted = nextPostedSession(

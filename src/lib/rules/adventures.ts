@@ -4,18 +4,21 @@ export type AdventureRow = {
   title: string | null;
   start_date: string | null;
   status?: string | null;
+  number?: number | null;
 };
 
-/** The adventure whose start is the cohort anchor. Title comes from the row, not from a hardcoded number. */
+/**
+ * Lowest-numbered upcoming or active adventure that already has a start date.
+ * The spoken day is the cohort anchor. Closed rows and undated active rows are skipped.
+ */
 export function cohortAdventure(rows: AdventureRow[], cohortStart: string | null): { title: string; start: string } | null {
   const start = (cohortStart ?? "").slice(0, 10);
   if (start.length !== 10) return null;
-  const named = rows.filter((row) => (row.title ?? "").trim().length > 0);
-  const match = named.find((row) => (row.start_date ?? "").slice(0, 10) === start);
-  const chosen =
-    match ??
-    named.find((row) => row.status === "upcoming" && (row.start_date ?? "").slice(0, 10) === start) ??
-    null;
+  const chosen = rows
+    .filter((row) => (row.title ?? "").trim().length > 0)
+    .filter((row) => row.status === "upcoming" || row.status === "active")
+    .filter((row) => (row.start_date ?? "").slice(0, 10).length === 10)
+    .sort((a, b) => (a.number ?? Number.MAX_SAFE_INTEGER) - (b.number ?? Number.MAX_SAFE_INTEGER))[0];
   if (!chosen?.title) return null;
   return { title: chosen.title.trim(), start };
 }

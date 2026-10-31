@@ -102,7 +102,7 @@ export default async function SchedulePage() {
       : [];
   const adventureRows =
     supabase && viewer.guildId
-      ? (await supabase.from("adventures").select("title, start_date, status").eq("guild_id", viewer.guildId)).data
+      ? (await supabase.from("adventures").select("number, title, start_date, status").eq("guild_id", viewer.guildId)).data
       : [];
   const events =
     supabase && viewer.guildId
