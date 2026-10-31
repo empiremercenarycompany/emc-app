@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
-import Link from "next/link";
+import { CodexProviders } from "@/components/codex-provider";
+import { DisplayFace } from "@/components/display-face";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#111111",
+  themeColor: "#1A1613",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -57,27 +58,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
       <body>
         <RegisterSw />
-        {viewer.userId ? (
-          <div className="identity-bar">
-            <Link href="/profile" className="identity">
-              {viewer.avatarUrl ? (
-                // The portrait is the recruit's own mark. next/image would resample a remote file we do not host.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="avatar" src={viewer.avatarUrl} alt="" />
-              ) : (
-                <span className="avatar" aria-hidden="true">
-                  {(viewer.displayName?.trim().charAt(0) || "R").toUpperCase()}
-                </span>
-              )}
-              <span>
-                {viewer.displayName?.trim() || "Recruit"}
-                {roleLabel ? ` · ${roleLabel}` : ""}
-              </span>
-            </Link>
-          </div>
-        ) : null}
-        {children}
-        <SiteNav signedIn={Boolean(viewer.userId)} role={viewer.role} />
+        <DisplayFace />
+        <CodexProviders beginner={viewer.beginner}>
+          <SiteNav
+            signedIn={Boolean(viewer.userId)}
+            role={viewer.role}
+            displayName={viewer.displayName}
+            avatarUrl={viewer.avatarUrl}
+            roleLabel={roleLabel}
+          />
+          {children}
+        </CodexProviders>
       </body>
     </html>
   );

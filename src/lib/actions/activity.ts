@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actionClient, asImpact, dbError } from "@/lib/action-client";
+import { actionClient, asImpact, dbError, requireRole } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/types";
 
 function touch() {
@@ -12,6 +12,7 @@ function touch() {
   revalidatePath("/missions");
   revalidatePath("/squad");
   revalidatePath("/journal");
+  revalidatePath("/trainer");
 }
 
 export async function logWorkout(formData: FormData): Promise<ActionResult> {
@@ -73,19 +74,76 @@ export async function createGoal(formData: FormData): Promise<ActionResult> {
   if (!character) return { error: "Create a character first." };
   const periodStart = String(formData.get("period_start") ?? "");
   const periodEnd = String(formData.get("period_end") ?? "");
-  const { error: insertError } = await supabase.from("goals").insert({
+  const parentId = String(formData.get("parent_id") ?? "").trim();
+  const row: Record<string, string | boolean | null> = {
     character_id: character.id,
     category: String(formData.get("category") ?? ""),
     title: String(formData.get("title") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim() || null,
     target_frequency: String(formData.get("target_frequency") ?? "").trim() || null,
-    is_long_term: formData.get("is_long_term") === "on",
+    is_long_term: parentId ? false : formData.get("is_long_term") === "on",
     period_start: periodStart || null,
     period_end: periodEnd || null,
-  });
+  };
+  if (parentId) row.parent_id = parentId;
+  const { error: insertError } = await supabase.from("goals").insert(row);
   const message = dbError(insertError);
   if (message) return { error: message };
   revalidatePath("/goals");
+  return { ok: true };
+}
+
+/** Finishes a short-term step. Does not call log_activity, so nothing is granted. */
+export async function completeShortTermGoal(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const goalId = String(formData.get("goal_id") ?? "");
+  const { data, error: updateError } = await supabase
+    .from("goals")
+    .update({ completed_at: new Date().toISOString() })
+    .eq("id", goalId)
+    .not("parent_id", "is", null)
+    .is("completed_at", null)
+    .select("id")
+    .maybeSingle();
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  if (!data) return { error: "That step is already finished, or it is not a short-term step." };
+  touch();
+  return { ok: true };
+}
+
+/** Staff record the buff and the story. The player already finished the step. */
+export async function recordGoalReward(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const rewardId = String(formData.get("reward_id") ?? "");
+  const choice = String(formData.get("buff_id") ?? "");
+  const other = String(formData.get("buff_other") ?? "").trim();
+  const story = String(formData.get("story_reward") ?? "").trim();
+  if (!story) return { error: "Write the story reward." };
+  const patch: Record<string, string | null> = {
+    story_reward: story,
+    status: "recorded",
+    recorded_by: user.id,
+    recorded_at: new Date().toISOString(),
+    buff_id: null,
+    buff_other: null,
+  };
+  if (choice === "other") {
+    if (!other) return { error: "Name the other buff." };
+    patch.buff_other = other;
+  } else if (choice) {
+    patch.buff_id = choice;
+  } else {
+    return { error: "Choose a buff." };
+  }
+  const { error: updateError } = await supabase.from("goal_rewards").update(patch).eq("id", rewardId).eq("status", "ready");
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  touch();
   return { ok: true };
 }
 

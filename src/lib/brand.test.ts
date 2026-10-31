@@ -1,7 +1,19 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { APP_ICON, CORLEONE_FILE, FONT_PAIR, FONT_PAIRS, headingFace, LOGO_LIGHT, LOGO_MARK } from "./brand";
+import { execSync } from "node:child_process";
+import {
+  APP_ICON,
+  CORLEONE_DUE_FAMILY,
+  CORLEONE_DUE_FILE,
+  CORLEONE_FAMILY,
+  CORLEONE_FILE,
+  FONT_PAIR,
+  FONT_PAIRS,
+  headingFace,
+  LOGO_LIGHT,
+  LOGO_MARK,
+} from "./brand";
 
 function pngSize(relativePath: string): { w: number; h: number } {
   const bytes = readFileSync(path.join(process.cwd(), relativePath));
@@ -15,15 +27,26 @@ describe("brand fonts", () => {
     expect(FONT_PAIRS.barlow.ui).toBe("Barlow Condensed");
     expect(FONT_PAIRS.barlow.heading).toBe("Barlow Condensed");
     expect(FONT_PAIRS[FONT_PAIR].body).toBe("Barlow");
-    expect(headingFace()).toBe("Barlow Condensed");
-    expect(CORLEONE_FILE).toBe("public/fonts/private/Corleone.woff2");
+    expect(headingFace()).toBe(existsSync(path.join(process.cwd(), CORLEONE_DUE_FILE)) ? "Corleone Due" : "Barlow Condensed");
+    expect(CORLEONE_FAMILY).toBe("Corleone");
+    expect(CORLEONE_DUE_FAMILY).toBe("Corleone Due");
+    expect(CORLEONE_FILE).toBe("public/fonts/corleone/Corleone-Regular.woff2");
+    expect(CORLEONE_DUE_FILE).toBe("public/fonts/corleone/Corleone-Due-Regular.woff2");
     const cssEarly = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
     expect(cssEarly).toContain(
-      '--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif',
+      '--font-display: "Corleone Due", Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif',
     );
-    expect(cssEarly).toContain("/fonts/private/Corleone.woff2");
+    expect(cssEarly).toContain('url("/fonts/corleone/Corleone-Regular.woff2") format("woff2")');
+    expect(cssEarly).toContain('url("/fonts/corleone/Corleone-Due-Regular.woff2") format("woff2")');
+    expect(cssEarly).toContain('font-family: "Corleone Due"');
+    expect(cssEarly).toContain("font-display: swap");
     const ignore = readFileSync(path.join(process.cwd(), ".gitignore"), "utf8");
     expect(ignore).toContain("public/fonts/private/*");
+    expect(ignore).toContain("public/fonts/corleone/");
+    const example = readFileSync(path.join(process.cwd(), ".env.example"), "utf8");
+    expect(example).not.toContain("NEXT_PUBLIC_HEADING_FONT_URL");
+    const tracked = execSync("git ls-files", { encoding: "utf8" });
+    expect(tracked).not.toMatch(/\.(otf|ttf|woff2?)$/m);
     expect(existsSync(path.join(process.cwd(), LOGO_MARK))).toBe(true);
     expect(existsSync(path.join(process.cwd(), LOGO_LIGHT))).toBe(true);
     expect(pngSize(APP_ICON)).toEqual({ w: 1024, h: 1024 });

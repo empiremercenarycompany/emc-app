@@ -34,10 +34,10 @@ export default async function CheckInPage() {
   const rank = clearanceRank(companyWeek);
 
   return (
-    <Page
-      title="Check-in"
-      lede="Due Friday at 11:59 PM. Four objectives. Your week shapes your character and the story. This does not lock your character."
-    >
+    <Page hero mark={false} title="Check-in" lede="Four quick questions">
+      <p className="span-all text-center">
+        Due Friday at 11:59 PM. Honest answers help your trainer help you. This does not lock your character.
+      </p>
       {setup ? <Notice>{setup}</Notice> : null}
       {viewer.beginner ? (
         <Notice>Tap the card that matches your week. You do not need to know the dice.</Notice>

@@ -12,7 +12,7 @@ import { saveNotes, spendIncrease } from "@/lib/actions/character";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
-import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
+import { LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
 import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
@@ -62,7 +62,7 @@ export default async function CharacterPage({
     if (row) {
       const scores = row.scores;
       return (
-        <Page title={row.name} lede={row.className}>
+        <Page title="Character" mark={false}>
           <CharacterSheet
             name={row.name}
             classLabel={`${speciesLabel(row.species, row.species.charAt(0).toUpperCase() + row.species.slice(1))}${row.lineage ? ` · ${row.lineage}` : ""} · ${row.className}`}
@@ -90,7 +90,7 @@ export default async function CharacterPage({
   }
   if (!viewer.userId) {
     return (
-      <Page title="Character">
+      <Page title="Character" mark={false}>
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
         <CharacterSheet
@@ -120,7 +120,7 @@ export default async function CharacterPage({
   }
   if (!viewer.character) {
     return (
-      <Page title="Character" lede="Not yet inducted">
+      <Page title="Character" lede="Not yet inducted" mark={false}>
         <Link className="button primary" href="/character/new">
           Fill Out Recruitment Papers
         </Link>
@@ -186,9 +186,18 @@ export default async function CharacterPage({
     wisdom: character.wisdom,
     charisma: character.charisma,
   };
+  const stepQuery =
+    supabase && character.level >= 3
+      ? await supabase
+          .from("goals")
+          .select("id", { count: "exact", head: true })
+          .eq("character_id", character.id)
+          .not("parent_id", "is", null)
+          .not("completed_at", "is", null)
+      : null;
 
   return (
-    <Page title={character.name} lede={character.class ?? "Not yet inducted"}>
+    <Page title="Character" mark={false}>
       {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
       <CharacterSheet
         name={character.name}
@@ -211,6 +220,15 @@ export default async function CharacterPage({
         recordedSpells={character.sheet?.spells ?? null}
         recordedFeats={character.sheet?.feats ?? null}
         conflicts={character.seed_flags ?? null}
+        levelFourCompleted={stepQuery && !stepQuery.error ? (stepQuery.count ?? 0) : null}
+        levelFourRequired={viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT}
+        milestone={
+          <p>
+            Level {viewer.config?.level_after_adventure_1 ?? 2} opens at week {viewer.config?.level_two_week ?? 16}. Level{" "}
+            {viewer.config?.level_after_adventure_2 ?? 3} opens at week {viewer.config?.level_three_week ?? 32}. Staff
+            record one step at a time. Nothing levels by itself, and a milestone does not lower a level.
+          </p>
+        }
         features={
           <>
             <p>
@@ -274,16 +292,7 @@ export default async function CharacterPage({
           ))}
         </div>
       </Panel>
-      <Panel title="Abilities">
-        <ul className="ability-row">
-          {ABILITIES.map((ability) => (
-            <li key={ability} className="ability-card">
-              <span className="ability-name">{LABELS[ability]}</span>
-              <span className="ability-score">{scores[ability]}</span>
-              <span className="ability-mod">{formatModifier(abilityModifier(scores[ability]))}</span>
-            </li>
-          ))}
-        </ul>
+      <Panel title="Raise an ability">
         {increases.map((increase: { ability: string; to: number; cost: number; pool: string }) => {
           const next = { ...scores, [increase.ability]: increase.to };
           return (

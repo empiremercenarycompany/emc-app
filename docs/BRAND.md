@@ -16,6 +16,8 @@ Confirmed. Do not add a sixth brand color.
 
 Red as text on Iron Black fails contrast, so it is not used that way. Parchment is the text on a red fill. Bronze is for large type and marks, not for body copy. Steel is not body text. Secondary text uses the contrast-safe mute `#C4BFB2`.
 
+The approved visual direction warms how those colors are used. It does not add a brand color and it does not recolor the logo. The page ground is warm charcoal `#1A1613`, with raised charcoal `#241E19` for cards. Documents (the character sheet, notices, Recruitment Papers, Codex entries) sit on parchment with ink `#211B15`. Bronze light `#D2B07A` is for small labels on charcoal. Bronze dark `#6B4F27` is for small labels on parchment. Weathered bronze stays a midtone, not small text. Red stays a fill on a primary action. The app icon, splash, and manifest ground stay Iron Black `#111111` so the mark is unchanged. The browser chrome uses charcoal so it matches the page.
+
 Red audit: the only red fill is `button.primary` and `.button.primary` in `src/app/globals.css`. Repeated actions (saving a name, posting a note, raising one ability) use a steel outline. A page keeps one red action: Join the Company, Sign your papers, Record Work, or Roll.
 
 ## Type
@@ -24,7 +26,7 @@ Red audit: the only red fill is `button.primary` and `.button.primary` in `src/a
 
 Body and help text are Barlow 400/500. Labels, buttons, tabs, and stat names are Barlow Condensed 600–700, uppercase. Screen titles and the wordmark use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif` at weight 800, uppercase, and only for those short lines. The loaded face is in that stack, so a missing file still renders Barlow Condensed 800.
 
-EMC holds a Corleone license for web and app use. The file is never committed. `@font-face` loads `public/fonts/private/Corleone.woff2`, then `.otf`, then `.ttf`. A missing file falls through to Barlow Condensed 800.
+EMC holds a FontMesa Corleone license for web and app use. The files are never committed. `@font-face` points at `public/fonts/corleone/Corleone-Regular.woff2` (`font-family: Corleone`) and `public/fonts/corleone/Corleone-Due-Regular.woff2` (`font-family: "Corleone Due"`). Both are weight 400, normal, `font-display: swap`. All-caps headings use Corleone Due, then Corleone, then Barlow Condensed, then system sans. Corleone Regular is for mixed-case display only. Headings use weight 400 once a Corleone face loads, with `font-synthesis: none`, so the browser does not faux-bold it. Until then they stay weight 800 so the Barlow Condensed fallback is the real 800. That folder is gitignored. John adds the files at deploy time. A missing file does not fail the build.
 
 League Spartan and Cinzel are not used.
 

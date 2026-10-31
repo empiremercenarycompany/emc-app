@@ -8,28 +8,53 @@ export function Page({
   title,
   lede,
   badge = false,
+  hero = false,
+  mark = false,
   children,
 }: {
-  title: string;
+  title?: string;
   lede?: string;
   /** Larger mark on sign-in and About. The title under it is live type. */
   badge?: boolean;
+  /** Centered hero band. Body under it stays left aligned. */
+  hero?: boolean;
+  /** The app header already carries the mark. Sign-in and About pass a badge instead. */
+  mark?: boolean;
   children: ReactNode;
 }) {
   return (
-    <main className="page-pad mx-auto w-full max-w-lg px-4 pt-6">
-      {badge ? <CompanyBadge /> : <LogoSlot />}
-      <h1 className="mt-4 text-4xl">{title}</h1>
-      {lede ? <p className="mt-2 text-mute">{lede}</p> : null}
-      <div className="mt-6 flex flex-col gap-4">{children}</div>
+    <main className="page-pad page-wrap px-4 pt-4">
+      {badge ? <CompanyBadge /> : mark ? <LogoSlot /> : null}
+      {hero ? (
+        <header className="hero-band">
+          {lede ? <p className="eyebrow hero-kicker">{lede}</p> : null}
+          {title ? <h1>{title}</h1> : null}
+        </header>
+      ) : (
+        <>
+          {title ? <h1 className="mt-4 text-4xl">{title}</h1> : null}
+          {lede ? <p className="mt-2 text-left">{lede}</p> : null}
+        </>
+      )}
+      <div className="page-grid mt-4">{children}</div>
       <p className="signoff">Go forth and conquer.</p>
     </main>
   );
 }
 
-export function Panel({ title, children }: { title?: string; children: ReactNode }) {
+export function Panel({
+  title,
+  children,
+  paper = false,
+  wide = false,
+}: {
+  title?: string;
+  children: ReactNode;
+  paper?: boolean;
+  wide?: boolean;
+}) {
   return (
-    <section className="border border-steel p-4">
+    <section className={`${paper ? "paper" : "card"} ${wide ? "span-all" : ""}`}>
       {title ? <h2 className="mb-3">{title}</h2> : null}
       <div className="flex flex-col gap-3">{children}</div>
     </section>

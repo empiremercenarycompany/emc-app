@@ -8,6 +8,7 @@ const PATHS = {
   work: "M4 10h4v4H4z M16 10h4v4h-4z M8 12h8",
   character: "M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M6 20c1.2-3 3.2-4.5 6-4.5S16.8 17 18 20",
   menu: "M5 7h14 M5 12h14 M5 17h14",
+  codex: "M6 4h8a3 3 0 0 1 3 3v13H8a2 2 0 0 0-2 2V4z M6 4a2 2 0 0 0-2 2v14h11",
 } as const;
 
 export function LineIcon({ name }: { name: keyof typeof PATHS }) {

@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
+import { GoalRewardForm } from "@/components/goal-reward-form";
 import { finalizeStats } from "@/lib/actions/muster";
+import { GOAL_REWARD_BUFF_SEED } from "@/lib/rules/level-four";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { isLogApprover } from "@/lib/types";
@@ -34,6 +36,20 @@ export default async function TrainerPage() {
     supabase && viewer.guildId && trainer
       ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId).order("name")).data
       : [];
+  const waitingRewards =
+    supabase && trainer
+      ? (
+          await supabase
+            .from("goal_rewards")
+            .select("id, status, goal_id, character_id, goals(title), characters(name)")
+            .eq("status", "ready")
+        ).data
+      : [];
+  const buffRows = supabase ? (await supabase.from("goal_reward_buffs").select("id, name").eq("enabled", true).order("sort_order")).data : null;
+  const buffs = (buffRows && buffRows.length > 0 ? buffRows : [...GOAL_REWARD_BUFF_SEED]).map((row) => ({
+    id: row.id,
+    name: row.name,
+  }));
   const waiting =
     supabase && trainer
       ? (
@@ -86,6 +102,22 @@ export default async function TrainerPage() {
             </ResultForm>
           </>
         ) : null}
+      </Panel>
+      <Panel title="Goal rewards">
+        <p>When a recruit finishes a short-term step, record the buff and the story. Nothing is granted from this screen.</p>
+        {(waitingRewards ?? []).length === 0 ? <p className="text-mute">Nothing is waiting.</p> : null}
+        {(waitingRewards ?? []).map((reward) => {
+          const goal = Array.isArray(reward.goals) ? reward.goals[0] : reward.goals;
+          const person = Array.isArray(reward.characters) ? reward.characters[0] : reward.characters;
+          return (
+            <div key={reward.id}>
+              <p>
+                {person?.name ?? "Recruit"} · {goal?.title ?? "Step"}
+              </p>
+              <GoalRewardForm rewardId={reward.id} buffs={buffs} />
+            </div>
+          );
+        })}
       </Panel>
     </Page>
   );

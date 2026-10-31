@@ -60,6 +60,17 @@ export function currentWeekStart(today: string | null, now = new Date()): string
   return formatDate(mondayOnOrBefore(day));
 }
 
+/** Saturday, Nov 7 — a calendar date, not a clock time. */
+export function formatMuster(iso: string): string {
+  const day = parseDate(iso);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(day);
+}
+
 export function parseDate(value: string): Date {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) throw new Error(`Expected a YYYY-MM-DD date, received ${value}`);

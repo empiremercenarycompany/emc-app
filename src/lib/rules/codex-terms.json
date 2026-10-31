@@ -1,0 +1,501 @@
+{
+  "_about": "Starter Codex glossary for the EMC app. DRAFT. D&D meanings follow the 2024 rules (SRD 5.2). Status: ready = plain meaning is general knowledge or taken from the live app; confirm = general meaning is given but the EMC version needs John's OK; john_to_fill = EMC-specific, nothing written on purpose.",
+  "_groups": {
+    "dnd": "D&D Basics",
+    "gym": "Gym Basics",
+    "emc": "How EMC Works",
+    "faq": "FAQ"
+  },
+  "terms": [
+    {
+      "id": "hp",
+      "term": "Hit Points (HP)",
+      "group": "dnd",
+      "plain": "How much harm you can take before you drop.",
+      "short": "HP",
+      "inTheGame": "At 0 HP you fall unconscious. Rest and healing bring HP back.",
+      "related": [
+        "con",
+        "ac"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "ac",
+      "term": "Armor Class (AC)",
+      "group": "dnd",
+      "plain": "How hard you are to hit. An attack has to roll at least your AC to land.",
+      "short": "AC",
+      "inTheGame": "With no armor, AC is 10 plus your Dexterity modifier.",
+      "related": [
+        "dex",
+        "modifier"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "initiative",
+      "term": "Initiative",
+      "group": "dnd",
+      "plain": "Who acts first when a fight starts.",
+      "inTheGame": "Everyone rolls a d20 and adds their Dexterity modifier. Highest goes first.",
+      "related": [
+        "dex",
+        "d20"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "speed",
+      "term": "Speed",
+      "group": "dnd",
+      "plain": "How far you can move on your turn, in feet.",
+      "inTheGame": "30 feet is typical for a starting character.",
+      "status": "ready"
+    },
+    {
+      "id": "abilities",
+      "term": "Abilities",
+      "group": "dnd",
+      "plain": "The six traits that describe your character: Strength, Dexterity, Constitution, Intelligence, Wisdom and Charisma.",
+      "inTheGame": "Each one has a score. The score gives you a modifier you add to rolls.",
+      "inRealLife": "In the Company, your real life builds them: workouts, nutrition and sleep, mental goals and social goals.",
+      "related": [
+        "modifier"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "str",
+      "term": "Strength (STR)",
+      "group": "dnd",
+      "plain": "Raw power: lifting, pushing, carrying.",
+      "inTheGame": "Your Strength modifier helps with Athletics and with lifting, pushing or breaking things.",
+      "inRealLife": "Built by workouts.",
+      "related": [
+        "workout"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "dex",
+      "term": "Dexterity (DEX)",
+      "group": "dnd",
+      "plain": "Balance, speed and quick reflexes.",
+      "inTheGame": "Your Dexterity modifier adds to Initiative, to AC while lightly armored, and to Acrobatics, Sleight of Hand and Stealth.",
+      "inRealLife": "Built by workouts.",
+      "status": "ready"
+    },
+    {
+      "id": "con",
+      "term": "Constitution (CON)",
+      "group": "dnd",
+      "plain": "How tough you are: your stamina, and how well you shake off hits.",
+      "inTheGame": "Your Constitution modifier adds to your hit points every time you level up.",
+      "inRealLife": "Built by nutrition and sleep.",
+      "related": [
+        "hp"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "int",
+      "term": "Intelligence (INT)",
+      "group": "dnd",
+      "plain": "Memory and clear thinking.",
+      "inTheGame": "Your Intelligence modifier helps with knowledge skills like History.",
+      "inRealLife": "Built by mental goals.",
+      "status": "ready"
+    },
+    {
+      "id": "wis",
+      "term": "Wisdom (WIS)",
+      "group": "dnd",
+      "plain": "Awareness and good judgment.",
+      "inTheGame": "Your Wisdom modifier helps with skills like Insight, Perception and Animal Handling.",
+      "inRealLife": "Built by mental goals.",
+      "status": "ready"
+    },
+    {
+      "id": "cha",
+      "term": "Charisma (CHA)",
+      "group": "dnd",
+      "plain": "How well you connect with people.",
+      "inTheGame": "Your Charisma modifier helps with Deception, Persuasion, Intimidation and Performance.",
+      "inRealLife": "Built by social goals.",
+      "status": "ready"
+    },
+    {
+      "id": "modifier",
+      "term": "Modifier",
+      "group": "dnd",
+      "plain": "The number you add to a die roll. It comes from an ability score.",
+      "inTheGame": "A score of 10 or 11 gives +0. Every 2 points up or down moves it by 1. A score of 9 gives -1.",
+      "related": [
+        "abilities",
+        "d20",
+        "proficiency"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "proficiency",
+      "term": "Proficiency (Trained)",
+      "group": "dnd",
+      "plain": "Being trained at something. You add your proficiency bonus when you roll for it.",
+      "inTheGame": "The bonus is +2 at level 1 and grows as you level up. Your background decides some of your trained skills.",
+      "related": [
+        "skill",
+        "background"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "skill",
+      "term": "Skill",
+      "group": "dnd",
+      "plain": "A specific thing you can be good at, like Athletics or Insight. Each skill belongs to one ability.",
+      "inTheGame": "To use a skill you roll a d20 and add the ability modifier, plus your proficiency bonus if you are trained.",
+      "related": [
+        "proficiency",
+        "ability-check"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "ability-check",
+      "term": "Ability check",
+      "group": "dnd",
+      "plain": "A roll to see whether you succeed at something uncertain.",
+      "inTheGame": "Roll a d20 and add a modifier. Meet or beat the target number (the DC) and you succeed.",
+      "related": [
+        "dc",
+        "d20"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "dc",
+      "term": "DC (Difficulty Class)",
+      "group": "dnd",
+      "plain": "The number you need to meet or beat on a roll.",
+      "inTheGame": "The DM sets it. Easy things have a low DC and hard things a high one.",
+      "related": [
+        "ability-check",
+        "saving-throw"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "saving-throw",
+      "term": "Saving throw (Save)",
+      "group": "dnd",
+      "plain": "A roll to resist harm or a sudden effect.",
+      "inTheGame": "Roll a d20 and add the matching ability modifier, plus your proficiency bonus if you are trained in that save.",
+      "related": [
+        "dc"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "advantage",
+      "term": "Advantage",
+      "group": "dnd",
+      "plain": "Roll two d20s and keep the higher one.",
+      "inTheGame": "If something helps you, you get advantage. If you have both advantage and disadvantage, they cancel out.",
+      "related": [
+        "disadvantage",
+        "d20"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "disadvantage",
+      "term": "Disadvantage",
+      "group": "dnd",
+      "plain": "Roll two d20s and keep the lower one.",
+      "inTheGame": "If something hinders you, you get disadvantage.",
+      "related": [
+        "advantage"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "d20",
+      "term": "d20",
+      "group": "dnd",
+      "plain": "A twenty-sided die. Most important rolls in D&D use it.",
+      "inTheGame": "Roll it, add your modifier, and compare the total to a target number.",
+      "status": "ready"
+    },
+    {
+      "id": "dice",
+      "term": "Dice notation (like 2d6+3)",
+      "group": "dnd",
+      "plain": "Shorthand for a roll. 2d6+3 means roll two six-sided dice, add them up, then add 3.",
+      "inTheGame": "The first number is how many dice. The number after the d is how many sides.",
+      "related": [
+        "d20"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "dm",
+      "term": "DM (Dungeon Master)",
+      "group": "dnd",
+      "plain": "The person who runs the game. They describe the world, play the other characters and settle the rules.",
+      "status": "ready"
+    },
+    {
+      "id": "level",
+      "term": "Level",
+      "group": "dnd",
+      "plain": "How far along your character is. Higher levels unlock more.",
+      "inTheGame": "You start at level 1. Levels raise your hit points and your proficiency bonus.",
+      "emcNote": "[John to fill: what earns a level at EMC, and what the progress ring should measure]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "class",
+      "term": "Class",
+      "group": "dnd",
+      "plain": "Your character's profession, like Fighter or Rogue. It decides what you are best at.",
+      "status": "ready"
+    },
+    {
+      "id": "species",
+      "term": "Species",
+      "group": "dnd",
+      "plain": "What kind of being your character is, such as human, dwarf or elf. Older books call this race.",
+      "status": "ready"
+    },
+    {
+      "id": "background",
+      "term": "Background",
+      "group": "dnd",
+      "plain": "Where your character came from before the Company. In the 2024 rules it also gives you skills, a tool and a starting talent.",
+      "inTheGame": "Pick a background and the app fills in the matching skills and tools for you.",
+      "related": [
+        "feat",
+        "proficiency"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "feat",
+      "term": "Feat",
+      "group": "dnd",
+      "plain": "A small talent. In the 2024 rules your background gives you one to start.",
+      "related": [
+        "background"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "company",
+      "term": "The Company",
+      "group": "emc",
+      "plain": "The Empire Mercenary Company: the group you are joining. You train, keep each other accountable and play the story together.",
+      "emcNote": "[John to confirm wording]",
+      "status": "confirm"
+    },
+    {
+      "id": "squad",
+      "term": "Squad",
+      "group": "emc",
+      "plain": "Your team inside the Company. You train, check in and play the story alongside them.",
+      "emcNote": "[John to fill: how squads are assigned and how big they are]",
+      "status": "confirm"
+    },
+    {
+      "id": "session",
+      "term": "Session",
+      "group": "emc",
+      "plain": "One sitting of play, usually a few hours.",
+      "inTheGame": "In D&D, one session is one stretch of the story.",
+      "emcNote": "[John to fill: what a session is at EMC and how players pick a time. The app shows slots 9-12, 2-5 and 7-10 (18+).]",
+      "status": "confirm"
+    },
+    {
+      "id": "check-in",
+      "term": "Check-in",
+      "group": "emc",
+      "plain": "Your weekly report. Four quick questions about workouts and your goals, due Friday at 11:59 PM.",
+      "inRealLife": "Honest answers help your trainer help you.",
+      "emcNote": "Due time and four objectives are from the live app.",
+      "related": [
+        "workout"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "muster",
+      "term": "Muster",
+      "group": "emc",
+      "plain": "The in-person gathering where your week is confirmed before the session.",
+      "emcNote": "[John to fill: what players actually do at muster]",
+      "status": "confirm"
+    },
+    {
+      "id": "recruitment-papers",
+      "term": "Recruitment Papers",
+      "group": "emc",
+      "plain": "The sign-up steps where you build your character and tell us about yourself.",
+      "emcNote": "[John to confirm what the papers cover]",
+      "status": "confirm"
+    },
+    {
+      "id": "mission",
+      "term": "Mission",
+      "group": "emc",
+      "plain": "A goal set for the whole Company or for a squad. Find them on the Missions board.",
+      "emcNote": "From the live app's Missions board.",
+      "status": "ready"
+    },
+    {
+      "id": "workout",
+      "term": "Workout",
+      "group": "gym",
+      "plain": "A planned session of exercise. Check-in asks how many you got in this week.",
+      "inRealLife": "Any planned session counts. If you are new, start small.",
+      "emcNote": "[John to confirm what counts as a workout]",
+      "status": "confirm"
+    },
+    {
+      "id": "set",
+      "term": "Set",
+      "group": "gym",
+      "plain": "One group of repetitions.",
+      "inRealLife": "Example: 10 squats in a row is one set. Rest, then do another.",
+      "related": [
+        "rep"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "rep",
+      "term": "Rep (Repetition)",
+      "group": "gym",
+      "plain": "One full movement.",
+      "inRealLife": "One squat down and back up is one rep.",
+      "related": [
+        "set"
+      ],
+      "status": "ready"
+    },
+    {
+      "id": "cardio",
+      "term": "Cardio",
+      "group": "gym",
+      "plain": "Steady work that raises your heart rate, like jogging, cycling or brisk walking.",
+      "status": "ready"
+    },
+    {
+      "id": "mobility",
+      "term": "Mobility",
+      "group": "gym",
+      "plain": "Moving your joints through their full range so your body moves easily. Stretching is one kind.",
+      "status": "ready"
+    },
+    {
+      "id": "warm-up",
+      "term": "Warm-up",
+      "group": "gym",
+      "plain": "Light movement before the main work to get your body ready.",
+      "status": "ready"
+    },
+    {
+      "id": "rpe",
+      "term": "RPE",
+      "group": "gym",
+      "plain": "Rate of Perceived Exertion. A 1 to 10 score for how hard something felt. 1 is very easy and 10 is all you have got.",
+      "inRealLife": "Use it to tell your trainer how a set felt.",
+      "status": "ready"
+    },
+    {
+      "id": "bonus-activities",
+      "term": "Bonus activities",
+      "group": "emc",
+      "plain": "Extra activities you can log beyond your regular workouts.",
+      "emcNote": "[John to fill: how bonus activities are logged and what they earn]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "grave-diggers",
+      "term": "Grave Diggers",
+      "group": "emc",
+      "plain": "",
+      "emcNote": "[John to fill: what Grave Diggers are, how to do them safely, and the target]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "tire-slams",
+      "term": "Tire Slams",
+      "group": "emc",
+      "plain": "",
+      "emcNote": "[John to fill: what Tire Slams are at EMC, how to do them safely, and the target]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "skull-crushers",
+      "term": "Skull Crushers",
+      "group": "emc",
+      "plain": "A standard gym exercise: lying on a bench and bending your elbows to lower a weight toward your forehead, then straightening your arms. It works the back of the arm.",
+      "emcNote": "[John to confirm this is the EMC version, plus the target and safety cue]",
+      "status": "confirm"
+    },
+    {
+      "id": "sandbag-carries",
+      "term": "Sandbag Carries",
+      "group": "emc",
+      "plain": "Picking up a heavy sandbag and carrying it for a set distance.",
+      "emcNote": "[John to confirm distance, weight and safety cue]",
+      "status": "confirm"
+    },
+    {
+      "id": "farmer-carries",
+      "term": "Farmer Carries",
+      "group": "emc",
+      "plain": "Holding a heavy weight in each hand at your sides and walking a set distance.",
+      "emcNote": "[John to confirm distance, weight and safety cue]",
+      "status": "confirm"
+    },
+    {
+      "id": "weighted-marches",
+      "term": "Weighted Marches",
+      "group": "emc",
+      "plain": "Walking a set distance while carrying extra weight.",
+      "emcNote": "[John to confirm distance, weight and safety cue]",
+      "status": "confirm"
+    },
+    {
+      "id": "sled-pushes",
+      "term": "Sled Pushes",
+      "group": "emc",
+      "plain": "Pushing a weighted sled across the floor for a set distance.",
+      "emcNote": "[John to confirm distance, weight and safety cue]",
+      "status": "confirm"
+    },
+    {
+      "id": "faq-played",
+      "term": "Do I need to have played before?",
+      "group": "faq",
+      "plain": "[John to fill]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "faq-gym",
+      "term": "I have never been in a gym. Where do I start?",
+      "group": "faq",
+      "plain": "[John to fill]",
+      "status": "john_to_fill"
+    },
+    {
+      "id": "faq-muster",
+      "term": "What happens at muster?",
+      "group": "faq",
+      "plain": "[John to fill]",
+      "status": "john_to_fill"
+    }
+  ]
+}

@@ -6,6 +6,10 @@ test("recruitment papers walk one decision at a time", async ({ page }) => {
   await expect(page.getByText("Step 1 of 4")).toBeVisible();
 
   const heading = page.getByRole("heading", { name: "Recruitment Papers" });
+  const fontFile = await page.request.get("/fonts/corleone/Corleone-Due-Regular.woff2");
+  if (fontFile.status() === 200) {
+    await page.waitForFunction(() => document.documentElement.dataset.displayFace === "corleone");
+  }
   const type = await heading.evaluate((el) => {
     const style = getComputedStyle(el);
     const names = style.fontFamily.split(",").map((part) => part.trim().replace(/^["']|["']$/g, ""));
@@ -18,11 +22,12 @@ test("recruitment papers walk one decision at a time", async ({ page }) => {
       loaded: names.map((name) => ({ name, ok: probe(name) })),
     };
   });
-  expect(type.names[0]).toBe("Corleone");
+  expect(type.names[0]).toBe("Corleone Due");
+  expect(type.names).toContain("Corleone");
   expect(type.names.join(" ")).toMatch(/Barlow/i);
-  expect(type.weight).toBe("800");
+  expect(type.weight).toBe(fontFile.status() === 200 ? "400" : "800");
   expect(type.transform).toBe("uppercase");
-  expect(type.corleone).toBe(false);
+  expect(type.corleone).toBe(fontFile.status() === 200);
   expect(type.loaded.some((face) => /barlow/i.test(face.name) && face.ok)).toBe(true);
 
   const input = page.getByLabel("Name");

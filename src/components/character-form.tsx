@@ -179,7 +179,7 @@ export function CharacterForm({ species }: { species: { id: string; name: string
             <ul className="chip-row" aria-labelledby="skills-label">
               {background.skills.map((skill) => (
                 <li key={skill} className="chip">
-                  {skillLabel(skill)} <Term id="trained" />
+                  {skillLabel(skill)} <Term id="trained">Trained</Term>
                 </li>
               ))}
             </ul>

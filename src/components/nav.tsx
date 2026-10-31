@@ -3,6 +3,7 @@
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
 import { signOut } from "@/lib/actions/staff";
 import { isLogApprover, isStaff, type AppRole } from "@/lib/types";
@@ -12,6 +13,7 @@ const PRIMARY = [
   { href: "/missions", label: "Missions", icon: "missions" },
   { href: "/work", label: "Work", icon: "work" },
   { href: "/character", label: "Character", icon: "character" },
+  { href: "/codex", label: "Codex", icon: "codex" },
 ] as const;
 
 type Item = { href: string; label: string };
@@ -56,9 +58,23 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
   return groups;
 }
 
-export function SiteNav({ signedIn, role }: { signedIn: boolean; role: AppRole | null }) {
+export function SiteNav({
+  signedIn,
+  role,
+  displayName,
+  avatarUrl,
+  roleLabel,
+}: {
+  signedIn: boolean;
+  role: AppRole | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+  roleLabel: string | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const help = useHelpMode();
+  const initial = (displayName?.trim().charAt(0) || "R").toUpperCase();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -73,9 +89,49 @@ export function SiteNav({ signedIn, role }: { signedIn: boolean; role: AppRole |
 
   return (
     <>
+      <header className="app-header">
+        <Link href="/" className="brand-lockup">
+          {/* Approved mark. Not recolored. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/emc_mark.png" alt="" />
+          The Company
+        </Link>
+        <div className="header-tools">
+          <button
+            type="button"
+            className="icon-round"
+            aria-pressed={help.help}
+            aria-label={help.help ? "Help mode is on" : "Help"}
+            onClick={help.toggle}
+          >
+            ?
+          </button>
+          <button
+            type="button"
+            className="icon-round"
+            aria-label="Menu"
+            aria-expanded={open}
+            aria-controls="company-menu"
+            onClick={() => setOpen(true)}
+          >
+            {avatarUrl ? (
+              // The portrait is the recruit's own mark.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+            ) : (
+              <span aria-hidden="true">{initial}</span>
+            )}
+          </button>
+        </div>
+      </header>
+      {help.help ? <p className="help-banner">Help mode is on. Tap anything outlined.</p> : null}
       {open ? (
         <div id="company-menu" className="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
+            <p>
+              {displayName?.trim() || "Recruit"}
+              {roleLabel ? ` · ${roleLabel}` : ""}
+            </p>
             {menuGroups(role).map((group) => (
               <section key={group.title}>
                 <h2>{group.title}</h2>
@@ -105,7 +161,7 @@ export function SiteNav({ signedIn, role }: { signedIn: boolean; role: AppRole |
           </div>
         </div>
       ) : null}
-      <nav className="tab-bar fixed inset-x-0 bottom-0 z-10 border-t border-steel bg-iron">
+      <nav className="tab-bar fixed inset-x-0 bottom-0 z-10 border-t border-[rgba(210,176,122,0.3)] bg-char">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {PRIMARY.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -119,28 +175,21 @@ export function SiteNav({ signedIn, role }: { signedIn: boolean; role: AppRole |
               </Link>
             );
           })}
-          <button
-            className="menu-tab"
-            type="button"
-            aria-expanded={open}
-            aria-controls="company-menu"
-            onClick={(event) => {
-              event.preventDefault();
-              setOpen(true);
-            }}
-          >
-            <span className="text-steel">
-              <LineIcon name="menu" />
-            </span>
-            Menu
-          </button>
         </div>
       </nav>
     </>
   );
 }
 
-function TabBody({ icon, label, active }: { icon: "barracks" | "missions" | "work" | "character"; label: string; active: boolean }) {
+function TabBody({
+  icon,
+  label,
+  active,
+}: {
+  icon: "barracks" | "missions" | "work" | "character" | "codex";
+  label: string;
+  active: boolean;
+}) {
   const { pending } = useLinkStatus();
   return (
     <>
