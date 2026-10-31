@@ -4,6 +4,7 @@ import {
   CON_GOAL_SCORE_MIN_DEFAULT,
   CON_INITIATIVE_BONUS,
   constitutionBankReady,
+  constitutionStatusLine,
   constitutionGoalCurrent,
   constitutionInitiative,
 } from "./constitution-goal";
@@ -30,6 +31,18 @@ describe("constitution goal", () => {
     expect(constitutionGoalCurrent({ choiceId: "sleep", markedWeek: "2026-10-26", weekStart: "2026-10-26" })).toBe(true);
     expect(constitutionGoalCurrent({ choiceId: "sleep", markedWeek: "2026-10-19", weekStart: "2026-10-26" })).toBe(false);
     expect(constitutionGoalCurrent({ choiceId: null, markedWeek: "2026-10-26", weekStart: "2026-10-26" })).toBe(false);
+  });
+
+  it("explains why the condition is quiet", () => {
+    expect(
+      constitutionStatusLine({ condition: "Well Rested", score: 14, unspent: 0, scoreMin: 15, current: true, chosen: true }),
+    ).toBe("Reach Constitution 15 to earn Well Rested");
+    expect(
+      constitutionStatusLine({ condition: "Well Rested", score: 15, unspent: 0, scoreMin: 15, current: false, chosen: true }),
+    ).toBe("Log your goal this week to keep Well Rested");
+    expect(
+      constitutionStatusLine({ condition: "Well Rested", score: 15, unspent: 0, scoreMin: 15, current: true, chosen: true }),
+    ).toBe("Well Rested: +2 initiative");
   });
 
   it("adds initiative only when the bank is ready and the week is current", () => {

@@ -59,7 +59,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <RegisterSw />
         <DisplayFace />
-        <CodexProviders beginner={viewer.beginner}>
+        <CodexProviders beginner={viewer.beginner} userId={viewer.userId}>
           <SiteNav
             signedIn={Boolean(viewer.userId)}
             role={viewer.role}

@@ -1,16 +1,19 @@
 import Link from "next/link";
 import { AnnouncementEditor, AnnouncementForm } from "@/components/announcement-form";
 import { EmptyState } from "@/components/empty-state";
+import { Term } from "@/components/term";
 import { Notice, Page, Panel } from "@/components/ui";
 import { postAnnouncement } from "@/lib/actions/staff";
 import { loadViewer, sessionRoleLabel, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekStart, formatMuster } from "@/lib/rules/dates";
+import { cohortAdventure, cohortBeginsLine, embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
+import { COMPANY_ZONE, calendarDate, currentWeekStart, formatDate } from "@/lib/rules/dates";
+import { nextPostedSession } from "@/lib/rules/table-sessions";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import {
-  constitutionBankReady,
   constitutionGoalCurrent,
   constitutionGoalOption,
+  constitutionStatusLine,
   CON_GOAL_SCORE_MIN_DEFAULT,
 } from "@/lib/rules/constitution-goal";
 import { showsLevelFourProgress, levelFourProgress, LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
@@ -112,13 +115,6 @@ export default async function BarracksPage() {
         ).data
       : null;
   const conOption = constitutionGoalOption(viewer.character?.constitution_goal_id);
-  const conReady = viewer.character
-    ? constitutionBankReady({
-        score: viewer.character.constitution,
-        unspent: viewer.character.constitution_points,
-        scoreMin: viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT,
-      })
-    : false;
   const conCurrent = constitutionGoalCurrent({
     choiceId: viewer.character?.constitution_goal_id ?? null,
     markedWeek: conWeek && conWeek.option_id === viewer.character?.constitution_goal_id ? conWeek.week_start : null,
@@ -131,18 +127,71 @@ export default async function BarracksPage() {
           viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT,
         )
       : null;
+  const tableRows =
+    supabase && viewer.guildId
+      ? (
+          await supabase
+            .from("sessions")
+            .select("session_date, squad_id, off_week, title, adventures(title)")
+            .eq("guild_id", viewer.guildId)
+        ).data
+      : [];
+  const adventureRows =
+    supabase && viewer.guildId
+      ? (await supabase.from("adventures").select("title, start_date, status").eq("guild_id", viewer.guildId)).data
+      : [];
+  const companyDay = viewer.today ?? formatDate(calendarDate(new Date(), COMPANY_ZONE));
+  const posted = nextPostedSession(
+    (tableRows ?? []).map((row) => ({
+      ...row,
+      adventureTitle: embeddedTitle(row.adventures as { title?: string | null } | { title?: string | null }[] | null),
+    })),
+    companyDay,
+    viewer.character?.squad_id ?? null,
+  );
+  const cohort = cohortAdventure(adventureRows ?? [], viewer.config?.cohort_start ?? null);
+  const postedLine = posted
+    ? postedSessionLine({
+        title: posted.title,
+        adventureTitle: posted.adventureTitle,
+        sessionDate: posted.session_date,
+      })
+    : null;
+  const nextStep = (statGoals ?? []).find((goal) => goal.parent_id && !goal.completed_at)?.title ?? null;
+  const scoreMin = viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT;
+  const conStatus =
+    viewer.character && conOption
+      ? constitutionStatusLine({
+          condition: conOption.condition,
+          score: viewer.character.constitution,
+          unspent: viewer.character.constitution_points,
+          scoreMin,
+          current: conCurrent,
+          chosen: true,
+        })
+      : null;
 
   return (
     <Page mark={false}>
       <header className="hero-band span-all">
         <p className="eyebrow hero-kicker">Welcome back</p>
         <h1>{welcome}</h1>
-        <p>{viewer.session ? `Next muster: ${formatMuster(viewer.session.start_date)}` : "No muster on the books."}</p>
+        <p>
+          {postedLine ? (
+            <>
+              Next <Term id="company-muster">muster</Term>: {postedLine}
+            </>
+          ) : cohort ? (
+            cohortBeginsLine(cohort.title, cohort.start)
+          ) : (
+            <>
+              Next <Term id="company-muster">muster</Term> will be posted here.
+            </>
+          )}
+        </p>
         <p className="text-mute">Times {times}.</p>
       </header>
       <p className="span-all">A squad, a story, and a reason to keep showing up.</p>
-      <p className="span-all text-mute">Train. Record. Advance.</p>
-      <p className="span-all">Your week shapes your character and the story.</p>
       {setup ? (
         <div className="span-all">
           <Notice>{setup}</Notice>
@@ -200,15 +249,18 @@ export default async function BarracksPage() {
           <Link className="button primary" href={checkin ? "/work" : "/check-in"}>
             {checkin ? "Record work" : "File your check-in"}
           </Link>
-          <p className="text-center text-mute">Due Friday, 11:59 PM</p>
+          <p className="text-center text-mute">
+            Due Friday, 11:59 PM. Your <Term id="clearance">Clearance</Term> is on this weekly check-in, separate from{" "}
+            <Term id="company-muster">muster</Term>.
+          </p>
         </Panel>
       )}
       <Panel title="Goals" wide>
         <p>Goals are the work of the Company. Each one feeds a score, and the story follows what you keep.</p>
         <ul>
           <li>
-            Constitution · {conOption ? conOption.label : "sleep, meal prep, or cardio"}
-            {conReady && conCurrent && conOption ? ` · ${conOption.condition}: +2 initiative` : ""}
+            <Term id="con">Constitution</Term> · {conOption ? conOption.label : "sleep, meal prep, or cardio"}
+            {conStatus ? ` · ${conStatus}` : ""}
           </li>
           <li>
             Intelligence ·{" "}
@@ -221,21 +273,17 @@ export default async function BarracksPage() {
               "a mental goal"}
           </li>
         </ul>
-        {levelFour ? <p>Toward level 4 · {levelFour.label}</p> : null}
+        {levelFour ? (
+          <p>
+            Level 4: {levelFour.label}
+            {nextStep ? ` · Next: ${nextStep}` : ""}
+          </p>
+        ) : null}
         <p className="text-mute">Strength and Dexterity are built by workouts. Charisma is built by social goals.</p>
         <Link className="button primary" href="/goals">
           Open goals
         </Link>
       </Panel>
-      {viewer.userId ? (
-        <Panel paper>
-          <div className="liaison-seal" aria-hidden="true" />
-          <p className="eyebrow">Company liaison</p>
-          <h2>Alexandria</h2>
-          <p className="text-mute">Placeholder until the liaison writes it.</p>
-          <p>[Alexandria&apos;s note to you goes here: one or two warm sentences, changed weekly.]</p>
-        </Panel>
-      ) : null}
       {viewer.character ? (
         <Panel>
           <h2>Your squad</h2>

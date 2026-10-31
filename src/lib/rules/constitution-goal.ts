@@ -33,6 +33,22 @@ export function constitutionGoalCurrent(input: { choiceId: string | null; marked
   return Boolean(input.choiceId && input.weekStart && input.markedWeek === input.weekStart);
 }
 
+/** Plain reason the condition is quiet, using only the checks the bonus already uses. */
+export function constitutionStatusLine(input: {
+  condition: string | null;
+  score: number;
+  unspent: number;
+  scoreMin: number;
+  current: boolean;
+  chosen: boolean;
+}): string | null {
+  if (!input.chosen || !input.condition) return null;
+  if (input.score < input.scoreMin) return `Reach Constitution ${input.scoreMin} to earn ${input.condition}`;
+  if (input.unspent > 0) return `Place what's left of nutrition and sleep to earn ${input.condition}`;
+  if (!input.current) return `Log your goal this week to keep ${input.condition}`;
+  return `${input.condition}: +${CON_INITIATIVE_BONUS} initiative`;
+}
+
 export function constitutionInitiative(input: {
   dexModifier: number;
   ready: boolean;

@@ -41,7 +41,7 @@ export function SignInForm() {
         />
       </label>
       <button className="primary" disabled={pending || !configured} type="submit">
-        {pending ? "Opening the gates..." : "Join the Company"}
+        {pending ? "Opening the gates..." : "Send my sign-in link"}
       </button>
       <p className="text-sm text-mute">Already with the Company? The same link brings you back.</p>
       <button type="button" disabled>

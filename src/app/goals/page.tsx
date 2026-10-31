@@ -1,15 +1,16 @@
-import Link from "next/link";
-import { Choice } from "@/components/choice";
-import { GoalRewardForm } from "@/components/goal-reward-form";
-import { ResultForm } from "@/components/result-form";
-import { Notice, Page, Panel } from "@/components/ui";
-import { chooseConstitutionGoal, completeShortTermGoal, createGoal, logGoal, markConstitutionGoalWeek } from "@/lib/actions/activity";
-import { MentalGoalForm } from "@/components/mental-goal-form";
+import { GoalsBoard, type GoalView, type RewardView } from "@/components/goals-board";
+import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
-import { GOAL_REWARD_BUFF_SEED, GOAL_REWARD_READY, LEVEL_FOUR_STEPS_DEFAULT, levelFourProgress, showsLevelFourProgress } from "@/lib/rules/level-four";
-import { CON_GOAL_OPTIONS, CON_GOAL_SCORE_MIN_DEFAULT } from "@/lib/rules/constitution-goal";
-import { CMART_CHECKS, cmartRequired } from "@/lib/rules/cmart";
+import { GOAL_REWARD_BUFF_SEED, LEVEL_FOUR_STEPS_DEFAULT, levelFourProgress, showsLevelFourProgress } from "@/lib/rules/level-four";
+import {
+  constitutionGoalCurrent,
+  constitutionGoalOption,
+  constitutionStatusLine,
+  CON_GOAL_SCORE_MIN_DEFAULT,
+} from "@/lib/rules/constitution-goal";
+import { cmartRequired } from "@/lib/rules/cmart";
+import { currentWeekStart } from "@/lib/rules/dates";
 import { isLogApprover } from "@/lib/types";
 
 const CATEGORIES = [
@@ -18,8 +19,6 @@ const CATEGORIES = [
   ["wisdom", "Wisdom"],
   ["charisma", "Charisma"],
 ] as const;
-
-const SOCIAL = [["charisma", "Charisma"]] as const;
 
 type GoalRow = {
   id: string;
@@ -33,15 +32,11 @@ type GoalRow = {
   marked_done?: boolean;
   period_start: string | null;
   period_end: string | null;
-};
-
-type RewardRow = {
-  id: string;
-  goal_id: string;
-  status: string;
-  buff_id: string | null;
-  buff_other: string | null;
-  story_reward: string | null;
+  cmart_clear?: boolean;
+  cmart_measurable?: boolean;
+  cmart_attainable?: boolean;
+  cmart_relevant?: boolean;
+  cmart_timed?: boolean;
 };
 
 export default async function GoalsPage() {
@@ -53,7 +48,9 @@ export default async function GoalsPage() {
       ? (
           await supabase
             .from("goals")
-            .select("id, title, category, description, is_active, is_long_term, parent_id, completed_at, marked_done, period_start, period_end")
+            .select(
+              "id, title, category, description, is_active, is_long_term, parent_id, completed_at, marked_done, period_start, period_end, cmart_clear, cmart_measurable, cmart_attainable, cmart_relevant, cmart_timed",
+            )
             .eq("character_id", viewer.character.id)
             .order("created_at", { ascending: false })
         ).data
@@ -67,23 +64,79 @@ export default async function GoalsPage() {
             .eq("character_id", viewer.character.id)
         ).data
       : [];
-  const buffRows =
-    supabase
-      ? (await supabase.from("goal_reward_buffs").select("id, name, enabled").eq("enabled", true).order("sort_order")).data
-      : null;
+  const buffRows = supabase
+    ? (await supabase.from("goal_reward_buffs").select("id, name, enabled").eq("enabled", true).order("sort_order")).data
+    : null;
   const buffs = (buffRows ?? [...GOAL_REWARD_BUFF_SEED]).map((row) => ({ id: row.id, name: row.name }));
   const rows = (goals ?? []) as GoalRow[];
-  const rewardByGoal = new Map(((rewards ?? []) as RewardRow[]).map((reward) => [reward.goal_id, reward]));
-  const parents = rows.filter((goal) => goal.is_long_term && !goal.parent_id);
-  const weekly = rows.filter((goal) => !goal.is_long_term && !goal.parent_id);
-  const stepsFor = (parentId: string) => rows.filter((goal) => goal.parent_id === parentId);
+  const weekStart = currentWeekStart(viewer.today);
+  const conWeek =
+    supabase && viewer.character?.constitution_goal_id
+      ? (
+          await supabase
+            .from("constitution_goal_weeks")
+            .select("week_start, option_id")
+            .eq("character_id", viewer.character.id)
+            .eq("week_start", weekStart)
+            .maybeSingle()
+        ).data
+      : null;
+  const conOption = constitutionGoalOption(viewer.character?.constitution_goal_id);
+  const scoreMin = viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT;
+  const conStatus =
+    viewer.character && conOption
+      ? constitutionStatusLine({
+          condition: conOption.condition,
+          score: viewer.character.constitution,
+          unspent: viewer.character.constitution_points,
+          scoreMin,
+          current: constitutionGoalCurrent({
+            choiceId: viewer.character.constitution_goal_id ?? null,
+            markedWeek: conWeek && conWeek.option_id === viewer.character.constitution_goal_id ? conWeek.week_start : null,
+            weekStart,
+          }),
+          chosen: true,
+        })
+      : null;
   const finishedSteps = rows.filter((goal) => goal.parent_id && goal.completed_at).length;
   const toward =
     viewer.character && showsLevelFourProgress(viewer.character.level)
       ? levelFourProgress(finishedSteps, viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT)
       : null;
-  const buffName = (reward: RewardRow) =>
-    reward.buff_other || buffs.find((buff) => buff.id === reward.buff_id)?.name || "Buff recorded";
+  const views: GoalView[] = rows.map((goal) => ({
+    id: goal.id,
+    title: goal.title,
+    category: goal.category,
+    categoryLabel: CATEGORIES.find(([value]) => value === goal.category)?.[1] ?? goal.category,
+    description: goal.description,
+    active: goal.is_active,
+    longTerm: goal.is_long_term,
+    parentId: goal.parent_id,
+    completed: Boolean(goal.completed_at),
+    markedDone: Boolean(goal.marked_done),
+    periodLabel: goal.period_start ? `${goal.period_start} to ${goal.period_end ?? ""}` : null,
+    chips: [
+      goal.cmart_clear ? "C" : "",
+      goal.cmart_measurable ? "M" : "",
+      goal.cmart_attainable ? "A" : "",
+      goal.cmart_relevant ? "R" : "",
+      goal.cmart_timed ? "T" : "",
+    ].filter(Boolean),
+  }));
+  const rewardViews: RewardView[] = ((rewards ?? []) as {
+    id: string;
+    goal_id: string;
+    status: string;
+    buff_id: string | null;
+    buff_other: string | null;
+    story_reward: string | null;
+  }[]).map((reward) => ({
+    id: reward.id,
+    goalId: reward.goal_id,
+    status: reward.status,
+    buffName: reward.buff_other || buffs.find((buff) => buff.id === reward.buff_id)?.name || null,
+    story: reward.story_reward,
+  }));
 
   return (
     <Page
@@ -92,206 +145,20 @@ export default async function GoalsPage() {
       mark={false}
     >
       {setup ? <Notice>{setup}</Notice> : null}
-      <Panel title="Constitution" wide paper>
-        <p>Choose one. It feeds Constitution. Meal prep can later follow a nutrition plan.</p>
-        <ul>
-          {CON_GOAL_OPTIONS.map((option) => (
-            <li key={option.id}>
-              {option.label} · {option.condition}
-            </li>
-          ))}
-        </ul>
-        <p>
-          When Constitution is {viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT} or higher and nothing is left
-          to place, a current week shows the condition and +2 initiative.
-        </p>
-        {viewer.character ? (
-          <>
-            <ResultForm action={chooseConstitutionGoal} submit="Save Constitution goal">
-              <label>
-                This week&apos;s Constitution goal
-                <select name="option_id" defaultValue={viewer.character.constitution_goal_id ?? ""} required>
-                  <option value="" disabled>
-                    Choose
-                  </option>
-                  {CON_GOAL_OPTIONS.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </ResultForm>
-            {viewer.character.constitution_goal_id ? (
-              <ResultForm action={markConstitutionGoalWeek} submit="Log this week">
-              <input type="hidden" name="week" value="current" />
-            </ResultForm>
-            ) : null}
-          </>
-        ) : null}
-      </Panel>
-      <Panel title="Intelligence and Wisdom" wide>
-        <p>A mental goal feeds Intelligence or Wisdom. It does not count until it is CMART. Pending confirmation.</p>
-        {viewer.character ? (
-          <MentalGoalForm required={cmartRequired(viewer.config?.mental_goal_cmart)} />
-        ) : (
-          <ul>
-            {CMART_CHECKS.map((check) => (
-              <li key={check.id}>
-                {check.letter} · {check.name}. {check.prompt}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Panel>
-      {!viewer.character ? (
-        <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
-          {viewer.userId ? "Fill Out Recruitment Papers first." : "Join the Company first."}
-        </Link>
-      ) : (
-        <>
-          {toward ? (
-            <Panel paper wide>
-              <p className="eyebrow">Toward level 4</p>
-              <p className="progress-fraction">{toward.label}</p>
-              <p>Completed short-term goals. The count is set in company config. It is {toward.required} right now.</p>
-            </Panel>
-          ) : viewer.character.level < 3 ? (
-            <Panel wide>
-              <p>Levels 1 to 3 still follow the milestone weeks. Long-term goals toward level 4 open at level 3.</p>
-            </Panel>
-          ) : null}
-          {viewer.character.level === 3 ? (
-          <Panel title="Long-term goal" wide>
-            <p>Name the long aim, then add the short-term steps under it. Finishing a step does not grant anything by itself.</p>
-            <ResultForm action={createGoal} submit="Save long-term goal" primary>
-              <input type="hidden" name="is_long_term" value="on" />
-              <label>
-                Goal
-                <input name="title" required />
-              </label>
-              <label>
-                Kind
-                <select name="category" defaultValue="constitution">
-                  {CATEGORIES.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                What done looks like
-                <textarea name="description" />
-              </label>
-            </ResultForm>
-          </Panel>
-          ) : null}
-          {parents.map((goal) => (
-            <Panel key={goal.id} title={goal.title} paper>
-              <p className="text-mute">{CATEGORIES.find(([value]) => value === goal.category)?.[1] ?? goal.category}</p>
-              {goal.description ? <p>{goal.description}</p> : null}
-              {stepsFor(goal.id).map((step) => {
-                const reward = rewardByGoal.get(step.id);
-                return (
-                  <article key={step.id}>
-                    <h3>{step.title}</h3>
-                    {step.description ? <p>{step.description}</p> : null}
-                    {step.completed_at ? (
-                      reward?.status === "recorded" ? (
-                        <>
-                          <p>{buffName(reward)}</p>
-                          {reward.story_reward ? <p>{reward.story_reward}</p> : null}
-                        </>
-                      ) : (
-                        <p>{GOAL_REWARD_READY}</p>
-                      )
-                    ) : (
-                      <ResultForm action={completeShortTermGoal} submit="Finish this step">
-                        <input type="hidden" name="goal_id" value={step.id} />
-                      </ResultForm>
-                    )}
-                    {reward?.status === "ready" && isLogApprover(viewer.role) ? (
-                      <GoalRewardForm rewardId={reward.id} buffs={buffs} />
-                    ) : null}
-                  </article>
-                );
-              })}
-              <ResultForm action={createGoal} submit="Add a short-term step">
-                <input type="hidden" name="parent_id" value={goal.id} />
-                <input type="hidden" name="category" value={goal.category} />
-                <label>
-                  Step
-                  <input name="title" required />
-                </label>
-                <label>
-                  What done looks like
-                  <textarea name="description" />
-                </label>
-              </ResultForm>
-            </Panel>
-          ))}
-          <Panel title="Charisma" wide>
-            <p>A social goal feeds Charisma.</p>
-            <ResultForm action={createGoal} submit="Save goal" primary>
-              <label>
-                Goal
-                <input name="title" required />
-              </label>
-              <label>
-                Kind
-                <select name="category" defaultValue="charisma">
-                  {SOCIAL.map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                What done looks like
-                <textarea name="description" />
-              </label>
-              <label>
-                How often
-                <input name="target_frequency" />
-              </label>
-              <Choice name="is_long_term">Long term</Choice>
-              <label>
-                Period start
-                <input type="date" name="period_start" />
-              </label>
-              <label>
-                Period end
-                <input type="date" name="period_end" />
-              </label>
-            </ResultForm>
-            <p>A monthly period must stay inside one calendar month. A long-term goal here still needs short-term steps before it counts toward level 4.</p>
-          </Panel>
-          {weekly.map((goal) => (
-            <Panel key={goal.id} title={goal.title}>
-              <p className="text-mute">
-                {CATEGORIES.find(([value]) => value === goal.category)?.[1] ?? goal.category}
-                {goal.period_start ? ` · ${goal.period_start} to ${goal.period_end}` : ""}
-              </p>
-              {goal.description ? <p>{goal.description}</p> : null}
-              {goal.marked_done ? <p>Done.</p> : null}
-              {!goal.is_active && (goal.category === "intelligence" || goal.category === "wisdom") ? (
-                <p>Not counting yet. All five checks have to be on.</p>
-              ) : null}
-              {goal.is_active ? (
-                <ResultForm action={logGoal} submit="Mark complete">
-                  <input type="hidden" name="goal_id" value={goal.id} />
-                  <input type="date" name="date" required max={viewer.today ?? undefined} defaultValue={viewer.today ?? undefined} />
-                  <textarea name="notes" placeholder="Notes" />
-                </ResultForm>
-              ) : (
-                <p>Inactive.</p>
-              )}
-            </Panel>
-          ))}
-        </>
-      )}
+      <GoalsBoard
+        signedIn={Boolean(viewer.userId)}
+        hasCharacter={Boolean(viewer.character)}
+        level={viewer.character?.level ?? null}
+        today={viewer.today}
+        cmartOn={cmartRequired(viewer.config?.mental_goal_cmart)}
+        conChoice={viewer.character?.constitution_goal_id ?? null}
+        conStatus={conStatus}
+        towardLabel={toward?.label ?? null}
+        goals={views}
+        rewards={rewardViews}
+        canRecord={isLogApprover(viewer.role)}
+        buffs={buffs}
+      />
     </Page>
   );
 }

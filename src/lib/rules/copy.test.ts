@@ -55,6 +55,8 @@ const PLAYER_COPY = [
   "src/components/term-sheet.tsx",
   "src/components/codex-browser.tsx",
   "src/components/goal-reward-form.tsx",
+  "src/components/goals-board.tsx",
+  "src/components/mental-goal-form.tsx",
   "src/components/empty-state.tsx",
   "src/app/codex/page.tsx",
   "src/components/intake-form.tsx",

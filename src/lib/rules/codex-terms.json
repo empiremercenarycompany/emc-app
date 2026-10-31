@@ -477,6 +477,27 @@
       "status": "confirm"
     },
     {
+      "id": "cmart",
+      "term": "CMART",
+      "group": "emc",
+      "plain": "Five checks on a mental goal: Clear, Measurable, Attainable, Relevant, and Timed. It counts only when all five are on.",
+      "status": "ready"
+    },
+    {
+      "id": "clearance",
+      "term": "Clearance",
+      "group": "emc",
+      "plain": "A rank the Company shows as the weeks add up.",
+      "status": "ready"
+    },
+    {
+      "id": "company-muster",
+      "term": "Muster",
+      "group": "emc",
+      "plain": "The gathering before a session, where the week is confirmed.",
+      "status": "ready"
+    },
+    {
       "id": "faq-played",
       "term": "Do I need to have played before?",
       "group": "faq",

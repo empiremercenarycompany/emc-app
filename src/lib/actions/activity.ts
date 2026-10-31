@@ -129,17 +129,9 @@ export async function createGoal(formData: FormData): Promise<ActionResult> {
     row.marked_done = markedDone;
     for (const check of CMART_CHECKS) row[check.id] = flags[check.id] === true;
   }
-  const { data: inserted, error: insertError } = await supabase.from("goals").insert(row).select("id").maybeSingle();
+  const { error: insertError } = await supabase.from("goals").insert(row);
   const message = dbError(insertError);
   if (message) return { error: message };
-  if (mental && markedDone && active && inserted?.id) {
-    const { error: rpcError } = await supabase.rpc("log_activity", {
-      p_kind: "goal",
-      p_payload: { goal_id: inserted.id, date: periodEnd || currentWeekStart(null), notes: "" },
-    });
-    const logged = dbError(rpcError);
-    if (logged) return { error: logged };
-  }
   touch();
   return { ok: true };
 }
@@ -241,6 +233,21 @@ export async function recordGoalReward(formData: FormData): Promise<ActionResult
   if (message) return { error: message };
   touch();
   return { ok: true };
+}
+
+/** Schedule table attendance. Only on that session's date. The weekly Friday check-in is a different action. */
+export async function markAttendance(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const sessionId = String(formData.get("session_id") ?? "");
+  const { data: session } = await supabase.from("sessions").select("session_date").eq("id", sessionId).maybeSingle();
+  const { data: today } = await supabase.rpc("company_today");
+  const sessionDay = String(session?.session_date ?? "").slice(0, 10);
+  const companyDay = typeof today === "string" ? today.slice(0, 10) : "";
+  if (!sessionDay || sessionDay !== companyDay) {
+    return { error: "Attendance opens on the day of that session." };
+  }
+  return checkIn(formData);
 }
 
 export async function checkIn(formData: FormData): Promise<ActionResult> {

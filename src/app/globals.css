@@ -641,6 +641,91 @@ button:disabled {
   background: var(--color-parch-3);
 }
 
+.weapon-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+button.weapon-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.65rem 0.15rem;
+  border: 0;
+  border-bottom: 1px solid rgba(107, 79, 39, 0.28);
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--font-barlow), "Barlow", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  text-align: left;
+}
+
+.goal-card {
+  width: 100%;
+  background: var(--color-char-2);
+  color: var(--color-parchment);
+  border: 1px solid rgba(210, 176, 122, 0.35);
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.goal-card h2,
+.goal-card h3 {
+  color: var(--color-parchment);
+}
+
+.goal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.goal-chips span {
+  border: 1px solid var(--color-bronze);
+  color: var(--color-bronze-lt);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8125rem;
+}
+
+.toast-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 5.5rem;
+  transform: translateX(-50%);
+  z-index: 45;
+  background: var(--color-char-2);
+  color: var(--color-parchment);
+  border: 1px solid var(--color-bronze);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+}
+
+.reward-ready {
+  animation: reward-pop 0.9s ease;
+}
+
+@keyframes reward-pop {
+  from {
+    background: rgba(155, 44, 32, 0.45);
+  }
+  to {
+    background: transparent;
+  }
+}
+
 .paper input,
 .paper select,
 .paper textarea {

@@ -201,7 +201,7 @@ export function pointsForGoal(input: {
   }
   if (input.buildTotal < 0) throw new Error("buildTotal cannot be negative");
   const age = calendarDaysBetween(input.completedOn, input.today);
-  if (age < 0) throw new Error("Future workout dates are rejected");
+  if (age < 0) throw new Error("That date is still ahead of today.");
   if (input.alreadyAwardedGoalIds.has(input.goalId)) return 0;
   if (age > config.goalBackfillDays) return 0;
   const anchor = asUtcDate(input.anchor ?? config.cohortStart);

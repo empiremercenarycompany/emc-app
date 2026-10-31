@@ -17,19 +17,30 @@ export function useHelpMode(): HelpApi {
   return useContext(HelpContext);
 }
 
-export function CodexProviders({ beginner, children }: { beginner: boolean; children: ReactNode }) {
+function helpKey(userId: string | null): string {
+  return userId ? `emc-help:${userId}` : "emc-help:signed-out";
+}
+
+export function CodexProviders({
+  beginner,
+  userId,
+  children,
+}: {
+  beginner: boolean;
+  userId: string | null;
+  children: ReactNode;
+}) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
+  const key = helpKey(userId);
 
   useEffect(() => {
-    const stored = window.sessionStorage.getItem("emc-help");
-    if (stored === "on") setHelp(true);
-  }, []);
+    setHelp(window.sessionStorage.getItem(key) === "on");
+  }, [key]);
 
   useEffect(() => {
     document.documentElement.dataset.help = help ? "on" : "off";
     document.documentElement.dataset.beginner = beginner ? "on" : "off";
-    window.sessionStorage.setItem("emc-help", help ? "on" : "off");
   }, [help, beginner]);
 
   useEffect(() => {
@@ -42,7 +53,17 @@ export function CodexProviders({ beginner, children }: { beginner: boolean; chil
   }, [activeId]);
 
   return (
-    <HelpContext.Provider value={{ help, toggle: () => setHelp((value) => !value) }}>
+    <HelpContext.Provider
+      value={{
+        help,
+        toggle: () =>
+          setHelp((value) => {
+            const next = !value;
+            window.sessionStorage.setItem(key, next ? "on" : "off");
+            return next;
+          }),
+      }}
+    >
       <TermContext.Provider
         value={{
           activeId,

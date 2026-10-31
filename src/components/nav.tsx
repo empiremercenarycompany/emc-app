@@ -49,7 +49,7 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
       ],
     },
     {
-      title: "Me",
+      title: "Profile",
       items: [{ href: "/profile", label: "Profile" }],
     },
   ];
@@ -168,6 +168,7 @@ export function SiteNav({
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch
                 className={`flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
               >
                 <TabBody icon={item.icon} label={item.label} active={active} />

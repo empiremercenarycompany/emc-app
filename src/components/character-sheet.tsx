@@ -4,6 +4,7 @@ import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { DiceRoller } from "@/components/dice-roller";
 import { EmptyState } from "@/components/empty-state";
 import { Term } from "@/components/term";
+import { attackParts } from "@/lib/rules/attacks";
 import { checkExpression } from "@/lib/rules/dice";
 import { levelFourProgress, showsLevelFourProgress, showsMilestoneLevels } from "@/lib/rules/level-four";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
@@ -143,7 +144,6 @@ export function CharacterSheet({
             Level {level}
             {toward ? ` · Toward level 4 · ${toward.label}` : null}
           </p>
-          <p className="sheet-note">Progress ring is a placeholder.</p>
         </div>
       </div>
       <div className="stat-row">
@@ -231,16 +231,26 @@ export function CharacterSheet({
     <div className="flex flex-col gap-3">
       <article className="paper">
         {(recordedAttacks ?? []).length > 0 ? (
-          recordedAttacks!.map((attack) => (
-            <button key={attack} className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
-              {attack}
-            </button>
-          ))
+          <ul className="weapon-list">
+            {recordedAttacks!.map((attack) => {
+              const parts = attackParts(attack);
+              return (
+                <li key={attack}>
+                  <button className="weapon-row" type="button" onClick={() => offer(checkExpression(str))}>
+                    <span>{parts.name}</span>
+                    {parts.bonus ? <span>{parts.bonus}</span> : null}
+                    {parts.damage ? <span>{parts.damage}</span> : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         ) : (
           <EmptyState title="No attacks on the sheet yet">
             <p>More attacks arrive at induction.</p>
-            <button className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
-              Unarmed strike · {checkExpression(str)}
+            <button className="weapon-row" type="button" onClick={() => offer(checkExpression(str))}>
+              <span>Unarmed strike</span>
+              <span>{checkExpression(str)}</span>
             </button>
           </EmptyState>
         )}

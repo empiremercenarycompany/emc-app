@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 test("barracks shows the company lines", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("A squad, a story, and a reason to keep showing up.")).toBeVisible();
-  await expect(page.getByText("Train. Record. Advance.").first()).toBeVisible();
-  await expect(page.getByText("Your week shapes your character and the story.")).toBeVisible();
+  await expect(page.getByText("Train. Record. Advance.")).toHaveCount(0);
+  await expect(page.getByText("Your week shapes your character and the story.")).toHaveCount(0);
   await expect(page.getByText("Go forth and conquer.")).toBeVisible();
   await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
@@ -37,7 +37,8 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Join the Company" })).toBeVisible();
   await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Join the Company" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
+  await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Discord" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();

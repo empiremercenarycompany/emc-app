@@ -19,9 +19,7 @@ export default function AboutPage() {
       </Panel>
       <Panel title="Type">
         <p>Body text is Barlow. Buttons and labels are Barlow Condensed. Both are under the SIL Open Font License.</p>
-        <p className="text-mute">
-          Screen titles use Corleone, then Barlow Condensed 800. The font file is not in this repo.
-        </p>
+        <p className="text-mute">Screen titles use Corleone, then Barlow Condensed 800.</p>
       </Panel>
     </Page>
   );

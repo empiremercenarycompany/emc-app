@@ -9,6 +9,7 @@ import { Notice, Page, Panel } from "@/components/ui";
 import { saveBuildPlan } from "@/lib/actions/campaign";
 import { useBuff } from "@/lib/actions/muster";
 import { saveNotes, spendIncrease } from "@/lib/actions/character";
+import { setSubclass } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
@@ -25,6 +26,7 @@ import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
+import { isLogApprover, isStaff, type CharacterRow } from "@/lib/types";
 
 const LABELS: Record<AbilityName, string> = {
   strength: "Strength",
@@ -58,7 +60,7 @@ function abilityLabel(name: string) {
 export default async function CharacterPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ preview?: string; welcomed?: string }>;
+  searchParams?: Promise<{ preview?: string; welcomed?: string; recruit?: string }>;
 }) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
@@ -126,6 +128,101 @@ export default async function CharacterPage({
       </Page>
     );
   }
+  const recruitId = params?.recruit?.trim();
+  if (recruitId && viewer.userId && isLogApprover(viewer.role) && recruitId !== viewer.character?.id) {
+    const recruitClient = await createClient();
+    const recruit = (
+      recruitClient && viewer.guildId
+        ? (
+            await recruitClient
+              .from("characters")
+              .select("*")
+              .eq("id", recruitId)
+              .eq("guild_id", viewer.guildId)
+              .maybeSingle()
+          ).data
+        : null
+    ) as CharacterRow | null;
+    if (!recruit) {
+      return (
+        <Page title="Character" mark={false}>
+          <p>That sheet is not in this company.</p>
+        </Page>
+      );
+    }
+    const recruitScores = {
+      strength: recruit.strength,
+      dexterity: recruit.dexterity,
+      constitution: recruit.constitution,
+      intelligence: recruit.intelligence,
+      wisdom: recruit.wisdom,
+      charisma: recruit.charisma,
+    };
+    return (
+      <Page title="Character" lede={recruit.name} mark={false}>
+        <CharacterSheet
+          name={recruit.name}
+          classLabel={`${recruit.rank} · ${recruit.class ?? "Not yet inducted"}`}
+          level={recruit.level}
+          scores={recruitScores}
+          hp={
+            recruit.sheet?.hp ??
+            preInductionHp({
+              constitution: recruit.constitution,
+              species: recruit.species,
+              originWord: recruit.origin_word,
+            })
+          }
+          skillId={recruit.profession_skill}
+          skillIds={recruit.background_skills ?? null}
+          acOverride={recruit.sheet?.ac ?? null}
+          speedOverride={recruit.sheet?.speed ?? null}
+          saves={recruit.sheet?.saves ?? null}
+          recordedSkills={recruit.sheet?.skills ?? null}
+          recordedAttacks={recruit.sheet?.attacks ?? null}
+          recordedFeatures={recruit.sheet?.features ?? null}
+          recordedSpells={recruit.sheet?.spells ?? null}
+          recordedFeats={recruit.sheet?.feats ?? null}
+          features={
+            <p>
+              {recruit.rank} · level {recruit.level}
+              {recruit.species ? ` · ${speciesLabel(recruit.species)}` : ""}
+            </p>
+          }
+          inventory={<p className="text-mute">Staff view. The recruit keeps their own list.</p>}
+          npcs={<p className="text-mute">Open the recruit&apos;s story from the table.</p>}
+          progress={<p>Build changes stay with the recruit until you finalize them in person.</p>}
+          subclass={
+            recruit.level >= 3
+              ? {
+                  name: recruit.subclass_name ?? null,
+                  features: recruit.subclass_features ?? null,
+                  spells: recruit.subclass_spells ?? null,
+                }
+              : null
+          }
+        />
+        {isStaff(viewer.role) ? (
+          <ResultForm action={setSubclass} submit="Save subclass">
+            <input type="hidden" name="character_id" value={recruit.id} />
+            <label>
+              Subclass name
+              <input name="subclass_name" defaultValue={recruit.subclass_name ?? ""} />
+            </label>
+            <label>
+              Features
+              <textarea name="subclass_features" defaultValue={recruit.subclass_features ?? ""} />
+            </label>
+            <label>
+              Spells
+              <textarea name="subclass_spells" defaultValue={recruit.subclass_spells ?? ""} />
+            </label>
+          </ResultForm>
+        ) : null}
+      </Page>
+    );
+  }
+
   if (!viewer.character) {
     return (
       <Page title="Character" lede="Not yet inducted" mark={false}>
