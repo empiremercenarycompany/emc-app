@@ -63,6 +63,10 @@ test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
   await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
   await expect(page.getByText(/Friday at 11:59 PM/)).toBeVisible();
+  await expect(page.getByText("Known · week 4")).toBeVisible();
+  await expect(page.getByText("Vouched For · week 20")).toBeVisible();
+  await expect(page.getByText("Esteemed of Bleakspire · week 52")).toBeVisible();
+  await expect(page.getByText(/Pillar of Bleakspire II/)).toBeVisible();
 });
 
 test("work opens on one record form", async ({ page }) => {

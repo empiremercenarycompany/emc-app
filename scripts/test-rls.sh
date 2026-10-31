@@ -39,6 +39,7 @@ run_sql -f supabase/tests/rls.test.sql
 run_sql -f supabase/tests/backgrounds.test.sql
 run_sql -f supabase/tests/intake.test.sql
 run_sql -f supabase/tests/staff_edit.test.sql
+run_sql -f supabase/tests/clearance.test.sql
 echo "RLS tests passed"
 
 echo "Test account seed"
