@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GroupGoalForm } from "@/components/group-goal-form";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { assignSquad, createSquad, postChallenge } from "@/lib/actions/staff";
@@ -79,21 +80,11 @@ export default async function SquadPage() {
               ))}
             </select>
           </ResultForm>
-          <ResultForm action={postChallenge} submit="Post group goal">
-            <select name="squad_id" defaultValue="">
-              <option value="">Whole company</option>
-              {(squads ?? []).map((squad) => (
-                <option key={squad.id} value={squad.id}>
-                  {squad.name}
-                </option>
-              ))}
-            </select>
-            <input name="title" required placeholder="Challenge title" />
-            <textarea name="description" placeholder="Description" />
-            <input name="objective_title" placeholder="Objective" />
-            <input name="objective_target" placeholder="Target" />
-            <input name="objective_unit" placeholder="Unit" />
-          </ResultForm>
+          <GroupGoalForm
+            key="group-goal"
+            squads={(squads ?? []).map((squad) => ({ id: squad.id, name: squad.name }))}
+            action={postChallenge}
+          />
           <p className="text-sm text-mute">Group goals are barracks missions. Progress does not change attributes.</p>
         </Panel>
       ) : null}

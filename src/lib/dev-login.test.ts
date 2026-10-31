@@ -21,6 +21,10 @@ describe("dev login gate", () => {
     expect(labels).not.toContain("Melichar");
     expect(devAccountEmail("Alexandria")).toBe("alexandria@example.test");
     expect(devAccountEmail("stranger@example.com")).toBeNull();
+    const route = readFileSync(path.join(process.cwd(), "src/app/api/dev-login/route.ts"), "utf8");
+    expect(route).not.toContain("signInWithPassword");
+    expect(route).toContain("SUPABASE_SERVICE_ROLE_KEY");
+    expect(route).toContain("devLoginAllowed");
     const sql = readFileSync(path.join(process.cwd(), "supabase/seed/test_accounts.sql"), "utf8");
     expect(sql).toContain(DEV_LOGIN_PASSWORD);
     for (const row of roster.characters) {

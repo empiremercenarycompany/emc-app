@@ -1,8 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { actionClient, dbError } from "@/lib/action-client";
+import { isLocalHost } from "@/lib/dev-login";
+import { groupGoalDraft } from "@/lib/rules/group-goal";
 import type { ActionResult } from "@/lib/types";
 
 function refresh() {
@@ -128,21 +131,96 @@ export async function assignSquad(formData: FormData): Promise<ActionResult> {
 export async function postChallenge(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
-  const titles = formData.getAll("objective_title").map(String).filter((title) => title.trim());
+  const draft = groupGoalDraft(formData);
+  if (!draft.title) return { error: "Title is required." };
+  const objectives = draft.objectiveTitle
+    ? [{ title: draft.objectiveTitle, target_value: draft.target, unit: draft.unit }]
+    : [];
   const { error: rpcError } = await supabase.rpc("post_squad_challenge", {
-    p_squad_id: String(formData.get("squad_id") ?? "") || null,
-    p_title: String(formData.get("title") ?? ""),
-    p_description: String(formData.get("description") ?? ""),
-    p_objectives: titles.map((title, index) => ({
-      title,
-      target_value: String(formData.getAll("objective_target")[index] ?? ""),
-      unit: String(formData.getAll("objective_unit")[index] ?? ""),
-    })),
+    p_squad_id: draft.squadId,
+    p_title: draft.title,
+    p_description: draft.description,
+    p_objectives: objectives,
   });
   const message = dbError(rpcError);
   if (message) return { error: message };
   revalidatePath("/squad");
   revalidatePath("/missions");
+  return { ok: true, saved: { title: draft.title, squadId: draft.squadId } };
+}
+
+/** Local form check. It does not write a mission. */
+export async function echoGroupGoal(formData: FormData): Promise<ActionResult> {
+  const host = (await headers()).get("host");
+  if (!isLocalHost(host)) return { error: "Not available." };
+  const draft = groupGoalDraft(formData);
+  if (!draft.title) return { error: "Title is required." };
+  return { ok: true, saved: { title: draft.title, squadId: draft.squadId } };
+}
+
+export async function updateMission(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const draft = groupGoalDraft(formData);
+  const target = draft.target ? Number(draft.target) : null;
+  const objectiveId = String(formData.get("objective_id") ?? "").trim();
+  const { error: rpcError } = await supabase.rpc("update_mission", {
+    p_id: String(formData.get("mission_id") ?? ""),
+    p_title: draft.title,
+    p_description: draft.description,
+    p_squad_id: draft.squadId,
+    p_objective_id: objectiveId || null,
+    p_objective_title: draft.objectiveTitle,
+    p_target: Number.isFinite(target) ? target : null,
+    p_unit: draft.unit,
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/missions");
+  revalidatePath("/squad");
+  return { ok: true, saved: { title: draft.title, squadId: draft.squadId } };
+}
+
+export async function archiveMission(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("archive_mission", {
+    p_id: String(formData.get("mission_id") ?? ""),
+    p_confirm: String(formData.get("confirm") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/missions");
+  return { ok: true };
+}
+
+export async function updateAnnouncement(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const squad = String(formData.get("squad_id") ?? "").trim();
+  const { error: rpcError } = await supabase.rpc("update_announcement", {
+    p_id: String(formData.get("announcement_id") ?? ""),
+    p_title: String(formData.get("title") ?? ""),
+    p_body: String(formData.get("body") ?? ""),
+    p_squad_id: squad || null,
+    p_pinned: formData.get("pinned") === "on",
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function deleteAnnouncement(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("delete_announcement", {
+    p_id: String(formData.get("announcement_id") ?? ""),
+    p_confirm: String(formData.get("confirm") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/");
   return { ok: true };
 }
 

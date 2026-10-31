@@ -11,10 +11,14 @@ export function devRosterAccounts(): DevAccount[] {
   return [...characters, ...staff];
 }
 
-export function devLoginAllowed(flag: string | undefined, host: string | null | undefined): boolean {
-  if (flag !== "1") return false;
+export function isLocalHost(host: string | null | undefined): boolean {
   const name = (host ?? "").split(":")[0]?.replace(/^\[|\]$/g, "").trim().toLowerCase() ?? "";
   return name === "localhost" || name === "127.0.0.1";
+}
+
+export function devLoginAllowed(flag: string | undefined, host: string | null | undefined): boolean {
+  if (flag !== "1") return false;
+  return isLocalHost(host);
 }
 
 export function devAccountEmail(labelOrEmail: string): string | null {

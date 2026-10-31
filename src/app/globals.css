@@ -89,6 +89,14 @@ h2 {
   letter-spacing: 0.04em;
 }
 
+.page-pad {
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+}
+
+.tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 .notice {
   border: 1px solid var(--color-bronze);
   background: var(--color-parchment);

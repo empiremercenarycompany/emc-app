@@ -105,7 +105,7 @@ export function SiteNav({ signedIn, role }: { signedIn: boolean; role: AppRole |
           </div>
         </div>
       ) : null}
-      <nav className="fixed inset-x-0 bottom-0 z-10 border-t border-steel bg-iron">
+      <nav className="tab-bar fixed inset-x-0 bottom-0 z-10 border-t border-steel bg-iron">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {PRIMARY.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);

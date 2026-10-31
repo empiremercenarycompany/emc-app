@@ -18,11 +18,18 @@ export function DevLogin() {
   async function choose(email: string, label: string) {
     setPending(label);
     setMessage(null);
-    const response = await fetch("/api/dev-login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
+    let response: Response;
+    try {
+      response = await fetch("/api/dev-login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+    } catch {
+      setPending(null);
+      setMessage("Dev login did not open a session. The request failed. No mail was sent.");
+      return;
+    }
     setPending(null);
     if (response.status === 404) {
       setMessage("Dev login is off.");
@@ -40,6 +47,11 @@ export function DevLogin() {
     <section className="border border-steel p-4">
       <h2>Dev login</h2>
       <p className="text-mute">Localhost only. Pick a test account. No mail is sent.</p>
+      {message ? (
+        <p className="notice" role="alert">
+          {message}
+        </p>
+      ) : null}
       <p>Pick a test account</p>
       <div className="flex flex-col gap-2">
         {devRosterAccounts().map((account) => (
@@ -54,7 +66,6 @@ export function DevLogin() {
           </button>
         ))}
       </div>
-      {message ? <p role="status">{message}</p> : null}
     </section>
   );
 }

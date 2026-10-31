@@ -163,6 +163,16 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
 });
 
+test("home content clears the bottom nav", async ({ page }) => {
+  await page.goto("/");
+  const main = page.locator("main");
+  const nav = page.locator("nav");
+  const pad = await main.evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingBottom));
+  const navBox = await nav.boundingBox();
+  expect(navBox).not.toBeNull();
+  expect(pad).toBeGreaterThan(navBox!.height);
+});
+
 test("the manifest names the company", async ({ request }) => {
   const response = await request.get("/manifest.webmanifest");
   expect(response.ok()).toBeTruthy();

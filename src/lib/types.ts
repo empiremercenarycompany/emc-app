@@ -125,7 +125,10 @@ export type Impact = {
   } | null;
 };
 
-export type ActionResult = { error: string } | { impact: Impact } | { ok: true };
+export type ActionResult =
+  | { error: string }
+  | { impact: Impact }
+  | { ok: true; saved?: { title: string; squadId: string | null } };
 
 export type Viewer = {
   configured: boolean;

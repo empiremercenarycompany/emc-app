@@ -3,7 +3,7 @@ import { Barlow, Barlow_Condensed } from "next/font/google";
 import Link from "next/link";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
-import { loadViewer } from "@/lib/company";
+import { loadViewer, sessionRoleLabel } from "@/lib/company";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -45,12 +45,14 @@ export const viewport: Viewport = {
   themeColor: "#111111",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await loadViewer();
+  const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
   return (
     <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
       <body>
@@ -67,7 +69,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   {(viewer.displayName?.trim().charAt(0) || "R").toUpperCase()}
                 </span>
               )}
-              <span>{viewer.displayName?.trim() || "Recruit"}</span>
+              <span>
+                {viewer.displayName?.trim() || "Recruit"}
+                {roleLabel ? ` · ${roleLabel}` : ""}
+              </span>
             </Link>
           </div>
         ) : null}

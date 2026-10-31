@@ -17,7 +17,7 @@ export function Page({
   children: ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-lg px-4 pb-28 pt-6">
+    <main className="page-pad mx-auto w-full max-w-lg px-4 pt-6">
       {badge ? <CompanyBadge /> : <LogoSlot />}
       <h1 className="mt-4 text-4xl">{title}</h1>
       {lede ? <p className="mt-2 text-mute">{lede}</p> : null}

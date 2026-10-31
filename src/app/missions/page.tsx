@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MissionEditor } from "@/components/mission-editor";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { checkIn } from "@/lib/actions/activity";
@@ -7,6 +8,7 @@ import { correctAttendance } from "@/lib/actions/campaign";
 import { createSession } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
+import { isStaff } from "@/lib/types";
 
 export default async function MissionsPage() {
   const viewer = await loadViewer();
@@ -17,7 +19,7 @@ export default async function MissionsPage() {
       ? (
           await supabase
             .from("missions")
-            .select("id, title, description, type, status, objectives(id, title, current_value, target_value, unit)")
+            .select("id, squad_id, title, description, type, status, objectives(id, title, current_value, target_value, unit)")
             .eq("guild_id", viewer.guildId)
             .eq("status", "active")
         ).data
@@ -33,6 +35,10 @@ export default async function MissionsPage() {
             .limit(8)
         ).data
       : [];
+  const squads =
+    supabase && viewer.guildId && isStaff(viewer.role)
+      ? (await supabase.from("squads").select("id, name").eq("guild_id", viewer.guildId)).data
+      : [];
   const people =
     supabase && viewer.guildId && viewer.role === "dm"
       ? (await supabase.from("characters").select("id, name").eq("guild_id", viewer.guildId)).data
@@ -47,6 +53,21 @@ export default async function MissionsPage() {
         <Panel key={mission.id} title={mission.title}>
           <p className="text-mute">{mission.type}</p>
           {mission.description ? <p>{mission.description}</p> : null}
+          {isStaff(viewer.role) ? (
+            <MissionEditor
+              mission={{
+                id: mission.id,
+                title: mission.title,
+                description: mission.description,
+                squadId: mission.squad_id,
+                objectiveId: mission.objectives?.[0]?.id ?? null,
+                objectiveTitle: mission.objectives?.[0]?.title ?? "",
+                target: mission.objectives?.[0]?.target_value != null ? String(mission.objectives[0].target_value) : "",
+                unit: mission.objectives?.[0]?.unit ?? "",
+              }}
+              squads={(squads ?? []).map((squad) => ({ id: squad.id, name: squad.name }))}
+            />
+          ) : null}
           {(mission.objectives ?? []).map(
             (objective: { id: string; title: string; current_value: number; target_value: number | null; unit: string | null }) => (
               <div key={objective.id}>

@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { ResultForm } from "@/components/result-form";
-import { Choice } from "@/components/choice";
+import { AnnouncementEditor, AnnouncementForm } from "@/components/announcement-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { postAnnouncement } from "@/lib/actions/staff";
-import { loadViewer, setupMessage } from "@/lib/company";
+import { loadViewer, sessionRoleLabel, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { currentWeekStart } from "@/lib/rules/dates";
 import { workoutMark } from "@/lib/rules/checkin";
@@ -14,7 +13,14 @@ export default async function BarracksPage() {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
   const supabase = await createClient();
-  let announcements: { id: string; title: string; body: string; pinned: boolean; squads: { name: string } | { name: string }[] | null }[] = [];
+  let announcements: {
+    id: string;
+    title: string;
+    body: string;
+    pinned: boolean;
+    squad_id: string | null;
+    squads: { name: string } | { name: string }[] | null;
+  }[] = [];
   const squads =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("squads").select("id, name").eq("guild_id", viewer.guildId)).data
@@ -22,7 +28,7 @@ export default async function BarracksPage() {
   if (supabase && viewer.guildId) {
     const { data } = await supabase
       .from("announcements")
-      .select("id, title, body, pinned, squads(name)")
+      .select("id, title, body, pinned, squad_id, squads(name)")
       .eq("guild_id", viewer.guildId)
       .order("pinned", { ascending: false })
       .order("created_at", { ascending: false })
@@ -82,7 +88,13 @@ export default async function BarracksPage() {
         <Panel title="This week">
           <p>
             {viewer.character.name}
-            {squadName ? ` · ${squadName}` : " · No squad yet"}
+            {squadName
+              ? ` · ${squadName}`
+              : viewer.character.squad_id
+                ? " · Squad"
+                : isStaff(viewer.role)
+                  ? ` · ${sessionRoleLabel(viewer.role, viewer.canApproveLore) ?? "Staff"}, no squad on this sheet`
+                  : " · No squad yet"}
           </p>
           {viewer.session ? (
             <p>
@@ -129,32 +141,23 @@ export default async function BarracksPage() {
               </h2>
               <p className="text-mute">{squad ? squad.name : "Company"}</p>
               <p>{item.body}</p>
+              {isStaff(viewer.role) ? (
+                <AnnouncementEditor
+                  item={{
+                    id: item.id,
+                    title: item.title,
+                    body: item.body,
+                    squadId: item.squad_id,
+                    pinned: item.pinned,
+                  }}
+                  squads={(squads ?? []).map((squad) => ({ id: squad.id, name: squad.name }))}
+                />
+              ) : null}
             </article>
           );
         })}
         {isStaff(viewer.role) ? (
-          <ResultForm action={postAnnouncement} submit="Post">
-            <label>
-              Title
-              <input name="title" required />
-            </label>
-            <label>
-              Body
-              <textarea name="body" required />
-            </label>
-            <label>
-              Who sees it
-              <select name="squad_id" defaultValue="">
-                <option value="">Whole company</option>
-                {(squads ?? []).map((squad) => (
-                  <option key={squad.id} value={squad.id}>
-                    {squad.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Choice name="pinned">Pin</Choice>
-          </ResultForm>
+          <AnnouncementForm squads={(squads ?? []).map((squad) => ({ id: squad.id, name: squad.name }))} action={postAnnouncement} />
         ) : null}
       </Panel>
     </Page>

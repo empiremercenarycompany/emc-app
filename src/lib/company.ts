@@ -3,6 +3,14 @@ import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@/lib/types";
 
+export function sessionRoleLabel(role: AppRole | null, canApproveLore: boolean): string | null {
+  if (canApproveLore) return "Curator";
+  if (role === "dm") return "DM";
+  if (role === "admin") return "Admin";
+  if (role === "curator") return "Curator";
+  return null;
+}
+
 const EMPTY: Viewer = {
   configured: false,
   userId: null,
