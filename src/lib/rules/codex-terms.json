@@ -477,6 +477,27 @@
       "status": "confirm"
     },
     {
+      "id": "well-rested",
+      "term": "Well Rested",
+      "group": "emc",
+      "plain": "This week's sleep goal is current. Initiative includes an extra 2.",
+      "status": "ready"
+    },
+    {
+      "id": "well-fed",
+      "term": "Well Fed",
+      "group": "emc",
+      "plain": "This week's meal prep goal is current. Initiative includes an extra 2.",
+      "status": "ready"
+    },
+    {
+      "id": "limbered-up",
+      "term": "Limbered Up",
+      "group": "emc",
+      "plain": "This week's cardio goal is current. Initiative includes an extra 2.",
+      "status": "ready"
+    },
+    {
       "id": "cmart",
       "term": "CMART",
       "group": "emc",

@@ -4,6 +4,7 @@ import {
   CON_GOAL_SCORE_MIN_DEFAULT,
   CON_INITIATIVE_BONUS,
   constitutionBankReady,
+  conditionTermId,
   constitutionStatusLine,
   constitutionGoalCurrent,
   constitutionInitiative,
@@ -18,6 +19,10 @@ describe("constitution goal", () => {
     ]);
     expect(CON_INITIATIVE_BONUS).toBe(2);
     expect(CON_GOAL_SCORE_MIN_DEFAULT).toBe(15);
+    expect(conditionTermId("Well Rested")).toBe("well-rested");
+    expect(conditionTermId("Well Fed")).toBe("well-fed");
+    expect(conditionTermId("Limbered Up")).toBe("limbered-up");
+    expect(conditionTermId("Other")).toBeNull();
   });
 
   it("treats a maxed score with nothing left to place as ready", () => {

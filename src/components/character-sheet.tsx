@@ -5,6 +5,7 @@ import { DiceRoller } from "@/components/dice-roller";
 import { EmptyState } from "@/components/empty-state";
 import { Term } from "@/components/term";
 import { attackParts } from "@/lib/rules/attacks";
+import { conditionTermId } from "@/lib/rules/constitution-goal";
 import { checkExpression } from "@/lib/rules/dice";
 import { levelFourProgress, showsLevelFourProgress, showsMilestoneLevels } from "@/lib/rules/level-four";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
@@ -54,6 +55,7 @@ export function CharacterSheet({
   milestone = null,
   initiativeBonus = 0,
   initiativeNote = null,
+  conditionLabel = null,
   subclass = null,
 }: {
   name: string;
@@ -81,6 +83,7 @@ export function CharacterSheet({
   milestone?: ReactNode;
   initiativeBonus?: number;
   initiativeNote?: string | null;
+  conditionLabel?: string | null;
   subclass?: { name: string | null; features: string | null; spells: string | null } | null;
 }) {
   const [tab, setTab] = useState(0);
@@ -162,7 +165,13 @@ export function CharacterSheet({
       </div>
       <p className="sheet-note">
         <Term id="initiative">Initiative {formatModifier(dex + initiativeBonus)}</Term>
-        {initiativeNote ? <span> · {initiativeNote}</span> : null}
+        {conditionLabel && conditionTermId(conditionLabel) ? (
+          <Term id={conditionTermId(conditionLabel) ?? "initiative"} className="condition-chip">
+            {conditionLabel}
+          </Term>
+        ) : initiativeNote ? (
+          <span> · {initiativeNote}</span>
+        ) : null}
         {saves && saves.length > 0 ? (
           <>
             {" · "}

@@ -78,10 +78,6 @@ export default async function SchedulePage() {
     slotRows && slotRows.length > 0
       ? slotRows.map((slot) => ({ id: String(slot.id), label: String(slot.label), adultsOnly: Boolean(slot.adults_only) }))
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
-  const notes =
-    supabase && isStaff(viewer.role)
-      ? (await supabase.from("config_notes").select("key, note").order("key")).data
-      : [];
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name, user_id, class, level").eq("guild_id", viewer.guildId)).data
@@ -176,7 +172,6 @@ export default async function SchedulePage() {
         ) : null}
         {!posted && focus && focus.block.markers.length > 0 ? <p className="text-mute">{focus.block.markers.join(" · ")}</p> : null}
         <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
-        <p className="text-mute">Posters {viewer.config?.posters_launch ?? "2027-01-04"}</p>
       </Panel>
       <Panel title="Times">
         <ul className="flex flex-col gap-2">
@@ -434,18 +429,6 @@ export default async function SchedulePage() {
               ))}
             </select>
           </ResultForm>
-        </Panel>
-      ) : null}
-      {isStaff(viewer.role) ? (
-        <Panel title="Open settings">
-          <ul className="flex flex-col gap-2">
-            {(notes ?? []).map((note) => (
-              <li key={note.key}>
-                <span className="text-mute">{note.key}. </span>
-                {note.note}
-              </li>
-            ))}
-          </ul>
         </Panel>
       ) : null}
     </Page>

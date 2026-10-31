@@ -28,6 +28,7 @@ type GoalRow = {
   is_active: boolean;
   is_long_term: boolean;
   parent_id: string | null;
+  created_at?: string;
   completed_at: string | null;
   marked_done?: boolean;
   period_start: string | null;
@@ -49,7 +50,7 @@ export default async function GoalsPage() {
           await supabase
             .from("goals")
             .select(
-              "id, title, category, description, is_active, is_long_term, parent_id, completed_at, marked_done, period_start, period_end, cmart_clear, cmart_measurable, cmart_attainable, cmart_relevant, cmart_timed",
+              "id, title, category, description, is_active, is_long_term, parent_id, created_at, completed_at, marked_done, period_start, period_end, cmart_clear, cmart_measurable, cmart_attainable, cmart_relevant, cmart_timed",
             )
             .eq("character_id", viewer.character.id)
             .order("created_at", { ascending: false })
@@ -112,6 +113,7 @@ export default async function GoalsPage() {
     active: goal.is_active,
     longTerm: goal.is_long_term,
     parentId: goal.parent_id,
+    createdAt: goal.created_at ?? "",
     completed: Boolean(goal.completed_at),
     markedDone: Boolean(goal.marked_done),
     periodLabel: goal.period_start ? `${goal.period_start} to ${goal.period_end ?? ""}` : null,

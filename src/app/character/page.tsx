@@ -356,6 +356,7 @@ export default async function CharacterPage({
         levelFourRequired={viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT}
         initiativeBonus={initiative.note ? initiative.total : 0}
         initiativeNote={initiative.note}
+        conditionLabel={initiative.note ? (goalChoice?.condition ?? null) : null}
         subclass={
           character.level >= 3
             ? {

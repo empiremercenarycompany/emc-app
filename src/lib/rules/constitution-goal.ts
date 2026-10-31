@@ -18,6 +18,13 @@ export const CON_INITIATIVE_BONUS = 2;
  */
 export const CON_GOAL_SCORE_MIN_DEFAULT = 15;
 
+export function conditionTermId(condition: string | null | undefined): string | null {
+  if (condition === "Well Rested") return "well-rested";
+  if (condition === "Well Fed") return "well-fed";
+  if (condition === "Limbered Up") return "limbered-up";
+  return null;
+}
+
 export function constitutionGoalOption(id: string | null | undefined) {
   if (!id) return null;
   return CON_GOAL_OPTIONS.find((option) => option.id === id) ?? null;

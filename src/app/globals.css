@@ -682,7 +682,8 @@ button.weapon-row {
 }
 
 .goal-card h2,
-.goal-card h3 {
+.goal-card h3,
+.goal-card .progress-fraction {
   color: var(--color-parchment);
 }
 
@@ -693,11 +694,19 @@ button.weapon-row {
 }
 
 .goal-chips span {
-  border: 1px solid var(--color-bronze);
-  color: var(--color-bronze-lt);
+  border: 1px solid var(--color-mute);
+  color: var(--color-mute);
+  background: transparent;
   border-radius: 999px;
-  padding: 0.1rem 0.45rem;
+  padding: 0.15rem 0.55rem;
   font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.goal-chips span.is-on {
+  border-color: #be6e28;
+  background: var(--color-parchment);
+  color: var(--color-ink);
 }
 
 .toast-banner {
@@ -705,12 +714,28 @@ button.weapon-row {
   left: 50%;
   bottom: 5.5rem;
   transform: translateX(-50%);
-  z-index: 45;
+  z-index: 80;
   background: var(--color-char-2);
   color: var(--color-parchment);
-  border: 1px solid var(--color-bronze);
+  border: 1px solid #be6e28;
   border-radius: 999px;
-  padding: 0.7rem 1rem;
+  padding: 0.7rem 1.1rem;
+  margin: 0;
+}
+
+.condition-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.45rem;
+  border: 1px solid var(--color-bronze-dk);
+  border-bottom-style: solid;
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  background: var(--color-parch-3);
+  color: var(--color-ink);
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 .reward-ready {
@@ -1109,6 +1134,15 @@ button.weapon-row {
   letter-spacing: inherit;
   text-transform: inherit;
   cursor: pointer;
+}
+
+.term-link.condition-chip {
+  color: var(--color-ink);
+  border: 1px solid var(--color-bronze-dk);
+  border-radius: 999px;
+  padding: 0.12rem 0.65rem;
+  margin-left: 0.45rem;
+  background: var(--color-parch-3);
 }
 
 html[data-help="on"] .term-link,

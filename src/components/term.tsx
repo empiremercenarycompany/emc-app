@@ -6,7 +6,7 @@ import { useTermSheet } from "@/components/codex-provider";
 
 const HOLD_MS = 550;
 
-export function Term({ id, children }: { id: string; children?: React.ReactNode }) {
+export function Term({ id, children, className }: { id: string; children?: React.ReactNode; className?: string }) {
   const term = visibleTerm(id);
   const sheet = useTermSheet();
   const timer = useRef<number | null>(null);
@@ -27,7 +27,7 @@ export function Term({ id, children }: { id: string; children?: React.ReactNode 
   return (
     <button
       type="button"
-      className="term-link"
+      className={className ? `term-link ${className}` : "term-link"}
       aria-haspopup="dialog"
       aria-expanded={sheet.activeId === term.id}
       onClick={() => {

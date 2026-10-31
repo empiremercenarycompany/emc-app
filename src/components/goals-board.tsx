@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { GoalRewardForm } from "@/components/goal-reward-form";
 import { MentalGoalForm } from "@/components/mental-goal-form";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/actions/activity";
 import { CON_GOAL_OPTIONS } from "@/lib/rules/constitution-goal";
 import { CMART_CHECKS } from "@/lib/rules/cmart";
+import { compareGoalSteps } from "@/lib/rules/goal-order";
 import { GOAL_REWARD_READY } from "@/lib/rules/level-four";
 import type { ActionResult } from "@/lib/types";
 
@@ -28,6 +30,7 @@ export type GoalView = {
   active: boolean;
   longTerm: boolean;
   parentId: string | null;
+  createdAt: string;
   completed: boolean;
   markedDone: boolean;
   periodLabel: string | null;
@@ -151,16 +154,42 @@ export function GoalsBoard({
 }) {
   const [sheet, setSheet] = useState<SheetId | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  useEffect(() => {
+    const raw = window.sessionStorage.getItem("emc-goal-toast");
+    if (!raw) return;
+    try {
+      const savedToast = JSON.parse(raw) as { message?: string; at?: number };
+      if (!savedToast.message || Date.now() - (savedToast.at ?? 0) > 3000) {
+        window.sessionStorage.removeItem("emc-goal-toast");
+        return;
+      }
+      setToast(savedToast.message);
+    } catch {
+      window.sessionStorage.removeItem("emc-goal-toast");
+    }
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => {
+      window.sessionStorage.removeItem("emc-goal-toast");
+      setToast(null);
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
   const parents = goals.filter((goal) => goal.longTerm && !goal.parentId);
   const weekly = goals.filter((goal) => !goal.longTerm && !goal.parentId);
-  const stepsFor = (parentId: string) => goals.filter((goal) => goal.parentId === parentId);
+  const stepsFor = (parentId: string) =>
+    goals
+      .filter((goal) => goal.parentId === parentId)
+      .slice()
+      .sort(compareGoalSteps);
   const rewardFor = (goalId: string) => rewards.find((reward) => reward.goalId === goalId) ?? null;
   const chosen = CON_GOAL_OPTIONS.find((option) => option.id === conChoice) ?? null;
 
   function saved(message: string) {
+    window.sessionStorage.setItem("emc-goal-toast", JSON.stringify({ message, at: Date.now() }));
     setSheet(null);
     setToast(message);
-    window.setTimeout(() => setToast(null), 2400);
   }
 
   return (
@@ -262,13 +291,19 @@ export function GoalsBoard({
             {goal.categoryLabel}
             {goal.periodLabel ? ` · ${goal.periodLabel}` : ""}
           </p>
-          {goal.chips.length > 0 ? (
-            <p className="goal-chips">
-              {CMART_CHECKS.map((check) => (
-                <span key={check.id} className={goal.chips.includes(check.letter) ? undefined : "text-mute"}>
-                  {check.letter}
-                </span>
-              ))}
+          {goal.category === "intelligence" || goal.category === "wisdom" ? (
+            <p className="goal-chips" aria-label="CMART">
+              {CMART_CHECKS.map((check) => {
+                const on = goal.chips.includes(check.letter);
+                return (
+                  <span key={check.id} className={on ? "is-on" : undefined}>
+                    {check.letter}
+                    <span className="sr-only">
+                      {check.name} {on ? "on" : "off"}
+                    </span>
+                  </span>
+                );
+              })}
             </p>
           ) : null}
           {goal.description ? <p>{goal.description}</p> : null}
@@ -394,11 +429,14 @@ export function GoalsBoard({
           </DraftForm>
         </Sheet>
       ) : null}
-      {toast ? (
-        <p className="toast-banner" role="status">
-          {toast}
-        </p>
-      ) : null}
+      {toast
+        ? createPortal(
+            <p className="toast-banner" role="status" aria-live="polite">
+              {toast}
+            </p>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
