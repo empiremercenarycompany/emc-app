@@ -97,25 +97,34 @@ h2 {
 }
 
 .logo-slot[data-logo-slot="image"] {
-  padding: 0.875rem;
+  padding: 1rem;
 }
 
 .logo-img {
   display: block;
-  height: 3.5rem;
+  height: 4rem;
   width: auto;
   max-width: 100%;
   object-fit: contain;
 }
 
-.logo-on-iron {
-  background: #111111;
-  padding: 0.875rem;
+.logo-on-parchment {
+  background: var(--color-parchment);
+  padding: 1rem;
   width: fit-content;
 }
 
 .logo-badge {
-  padding: 3.5rem 0;
+  padding: 2.5rem 0;
+}
+
+.logo-mark-splash {
+  display: block;
+  height: 10rem;
+  width: auto;
+  max-width: 100%;
+  margin-inline: auto;
+  object-fit: contain;
 }
 
 .logo-badge-img {

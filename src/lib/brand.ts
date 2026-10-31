@@ -31,17 +31,14 @@ export const CORLEONE_FILES = [
 
 export const CORLEONE_FILE = CORLEONE_FILES[0];
 
-/** Full badge on black. Splash and About. */
-export const LOGO_DARK = "public/brand/logo_dark.png";
+/** Approved v2 icon. Helm and kettlebell on Iron Black. PWA sizes are resizes of this file. */
+export const APP_ICON = "public/brand/emc_app_icon.png";
 
-/** Transparent white and red. Dark backgrounds only. */
-export const LOGO_MARK = "public/brand/emc_logo.png";
+/** Approved v2 transparent mark. Header, sign-in, and About. */
+export const LOGO_MARK = "public/brand/emc_mark.png";
 
-/** Helm crop on Iron Black, 1024. Working app icon. Not yet approved. */
-export const HELM_ICON = "public/brand/emc_mark_helm_square.png";
-
-/** Same helm crop, transparent. Not a light-background logo. */
-export const HELM_ICON_CLEAR = "public/brand/emc_mark_helm_square_transparent.png";
+/** Approved v2 badge on parchment. Light surfaces only. */
+export const LOGO_LIGHT = "public/brand/emc_badge_light.png";
 
 export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));

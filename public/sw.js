@@ -1,6 +1,6 @@
 /* EMC shell cache. Offline log sync is not implemented. */
-const CACHE = "emc-shell-v1";
-const SHELL = ["/", "/sign-in", "/about", "/dice", "/manifest.webmanifest", "/favicon.png"];
+const CACHE = "emc-shell-v2";
+const SHELL = ["/", "/sign-in", "/about", "/dice", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/brand/emc_mark.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -30,13 +30,11 @@ League Spartan and Cinzel are not used.
 
 ## Logo
 
-Two marks are committed. Neither is recolored, stretched, or given a glow. Clear space around each is at least a quarter of its height.
+John approved logo set v2. The files are committed. None is recolored, stretched, or given a glow. Clear space around a mark is at least a quarter of its height. Screen titles are live type. The wide lockup is not used, because its wordmark is baked in Barlow Condensed.
 
-- `public/brand/logo_dark.png` is the full badge on black, 800×800. It is the dark splash (Join the Company) and the About screen.
-- `public/brand/emc_logo.png` is the same badge with a transparent ground, white and red. It is for dark backgrounds only, including the slot at the top of the book.
-- A light screen does not get its own logo. The dark mark is shown on an Iron Black panel. No light-background file is made, and nothing is recolored.
-
-The working PWA and app icon is the helm crop `public/brand/emc_mark_helm_square.png` (1024, already on `#111111`). Smaller icon files are downscales of that crop. The full badge is not scaled up into an icon. `public/brand/emc_mark_helm_square_transparent.png` is the same crop with a clear ground. John has not approved the crop as the icon yet.
+- `public/brand/emc_mark.png` is the transparent helm and kettlebell. It is the header, the sign-in screen, and About.
+- `public/brand/emc_app_icon.png` is that mark on Iron Black `#111111`, with about 12% padding, at 1024. The PWA icons (192, 512, and a maskable 512), the 180 apple touch icon, the 32 and 16 favicon, and the splash are resizes of this file. Theme color and splash ground stay `#111111`.
+- `public/brand/emc_badge_light.png` is the full badge on parchment. It is for a light surface. The app screens are Iron Black, so they use the transparent mark.
 
 ## Icons
 

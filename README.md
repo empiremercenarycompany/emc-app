@@ -6,14 +6,13 @@ This repository is public. Do not commit keys, service-role secrets, or a hosted
 
 ## Brand files
 
-The marks in `public/brand/` are part of the repo:
+The marks in `public/brand/` are the approved v2 set:
 
-- `logo_dark.png` — full badge on black. Dark splash and About.
-- `emc_logo.png` — transparent white and red, for dark backgrounds only.
-- `emc_mark_helm_square.png` — helm crop on Iron Black, 1024. Working app icon, not yet approved.
-- `emc_mark_helm_square_transparent.png` — the same crop with a clear ground.
+- `emc_mark.png` — transparent helm and kettlebell. Header, sign-in, and About.
+- `emc_app_icon.png` — the same mark on Iron Black, 1024. PWA icons, the apple touch icon, the favicon, and the splash are resizes of this file.
+- `emc_badge_light.png` — full badge on parchment, for a light surface.
 
-No light-background logo is made. On a light screen the dark mark sits on an Iron Black panel. The app icon files are downscales of the helm crop. The full badge is not scaled up into an icon.
+Nothing is recolored. The wide lockup is not used. Headings are live type.
 
 Corleone is licensed for web and app use. Drop `Corleone.woff2` (or `.otf` / `.ttf`) in `public/fonts/private/` and leave it untracked. Headings use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif`. If the file is missing, titles stay Barlow Condensed 800. See `public/fonts/private/README.md`.
 

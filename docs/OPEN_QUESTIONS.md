@@ -29,12 +29,12 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Player-facing species labels: Aasimar is shown as Seraph, and Tiefling as Inferni. Inferni is a placeholder in `src/lib/rules/species-names.ts`. The stored ids stay `aasimar` and `tiefling`. See `docs/SPECIES.md`.
 - A player NPC note is approved only when `profiles.can_approve_lore` is true. An admin sets that in SQL. Other DMs can read a note and send it back. The flag defaults to false.
 - The local test roster is the six officer sheets in `supabase/seed/roster.json`. Squads there are a placeholder. Final scores are stored even when they miss the recruit starting-array check. David's Druid class and the officers' spells are approved. Skill ids `arcana` and `religion` still display as Alchemy and Culture.
+- Logo set v2 is approved and committed. The app icon is the helm and kettlebell on Iron Black. The header and sign-in use the transparent mark. The parchment badge is for a light surface. The wide lockup is not used.
 
 ## Still open
 
 - Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Table Muster creates the missing logs. A check-in submitted by the recruit still does not.
-- John has not approved the helm crop as the app icon. `public/brand/emc_mark_helm_square.png` is the working PWA and app icon until he does. The transparent crop is `public/brand/emc_mark_helm_square_transparent.png`.
-- An SVG of the mark. No light-background logo will be made. A light screen shows the dark mark on an Iron Black panel.
+- An SVG of the mark.
 - Ranks. Recruit, Sergeant, and Captain are placeholders.
 - What each Clearance and depth tier unlocks. The text fields stay empty until a later version.
 - Milestone week boundary: level 2 from the first day of week 16, level 3 from the first day of week 32.

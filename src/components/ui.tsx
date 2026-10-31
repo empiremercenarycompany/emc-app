@@ -12,7 +12,7 @@ export function Page({
 }: {
   title: string;
   lede?: string;
-  /** Full badge on black. Splash and About only. */
+  /** Larger mark on sign-in and About. The title under it is live type. */
   badge?: boolean;
   children: ReactNode;
 }) {
