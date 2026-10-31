@@ -31,6 +31,8 @@ comment on table public.player_intake is
 
 alter table public.player_intake enable row level security;
 
+grant select on public.player_intake to authenticated;
+
 create policy player_intake_select on public.player_intake
   for select to authenticated
   using (user_id = auth.uid() or public.is_staff());

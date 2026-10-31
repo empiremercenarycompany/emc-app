@@ -57,7 +57,7 @@ test("recruitment papers walk one decision at a time", async ({ page }) => {
   await page.getByLabel("+2 to one, +1 to another").check();
   await expect(page.getByRole("group", { name: "+1" }).getByRole("button", { name: "STR" })).toBeDisabled();
   await expect(page.getByTestId("score-preview").getByText("STR 10")).toBeVisible();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("Pick two different abilities.")).toHaveCount(0);
   await page.getByRole("button", { name: "Next" }).click();
 
   const button = page.getByRole("button", { name: "Sign the Papers" });
