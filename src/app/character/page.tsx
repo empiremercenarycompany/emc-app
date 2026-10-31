@@ -1,4 +1,7 @@
+import { headers } from "next/headers";
 import Link from "next/link";
+import roster from "../../../supabase/seed/roster.json";
+import { devLoginAllowed } from "@/lib/dev-login";
 import { CharacterSheet } from "@/components/character-sheet";
 import { NpcForm } from "@/components/npc-form";
 import { ResultForm } from "@/components/result-form";
@@ -42,9 +45,45 @@ function abilityLabel(name: string) {
   return LABELS[name as AbilityName] ?? name;
 }
 
-export default async function CharacterPage() {
+export default async function CharacterPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ preview?: string }>;
+}) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
+  const previewName = (await searchParams)?.preview;
+  const host = (await headers()).get("host");
+  if (!viewer.userId && previewName && devLoginAllowed(process.env.NEXT_PUBLIC_DEV_LOGIN, host)) {
+    const row = roster.characters.find((item) => item.name === previewName);
+    if (row) {
+      const scores = row.scores;
+      return (
+        <Page title={row.name} lede={row.className}>
+          <CharacterSheet
+            name={row.name}
+            classLabel={`${speciesLabel(row.species, row.species.charAt(0).toUpperCase() + row.species.slice(1))}${row.lineage ? ` · ${row.lineage}` : ""} · ${row.className}`}
+            level={row.level}
+            scores={scores}
+            hp={row.hp}
+            skillId={null}
+            acOverride={row.ac}
+            speedOverride={row.speed}
+            saves={row.saves}
+            recordedSkills={row.skills}
+            recordedAttacks={row.attacks}
+            recordedFeatures={row.features}
+            recordedSpells={row.spells}
+            recordedFeats={row.feats}
+            conflicts={row.seedFlags}
+            features={<p className="text-mute">{row.background}</p>}
+            inventory={<p className="text-mute">Nothing carried yet.</p>}
+            npcs={<p className="text-mute">No notes yet.</p>}
+          />
+        </Page>
+      );
+    }
+  }
   if (!viewer.userId) {
     return (
       <Page title="Character">
@@ -148,12 +187,21 @@ export default async function CharacterPage() {
         classLabel={`${character.rank} · ${character.class ?? "Not yet inducted"}`}
         level={character.level}
         scores={scores}
-        hp={preInductionHp({
+        hp={character.sheet?.hp ?? preInductionHp({
           constitution: character.constitution,
           species: character.species,
           originWord: character.origin_word,
         })}
         skillId={character.profession_skill}
+        acOverride={character.sheet?.ac ?? null}
+        speedOverride={character.sheet?.speed ?? null}
+        saves={character.sheet?.saves ?? null}
+        recordedSkills={character.sheet?.skills ?? null}
+        recordedAttacks={character.sheet?.attacks ?? null}
+        recordedFeatures={character.sheet?.features ?? null}
+        recordedSpells={character.sheet?.spells ?? null}
+        recordedFeats={character.sheet?.feats ?? null}
+        conflicts={character.seed_flags ?? null}
         features={
           <>
       <Panel>

@@ -28,6 +28,19 @@ export type CharacterRow = {
   share_logs?: boolean;
   inducted_at: string | null;
   notes: string | null;
+  sheet?: {
+    hp?: number;
+    ac?: number;
+    speed?: number;
+    saves?: string[];
+    skills?: string[];
+    attacks?: string[];
+    features?: string[];
+    spells?: string[];
+    feats?: string[];
+    lineage?: string;
+  } | null;
+  seed_flags?: string[] | null;
 };
 
 export type ScoringRow = {

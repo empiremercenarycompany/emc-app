@@ -4,6 +4,7 @@ import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { DiceRoller } from "@/components/dice-roller";
 import { checkExpression } from "@/lib/rules/dice";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
+import { skillLabel } from "@/lib/rules/skill-names";
 import { SHEET_SKILLS, armorClass, proficiencyBonus, walkingSpeed } from "@/lib/rules/sheet";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
@@ -25,6 +26,15 @@ export function CharacterSheet({
   scores,
   hp,
   skillId,
+  acOverride = null,
+  speedOverride = null,
+  saves = null,
+  recordedSkills = null,
+  recordedAttacks = null,
+  recordedFeatures = null,
+  recordedSpells = null,
+  recordedFeats = null,
+  conflicts = null,
   children,
   features,
   inventory,
@@ -36,6 +46,15 @@ export function CharacterSheet({
   scores: Record<AbilityName, number>;
   hp: number;
   skillId: string | null;
+  acOverride?: number | null;
+  speedOverride?: number | null;
+  saves?: string[] | null;
+  recordedSkills?: string[] | null;
+  recordedAttacks?: string[] | null;
+  recordedFeatures?: string[] | null;
+  recordedSpells?: string[] | null;
+  recordedFeats?: string[] | null;
+  conflicts?: string[] | null;
   children?: ReactNode;
   features: ReactNode;
   inventory: ReactNode;
@@ -46,8 +65,8 @@ export function CharacterSheet({
   const [roll, setRoll] = useState<string | null>(null);
   const dex = abilityModifier(scores.dexterity);
   const str = abilityModifier(scores.strength);
-  const ac = armorClass(dex);
-  const speed = walkingSpeed();
+  const ac = acOverride ?? armorClass(dex);
+  const speed = speedOverride ?? walkingSpeed();
   const bonus = proficiencyBonus(level);
 
   function show(index: number) {
@@ -74,23 +93,54 @@ export function CharacterSheet({
 
   const panels = [
     <div key="skills" className="flex flex-col gap-2">
-      {SHEET_SKILLS.map((skill) => {
-        const mod = abilityModifier(scores[skill.ability]) + (skill.id === skillId ? bonus : 0);
-        const expression = checkExpression(mod);
-        return (
-          <button key={skill.id} className="secondary" type="button" onClick={() => offer(expression)}>
-            {skill.name} · {formatModifier(mod)} · {expression}
-          </button>
-        );
-      })}
+      {(recordedSkills ?? []).length > 0
+        ? recordedSkills!.map((skill) => (
+            <button key={skill} className="secondary" type="button" onClick={() => offer("1d20")}>
+              {skillLabel(skill)}
+            </button>
+          ))
+        : SHEET_SKILLS.map((skill) => {
+            const mod = abilityModifier(scores[skill.ability]) + (skill.id === skillId ? bonus : 0);
+            const expression = checkExpression(mod);
+            return (
+              <button key={skill.id} className="secondary" type="button" onClick={() => offer(expression)}>
+                {skill.name} · {formatModifier(mod)} · {expression}
+              </button>
+            );
+          })}
     </div>,
     <div key="attacks" className="flex flex-col gap-2">
-      <button className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
-        Unarmed strike · {checkExpression(str)}
-      </button>
-      <p className="text-mute">More attacks arrive at induction.</p>
+      {(recordedAttacks ?? []).length > 0 ? (
+        recordedAttacks!.map((attack) => (
+          <button key={attack} className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
+            {attack}
+          </button>
+        ))
+      ) : (
+        <button className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
+          Unarmed strike · {checkExpression(str)}
+        </button>
+      )}
+      {(recordedAttacks ?? []).length === 0 ? <p className="text-mute">More attacks arrive at induction.</p> : null}
     </div>,
-    <div key="features">{features}</div>,
+    <div key="features" className="flex flex-col gap-2">
+      {(recordedFeatures ?? []).map((feature) => (
+        <p key={feature}>{feature}</p>
+      ))}
+      {(recordedSpells ?? []).length > 0 ? <p>Spells: {(recordedSpells ?? []).join(", ")}</p> : null}
+      {(recordedFeats ?? []).length > 0 ? <p>Feats: {(recordedFeats ?? []).join(", ")}</p> : null}
+      {(conflicts ?? []).length > 0 ? (
+        <div>
+          <p className="font-bold">Recorded conflicts</p>
+          {(conflicts ?? []).map((flag) => (
+            <p key={flag} className="text-mute">
+              {flag}
+            </p>
+          ))}
+        </div>
+      ) : null}
+      {features}
+    </div>,
     <div key="inventory">{inventory}</div>,
     <div key="npcs">{npcs}</div>,
   ];
@@ -104,6 +154,7 @@ export function CharacterSheet({
         </p>
         <p>
           HP {hp} · AC {ac} · Speed {speed} · Initiative {formatModifier(dex)}
+          {saves && saves.length > 0 ? ` · Saves ${saves.join(", ")}` : ""}
         </p>
         <ul className="grid grid-cols-3 gap-2">
           {ABILITIES.map((ability) => (

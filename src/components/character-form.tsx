@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { ResultForm } from "@/components/result-form";
 import { createCharacter } from "@/lib/actions/character";
+import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, scoresFromBonuses, isValidStartingArray, type AbilityName } from "@/lib/rules/starting-array";
 
@@ -92,7 +93,7 @@ export function CharacterForm({
           </option>
           {skills.map((row) => (
             <option key={row.id} value={row.id}>
-              {row.display_name}
+              {skillLabel(row.id, row.display_name)}
             </option>
           ))}
         </select>

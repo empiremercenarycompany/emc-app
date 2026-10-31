@@ -1,10 +1,11 @@
+import { skillLabel } from "./skill-names";
 import type { AbilityName } from "./starting-array";
 
 /** SRD 5.2 skill names. Alchemy and Culture are the Company labels. No rules text. */
 export const SHEET_SKILLS: { id: string; name: string; ability: AbilityName }[] = [
   { id: "acrobatics", name: "Acrobatics", ability: "dexterity" },
   { id: "animal_handling", name: "Animal Handling", ability: "wisdom" },
-  { id: "arcana", name: "Alchemy", ability: "intelligence" },
+  { id: "arcana", name: skillLabel("arcana"), ability: "intelligence" },
   { id: "athletics", name: "Athletics", ability: "strength" },
   { id: "deception", name: "Deception", ability: "charisma" },
   { id: "history", name: "History", ability: "intelligence" },
@@ -16,7 +17,7 @@ export const SHEET_SKILLS: { id: string; name: string; ability: AbilityName }[] 
   { id: "perception", name: "Perception", ability: "wisdom" },
   { id: "performance", name: "Performance", ability: "charisma" },
   { id: "persuasion", name: "Persuasion", ability: "charisma" },
-  { id: "religion", name: "Culture", ability: "intelligence" },
+  { id: "religion", name: skillLabel("religion"), ability: "intelligence" },
   { id: "sleight_of_hand", name: "Sleight of Hand", ability: "dexterity" },
   { id: "stealth", name: "Stealth", ability: "dexterity" },
   { id: "survival", name: "Survival", ability: "wisdom" },
@@ -34,3 +35,16 @@ export function armorClass(dexMod: number): number {
 export function walkingSpeed(): number {
   return 30;
 }
+
+export type SheetCard = {
+  hp?: number;
+  ac?: number;
+  speed?: number;
+  saves?: string[];
+  skills?: string[];
+  attacks?: string[];
+  features?: string[];
+  spells?: string[];
+  feats?: string[];
+  lineage?: string;
+};

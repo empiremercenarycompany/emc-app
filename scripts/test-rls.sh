@@ -37,3 +37,11 @@ done
 echo "RLS tests"
 run_sql -f supabase/tests/rls.test.sql
 echo "RLS tests passed"
+
+echo "Test account seed"
+run_sql -f supabase/seed/test_accounts.sql
+run_sql -f supabase/seed/test_accounts.sql
+run_sql -f supabase/tests/test_accounts.test.sql
+run_sql -f supabase/seed/delete_test_accounts.sql
+run_sql -f supabase/tests/test_accounts_deleted.test.sql
+echo "Test account seed passed"

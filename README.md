@@ -44,6 +44,51 @@ The app never reads a service-role key. Leave it out.
 
 Without those two values the shell, dice roller, and About page still open. Sign-in and the company book stay closed.
 
+## Dev login
+
+Password sign-in is for local play only. It appears when `NEXT_PUBLIC_DEV_LOGIN=1` and the host is `localhost` or `127.0.0.1`. Anywhere else the form is hidden and `POST /api/dev-login` returns 404. Magic link stays the real sign-in path. No mail is sent for a dev login.
+
+The shared password is the dev-only constant `emc-dev-login`. It is not a production secret. Accounts use `@example.test` and character names only.
+
+The roster lives in `supabase/seed/roster.json` (squads included). Swap that file, then regenerate the seed:
+
+```bash
+node scripts/render-test-seed.mjs
+```
+
+## Play locally
+
+```bash
+cp .env.example .env.local
+```
+
+Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `NEXT_PUBLIC_DEV_LOGIN=1`.
+
+Apply the migrations, then the test accounts, on the database you mean to use. Do not run the seed from CI against a hosted project.
+
+```bash
+npx supabase db push
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/migrations/20261031120000_sheet_record.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/seed/test_accounts.sql
+```
+
+If `db push` already applied `20261031120000_sheet_record.sql`, skip that file. To remove the test accounts:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/seed/delete_test_accounts.sql
+```
+
+```bash
+npm install
+npm run dev -- -H 127.0.0.1
+```
+
+Open `http://127.0.0.1:3000/sign-in` and pick a test account:
+
+- Alexandria, Aligher, David, Earl, Jadross, Valthar Brightlance
+- DM (`dm@example.test`)
+- Curator (`curator@example.test`, lore approver)
+
 ## Run the app
 
 ```bash

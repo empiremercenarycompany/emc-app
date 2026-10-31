@@ -28,6 +28,7 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Type is Barlow for body and Barlow Condensed for UI and big titles. `FONT_PAIR` may be `corleone`, which loads only `public/brand/local/Corleone.woff2` when that gitignored file is present. Otherwise titles stay Barlow Condensed.
 - Player-facing species labels: Aasimar is shown as Seraph, and Tiefling as Inferni. Inferni is a placeholder in `src/lib/rules/species-names.ts`. The stored ids stay `aasimar` and `tiefling`. See `docs/SPECIES.md`.
 - A player NPC note is approved only when `profiles.can_approve_lore` is true. An admin sets that in SQL. Other DMs can read a note and send it back. The flag defaults to false.
+- The local test roster is the six officer sheets in `supabase/seed/roster.json`. Squads there are a placeholder. Final scores are stored even when they miss the recruit starting-array check. David's Druid class and the officers' spells are approved. Skill ids `arcana` and `religion` still display as Alchemy and Culture.
 
 ## Still open
 
