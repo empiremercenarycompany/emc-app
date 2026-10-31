@@ -51,6 +51,9 @@ export function CharacterSheet({
   levelFourCompleted = null,
   levelFourRequired = null,
   milestone = null,
+  initiativeBonus = 0,
+  initiativeNote = null,
+  subclass = null,
 }: {
   name: string;
   classLabel: string;
@@ -75,6 +78,9 @@ export function CharacterSheet({
   levelFourCompleted?: number | null;
   levelFourRequired?: number | null;
   milestone?: ReactNode;
+  initiativeBonus?: number;
+  initiativeNote?: string | null;
+  subclass?: { name: string | null; features: string | null; spells: string | null } | null;
 }) {
   const [tab, setTab] = useState(0);
   const [roll, setRoll] = useState<string | null>(null);
@@ -155,7 +161,8 @@ export function CharacterSheet({
         ))}
       </div>
       <p className="sheet-note">
-        <Term id="initiative">Initiative {formatModifier(dex)}</Term>
+        <Term id="initiative">Initiative {formatModifier(dex + initiativeBonus)}</Term>
+        {initiativeNote ? <span> · {initiativeNote}</span> : null}
         {saves && saves.length > 0 ? (
           <>
             {" · "}
@@ -244,6 +251,14 @@ export function CharacterSheet({
 
   const story = (
     <div className="flex flex-col gap-3">
+      {level >= 3 ? (
+        <article className="paper">
+          <h3>Subclass</h3>
+          {subclass?.name ? <p>{subclass.name}</p> : <p className="sheet-note">Your DM records a subclass here.</p>}
+          {subclass?.features ? <p>{subclass.features}</p> : null}
+          {subclass?.spells ? <p>Spells: {subclass.spells}</p> : null}
+        </article>
+      ) : null}
       <article className="paper">
         {(recordedFeatures ?? []).map((feature) => (
           <p key={feature}>{feature}</p>

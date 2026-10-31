@@ -7,6 +7,13 @@ import { loadViewer, sessionRoleLabel, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { currentWeekStart, formatMuster } from "@/lib/rules/dates";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import {
+  constitutionBankReady,
+  constitutionGoalCurrent,
+  constitutionGoalOption,
+  CON_GOAL_SCORE_MIN_DEFAULT,
+} from "@/lib/rules/constitution-goal";
+import { showsLevelFourProgress, levelFourProgress, LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
 import { isStaff } from "@/lib/types";
 
 const WEEK_ITEMS = [
@@ -84,6 +91,46 @@ export default async function BarracksPage() {
       : TIMESLOT_FALLBACK.map((slot) => (slot.adultsOnly ? `${slot.label} (18+)` : slot.label)).join(", ");
   const welcome = viewer.character?.name?.trim() || viewer.displayName?.trim() || "Recruit";
   const filedCount = checkin ? 4 : 0;
+  const statGoals =
+    supabase && viewer.character
+      ? (
+          await supabase
+            .from("goals")
+            .select("id, title, category, is_long_term, parent_id, completed_at, is_active")
+            .eq("character_id", viewer.character.id)
+        ).data
+      : [];
+  const conWeek =
+    supabase && viewer.character?.constitution_goal_id
+      ? (
+          await supabase
+            .from("constitution_goal_weeks")
+            .select("week_start, option_id")
+            .eq("character_id", viewer.character.id)
+            .eq("week_start", weekStart)
+            .maybeSingle()
+        ).data
+      : null;
+  const conOption = constitutionGoalOption(viewer.character?.constitution_goal_id);
+  const conReady = viewer.character
+    ? constitutionBankReady({
+        score: viewer.character.constitution,
+        unspent: viewer.character.constitution_points,
+        scoreMin: viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT,
+      })
+    : false;
+  const conCurrent = constitutionGoalCurrent({
+    choiceId: viewer.character?.constitution_goal_id ?? null,
+    markedWeek: conWeek && conWeek.option_id === viewer.character?.constitution_goal_id ? conWeek.week_start : null,
+    weekStart,
+  });
+  const levelFour =
+    viewer.character && showsLevelFourProgress(viewer.character.level)
+      ? levelFourProgress(
+          (statGoals ?? []).filter((goal) => goal.parent_id && goal.completed_at).length,
+          viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT,
+        )
+      : null;
 
   return (
     <Page mark={false}>
@@ -156,6 +203,30 @@ export default async function BarracksPage() {
           <p className="text-center text-mute">Due Friday, 11:59 PM</p>
         </Panel>
       )}
+      <Panel title="Goals" wide>
+        <p>Goals are the work of the Company. Each one feeds a score, and the story follows what you keep.</p>
+        <ul>
+          <li>
+            Constitution · {conOption ? conOption.label : "sleep, meal prep, or cardio"}
+            {conReady && conCurrent && conOption ? ` · ${conOption.condition}: +2 initiative` : ""}
+          </li>
+          <li>
+            Intelligence ·{" "}
+            {(statGoals ?? []).find((goal) => goal.category === "intelligence" && goal.is_active && !goal.parent_id)?.title ??
+              "a mental goal"}
+          </li>
+          <li>
+            Wisdom ·{" "}
+            {(statGoals ?? []).find((goal) => goal.category === "wisdom" && goal.is_active && !goal.parent_id)?.title ??
+              "a mental goal"}
+          </li>
+        </ul>
+        {levelFour ? <p>Toward level 4 · {levelFour.label}</p> : null}
+        <p className="text-mute">Strength and Dexterity are built by workouts. Charisma is built by social goals.</p>
+        <Link className="button primary" href="/goals">
+          Open goals
+        </Link>
+      </Panel>
       {viewer.userId ? (
         <Panel paper>
           <div className="liaison-seal" aria-hidden="true" />

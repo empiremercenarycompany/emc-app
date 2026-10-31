@@ -3,10 +3,13 @@ import { Choice } from "@/components/choice";
 import { GoalRewardForm } from "@/components/goal-reward-form";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
-import { completeShortTermGoal, createGoal, logGoal } from "@/lib/actions/activity";
+import { chooseConstitutionGoal, completeShortTermGoal, createGoal, logGoal, markConstitutionGoalWeek } from "@/lib/actions/activity";
+import { MentalGoalForm } from "@/components/mental-goal-form";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { GOAL_REWARD_BUFF_SEED, GOAL_REWARD_READY, LEVEL_FOUR_STEPS_DEFAULT, levelFourProgress, showsLevelFourProgress } from "@/lib/rules/level-four";
+import { CON_GOAL_OPTIONS, CON_GOAL_SCORE_MIN_DEFAULT } from "@/lib/rules/constitution-goal";
+import { CMART_CHECKS, cmartRequired } from "@/lib/rules/cmart";
 import { isLogApprover } from "@/lib/types";
 
 const CATEGORIES = [
@@ -15,6 +18,8 @@ const CATEGORIES = [
   ["wisdom", "Wisdom"],
   ["charisma", "Charisma"],
 ] as const;
+
+const SOCIAL = [["charisma", "Charisma"]] as const;
 
 type GoalRow = {
   id: string;
@@ -25,6 +30,7 @@ type GoalRow = {
   is_long_term: boolean;
   parent_id: string | null;
   completed_at: string | null;
+  marked_done?: boolean;
   period_start: string | null;
   period_end: string | null;
 };
@@ -47,7 +53,7 @@ export default async function GoalsPage() {
       ? (
           await supabase
             .from("goals")
-            .select("id, title, category, description, is_active, is_long_term, parent_id, completed_at, period_start, period_end")
+            .select("id, title, category, description, is_active, is_long_term, parent_id, completed_at, marked_done, period_start, period_end")
             .eq("character_id", viewer.character.id)
             .order("created_at", { ascending: false })
         ).data
@@ -86,6 +92,58 @@ export default async function GoalsPage() {
       mark={false}
     >
       {setup ? <Notice>{setup}</Notice> : null}
+      <Panel title="Constitution" wide paper>
+        <p>Choose one. It feeds Constitution. Meal prep can later follow a nutrition plan.</p>
+        <ul>
+          {CON_GOAL_OPTIONS.map((option) => (
+            <li key={option.id}>
+              {option.label} · {option.condition}
+            </li>
+          ))}
+        </ul>
+        <p>
+          When Constitution is {viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT} or higher and nothing is left
+          to place, a current week shows the condition and +2 initiative.
+        </p>
+        {viewer.character ? (
+          <>
+            <ResultForm action={chooseConstitutionGoal} submit="Save Constitution goal">
+              <label>
+                This week&apos;s Constitution goal
+                <select name="option_id" defaultValue={viewer.character.constitution_goal_id ?? ""} required>
+                  <option value="" disabled>
+                    Choose
+                  </option>
+                  {CON_GOAL_OPTIONS.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </ResultForm>
+            {viewer.character.constitution_goal_id ? (
+              <ResultForm action={markConstitutionGoalWeek} submit="Log this week">
+              <input type="hidden" name="week" value="current" />
+            </ResultForm>
+            ) : null}
+          </>
+        ) : null}
+      </Panel>
+      <Panel title="Intelligence and Wisdom" wide>
+        <p>A mental goal feeds Intelligence or Wisdom. It does not count until it is CMART. Pending confirmation.</p>
+        {viewer.character ? (
+          <MentalGoalForm required={cmartRequired(viewer.config?.mental_goal_cmart)} />
+        ) : (
+          <ul>
+            {CMART_CHECKS.map((check) => (
+              <li key={check.id}>
+                {check.letter} · {check.name}. {check.prompt}
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
       {!viewer.character ? (
         <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
           {viewer.userId ? "Fill Out Recruitment Papers first." : "Join the Company first."}
@@ -98,11 +156,12 @@ export default async function GoalsPage() {
               <p className="progress-fraction">{toward.label}</p>
               <p>Completed short-term goals. The count is set in company config. It is {toward.required} right now.</p>
             </Panel>
-          ) : (
+          ) : viewer.character.level < 3 ? (
             <Panel wide>
-              <p>Levels 1 to 3 still follow the milestone weeks. Short-term steps start counting toward level 4 once you reach level 3.</p>
+              <p>Levels 1 to 3 still follow the milestone weeks. Long-term goals toward level 4 open at level 3.</p>
             </Panel>
-          )}
+          ) : null}
+          {viewer.character.level === 3 ? (
           <Panel title="Long-term goal" wide>
             <p>Name the long aim, then add the short-term steps under it. Finishing a step does not grant anything by itself.</p>
             <ResultForm action={createGoal} submit="Save long-term goal" primary>
@@ -127,6 +186,7 @@ export default async function GoalsPage() {
               </label>
             </ResultForm>
           </Panel>
+          ) : null}
           {parents.map((goal) => (
             <Panel key={goal.id} title={goal.title} paper>
               <p className="text-mute">{CATEGORIES.find(([value]) => value === goal.category)?.[1] ?? goal.category}</p>
@@ -171,7 +231,8 @@ export default async function GoalsPage() {
               </ResultForm>
             </Panel>
           ))}
-          <Panel title="This period" wide>
+          <Panel title="Charisma" wide>
+            <p>A social goal feeds Charisma.</p>
             <ResultForm action={createGoal} submit="Save goal" primary>
               <label>
                 Goal
@@ -179,8 +240,8 @@ export default async function GoalsPage() {
               </label>
               <label>
                 Kind
-                <select name="category" defaultValue="constitution">
-                  {CATEGORIES.map(([value, label]) => (
+                <select name="category" defaultValue="charisma">
+                  {SOCIAL.map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
                     </option>
@@ -214,6 +275,10 @@ export default async function GoalsPage() {
                 {goal.period_start ? ` · ${goal.period_start} to ${goal.period_end}` : ""}
               </p>
               {goal.description ? <p>{goal.description}</p> : null}
+              {goal.marked_done ? <p>Done.</p> : null}
+              {!goal.is_active && (goal.category === "intelligence" || goal.category === "wisdom") ? (
+                <p>Not counting yet. All five checks have to be on.</p>
+              ) : null}
               {goal.is_active ? (
                 <ResultForm action={logGoal} submit="Mark complete">
                   <input type="hidden" name="goal_id" value={goal.id} />

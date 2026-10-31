@@ -11,7 +11,7 @@ import { isLogApprover, isStaff, type AppRole } from "@/lib/types";
 const PRIMARY = [
   { href: "/", label: "Barracks", icon: "barracks" },
   { href: "/missions", label: "Missions", icon: "missions" },
-  { href: "/work", label: "Work", icon: "work" },
+  { href: "/goals", label: "Goals", icon: "goals" },
   { href: "/character", label: "Character", icon: "character" },
   { href: "/codex", label: "Codex", icon: "codex" },
 ] as const;
@@ -37,7 +37,6 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
       items: [
         { href: "/work", label: "Work" },
         { href: "/journal", label: "Journal" },
-        { href: "/goals", label: "Goals" },
         { href: "/check-in", label: "Check-in" },
       ],
     },
@@ -186,7 +185,7 @@ function TabBody({
   label,
   active,
 }: {
-  icon: "barracks" | "missions" | "work" | "character" | "codex";
+  icon: "barracks" | "missions" | "goals" | "character" | "codex";
   label: string;
   active: boolean;
 }) {

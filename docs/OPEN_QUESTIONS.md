@@ -34,6 +34,9 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 
 ## Still open
 
+- Pending John's confirmation: Intelligence and Wisdom goals must be CMART (Clear, Measurable, Attainable, Relevant, Timed) before they are active or count. The co-DM bot stated the rule. It matches the paper Workout Journal. `scoring_config.mental_goal_cmart` defaults true. Set it false to turn the checks off.
+- Open for John: "all of their Constitution points" is read as Constitution at `con_goal_score_min` (default 15, the buy cap) and nothing left to place from nutrition and sleep. The other reading is that the whole 27 must be spent. "Up to date" is a log of the chosen Constitution goal in the current company week, not the Friday check-in.
+
 - Whether a weekly check-in should also create the attribute logs, or stay a separate tally. Table Muster creates the missing logs. A check-in submitted by the recruit still does not.
 - An SVG of the mark.
 - Ranks. Recruit, Sergeant, and Captain are placeholders.

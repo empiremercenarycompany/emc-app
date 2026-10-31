@@ -13,6 +13,14 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
 import { LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
+import {
+  constitutionBankReady,
+  constitutionGoalCurrent,
+  constitutionGoalOption,
+  constitutionInitiative,
+  CON_GOAL_SCORE_MIN_DEFAULT,
+} from "@/lib/rules/constitution-goal";
+import { currentWeekStart } from "@/lib/rules/dates";
 import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
@@ -186,8 +194,35 @@ export default async function CharacterPage({
     wisdom: character.wisdom,
     charisma: character.charisma,
   };
+  const weekStart = currentWeekStart(viewer.today);
+  const goalMark =
+    supabase && character.constitution_goal_id
+      ? (
+          await supabase
+            .from("constitution_goal_weeks")
+            .select("week_start, option_id")
+            .eq("character_id", character.id)
+            .eq("week_start", weekStart)
+            .maybeSingle()
+        ).data
+      : null;
+  const goalChoice = constitutionGoalOption(character.constitution_goal_id);
+  const initiative = constitutionInitiative({
+    dexModifier: 0,
+    ready: constitutionBankReady({
+      score: character.constitution,
+      unspent: character.constitution_points,
+      scoreMin: viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT,
+    }),
+    current: constitutionGoalCurrent({
+      choiceId: character.constitution_goal_id ?? null,
+      markedWeek: goalMark && goalMark.option_id === character.constitution_goal_id ? goalMark.week_start : null,
+      weekStart,
+    }),
+    condition: goalChoice?.condition ?? null,
+  });
   const stepQuery =
-    supabase && character.level >= 3
+    supabase && character.level === 3
       ? await supabase
           .from("goals")
           .select("id", { count: "exact", head: true })
@@ -222,6 +257,17 @@ export default async function CharacterPage({
         conflicts={character.seed_flags ?? null}
         levelFourCompleted={stepQuery && !stepQuery.error ? (stepQuery.count ?? 0) : null}
         levelFourRequired={viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT}
+        initiativeBonus={initiative.note ? initiative.total : 0}
+        initiativeNote={initiative.note}
+        subclass={
+          character.level >= 3
+            ? {
+                name: character.subclass_name ?? null,
+                features: character.subclass_features ?? null,
+                spells: character.subclass_spells ?? null,
+              }
+            : null
+        }
         milestone={
           <p>
             Level {viewer.config?.level_after_adventure_1 ?? 2} opens at week {viewer.config?.level_two_week ?? 16}. Level{" "}

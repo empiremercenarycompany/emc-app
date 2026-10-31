@@ -23,9 +23,9 @@ export function levelFourProgress(
   return { completed: done, required: steps, label: `${done} of ${steps}` };
 }
 
-/** The fraction is for level 3 and above. Levels 1–3 keep the milestone weeks. */
+/** Long-term goals toward level 4 are only for a level 3 character. */
 export function showsLevelFourProgress(level: number): boolean {
-  return level >= 3;
+  return level === 3;
 }
 
 export function showsMilestoneLevels(level: number): boolean {

@@ -21,9 +21,10 @@ describe("level 4 steps", () => {
     ]);
   });
 
-  it("shows the fraction from level 3 and keeps milestones through level 3", () => {
+  it("shows the fraction only at level 3 and keeps milestones through level 3", () => {
     expect(showsLevelFourProgress(2)).toBe(false);
     expect(showsLevelFourProgress(3)).toBe(true);
+    expect(showsLevelFourProgress(4)).toBe(false);
     expect(showsMilestoneLevels(1)).toBe(true);
     expect(showsMilestoneLevels(3)).toBe(true);
     expect(showsMilestoneLevels(4)).toBe(false);

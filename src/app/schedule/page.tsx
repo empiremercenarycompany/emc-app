@@ -4,7 +4,7 @@ import { Notice, Page, Panel } from "@/components/ui";
 import { checkIn } from "@/lib/actions/activity";
 import { advanceMilestone, saveCalendarEvent } from "@/lib/actions/campaign";
 import { awardBuff } from "@/lib/actions/muster";
-import { clearSessions, createSession, induct, setAppRole, setCohortSession, setCohortStart, setLevel } from "@/lib/actions/staff";
+import { clearSessions, createSession, induct, setAppRole, setCohortSession, setCohortStart, setLevel, setSubclass } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus } from "@/lib/rules/calendar";
 import { COMPANY_ZONE, calendarDate, formatDate, parseDate } from "@/lib/rules/dates";
@@ -339,6 +339,31 @@ export default async function SchedulePage() {
             <input name="level" required inputMode="numeric" placeholder="Level" />
           </ResultForm>
           <p className="text-sm text-mute">A level change is written down. It does not move the Build.</p>
+          <ResultForm action={setSubclass} submit="Save subclass">
+            <select name="character_id" required defaultValue="">
+              <option value="" disabled>
+                Character
+              </option>
+              {(people ?? []).map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+            <label>
+              Subclass name
+              <input name="subclass_name" />
+            </label>
+            <label>
+              Features
+              <textarea name="subclass_features" />
+            </label>
+            <label>
+              Spells
+              <textarea name="subclass_spells" />
+            </label>
+          </ResultForm>
+          <p className="text-sm text-mute">Write the name and what it does. Leave it blank until you decide. Homebrew names are allowed. Do not paste book text.</p>
           <ResultForm action={setAppRole} submit="Set role">
             <input name="user_id" required placeholder="User id" />
             <select name="role" defaultValue="player">

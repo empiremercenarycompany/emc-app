@@ -100,6 +100,22 @@ export async function setLevel(formData: FormData): Promise<ActionResult> {
   return { ok: true };
 }
 
+export async function setSubclass(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const { error: rpcError } = await supabase.rpc("set_character_subclass", {
+    p_character_id: String(formData.get("character_id") ?? ""),
+    p_name: String(formData.get("subclass_name") ?? ""),
+    p_features: String(formData.get("subclass_features") ?? ""),
+    p_spells: String(formData.get("subclass_spells") ?? ""),
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/character");
+  revalidatePath("/schedule");
+  return { ok: true };
+}
+
 export async function createSquad(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };

@@ -31,6 +31,10 @@ export type CharacterRow = {
   share_logs?: boolean;
   inducted_at: string | null;
   notes: string | null;
+  constitution_goal_id?: string | null;
+  subclass_name?: string | null;
+  subclass_features?: string | null;
+  subclass_spells?: string | null;
   sheet?: {
     hp?: number;
     ac?: number;
@@ -72,6 +76,10 @@ export type ScoringRow = {
   level_three_week: number;
   /** John, 2026-10-31. Default 4. Still configurable. */
   level_four_steps_required?: number;
+  /** Open for John. Default 15, the buy cap. */
+  con_goal_score_min?: number;
+  /** Pending confirmation. False turns the five mental-goal checks off. */
+  mental_goal_cmart?: boolean;
   attendance_loot: string;
   group_goal_payout: string;
   veteran_tier_start_week: number | null;
