@@ -94,7 +94,7 @@ export default async function SquadPage() {
             <input name="objective_target" placeholder="Target" />
             <input name="objective_unit" placeholder="Unit" />
           </ResultForm>
-          <p className="text-sm text-mute">Group goals are barracks missions. Progress does not change attributes. TODO(John): a separate reward.</p>
+          <p className="text-sm text-mute">Group goals are barracks missions. Progress does not change attributes.</p>
         </Panel>
       ) : null}
       <Panel title="Shared lifts">

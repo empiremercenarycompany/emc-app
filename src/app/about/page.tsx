@@ -5,10 +5,7 @@ export default function AboutPage() {
     <Page badge title="About" lede="A squad, a story, and a reason to keep showing up.">
       <Panel title="The Company">
         <p>Train. Record. Advance.</p>
-        <p>
-          Bleakspire is a fortress with a small city around it.
-        </p>
-        <p className="text-mute">Arcana is shown as Alchemy. Religion is shown as Culture.</p>
+        <p>Bleakspire is a fortress with a small city around it.</p>
       </Panel>
       <Panel title="Rules source">
         <p>

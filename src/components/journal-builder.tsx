@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type Dispatch, type DragEvent, type SetStateAction } from "react";
+import { Choice } from "@/components/choice";
 import { ImpactCard } from "@/components/ui";
 import { logLifting, saveWorkout } from "@/lib/actions/journal";
 import type { Impact } from "@/lib/types";
@@ -292,15 +293,14 @@ export function JournalBuilder({
         Notes
         <textarea value={notes} onChange={(event) => setNotes(event.target.value)} />
       </label>
-      <label className="flex items-center gap-2">
-        <input className="w-auto" type="checkbox" checked={share} onChange={(event) => setShare(event.target.checked)} />
+      <Choice checked={share} onChange={setShare}>
         Squad can see this session
-      </label>
+      </Choice>
       <button className="primary" type="button" onClick={logSession}>
         Record Work
       </button>
       <p className="text-sm text-mute">
-        One session is one log. A flag is a later reward hook and does not change your attributes. TODO(John): the reward itself is unset.
+        One session is one log. A flag does not change your attributes.
       </p>
       {message ? <p role="alert">{message}</p> : null}
       {impact ? <ImpactCard impact={impact} /> : null}

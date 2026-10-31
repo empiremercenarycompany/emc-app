@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { approveNpc, returnNpc } from "@/lib/actions/npcs";
@@ -26,6 +26,8 @@ const BANK: Record<string, string> = {
 
 export default async function MusterPage() {
   const viewer = await loadViewer();
+  if (!viewer.userId) redirect("/sign-in");
+  if (!isStaff(viewer.role)) redirect("/");
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const sessions =
@@ -70,12 +72,6 @@ export default async function MusterPage() {
   return (
     <Page title="Table Muster" lede="In-person check-in before the episode. Confirm the week, then approve the squad.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Sign in</Link>. This screen is for staff at the table.
-        </p>
-      ) : null}
-      {viewer.userId && !isStaff(viewer.role) ? <p>A player account cannot run Table Muster.</p> : null}
       <Panel title="Session and squad">
         <form className="flex flex-col gap-3" id="muster-filters">
           <label>
@@ -194,11 +190,7 @@ export default async function MusterPage() {
               ))}
             </select>
           </ResultForm>
-        ) : (
-          <button className="primary" type="button">
-            Approve all
-          </button>
-        )}
+        ) : null}
       </Panel>
       <Panel title="Finalize the Build">
         <p>Not final yet: see your DM or trainer to lock these in.</p>
@@ -237,17 +229,7 @@ export default async function MusterPage() {
               </label>
             </ResultForm>
           </>
-        ) : (
-          <>
-            <p className="text-mute">Nothing is waiting.</p>
-            <button className="secondary" type="button">
-              Finalize stats
-            </button>
-            <button className="secondary" type="button">
-              Finalize all
-            </button>
-          </>
-        )}
+        ) : null}
       </Panel>
       <Panel title="NPC review">
         <p>A lore approver confirms a note. A DM can read it and send it back.</p>
@@ -278,17 +260,7 @@ export default async function MusterPage() {
               </article>
             ))}
           </>
-        ) : (
-          <>
-            <p className="text-mute">No notes waiting.</p>
-            <button className="primary" type="button">
-              Approve
-            </button>
-            <button className="secondary" type="button">
-              Send back
-            </button>
-          </>
-        )}
+        ) : null}
       </Panel>
     </Page>
   );

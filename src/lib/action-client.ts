@@ -1,6 +1,6 @@
 import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import type { Impact } from "@/lib/types";
+import { isLogApprover, isStaff, type AppRole, type Impact } from "@/lib/types";
 
 export async function actionClient() {
   const supabase = await createClient();
@@ -17,4 +17,15 @@ export function asImpact(value: unknown): Impact {
 
 export function dbError(error: { message: string } | null): string | null {
   return error?.message ?? null;
+}
+
+/** Reject a player before a staff action reaches the database. */
+export async function requireRole(kind: "staff" | "approver"): Promise<{ error: string } | null> {
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const { data } = await supabase.from("profiles").select("app_role").eq("id", user.id).maybeSingle();
+  const role = (data?.app_role as AppRole | undefined) ?? "player";
+  const allowed = kind === "approver" ? isLogApprover(role) : isStaff(role);
+  if (!allowed) return { error: "Staff role required." };
+  return null;
 }

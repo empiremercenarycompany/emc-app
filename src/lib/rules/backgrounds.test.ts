@@ -1,13 +1,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isValidStartingArray } from "./starting-array";
+import { ABILITIES, isValidStartingArray } from "./starting-array";
 import { skillLabel } from "./skill-names";
 import {
   BACKGROUNDS,
   EXCLUDED_BACKGROUND_IDS,
   backgroundById,
+  papersMissing,
   recruitScores,
+  shownScore,
 } from "./backgrounds";
 
 describe("recruitment backgrounds", () => {
@@ -36,5 +38,14 @@ describe("recruitment backgrounds", () => {
     expect(isValidStartingArray(tilted!)).toBe(true);
     expect(recruitScores("plus2", farmer.abilities, "strength", "strength")).toBeNull();
     expect(recruitScores("plus2", farmer.abilities, "charisma", "wisdom")).toBeNull();
+    const evenRaised = ABILITIES.filter((ability) => even![ability] > 8);
+    expect(evenRaised).toHaveLength(3);
+    expect(shownScore(null, "strength")).toBe("—");
+    expect(shownScore(tilted, "strength")).toBe("10");
+    expect(papersMissing({ name: "", species: "", backgroundId: "farmer", scores: null })).toContain("Add your name.");
+    expect(papersMissing({ name: "Recruit", species: "human", backgroundId: "farmer", scores: tilted })).toEqual([]);
+    expect(
+      papersMissing({ name: "Recruit", species: "human", backgroundId: "farmer", scores: null })[0],
+    ).toBe("Pick two different abilities.");
   });
 });

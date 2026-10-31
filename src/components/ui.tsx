@@ -61,9 +61,6 @@ export function ImpactCard({ impact }: { impact: Impact }) {
   return (
     <div className="border border-steel bg-iron p-3" data-testid="impact">
       <p className="font-bold">{headline}</p>
-      {impact.build_total != null ? (
-        <p className="mt-1 text-mute">Build total {impact.build_total}</p>
-      ) : null}
       {impact.unspent_after ? (
         <p className="text-mute">
           Ready to place · Workouts {impact.unspent_after.physical} · Nutrition and sleep{" "}

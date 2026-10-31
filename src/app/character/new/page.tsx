@@ -1,6 +1,7 @@
 import { CharacterForm } from "@/components/character-form";
 import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
+import { SPECIES_FALLBACK } from "@/lib/rules/species-blurbs";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -17,7 +18,7 @@ export default async function NewCharacterPage() {
     <Page title="Recruitment Papers" lede="Report for duty. The Company fills the skills, the tool, and the feat from your background.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <p className="text-mute">Sign in before the papers are filed.</p> : null}
-      <CharacterForm species={species ?? []} />
+      <CharacterForm species={(species ?? []).length > 0 ? (species ?? []) : [...SPECIES_FALLBACK]} />
     </Page>
   );
 }

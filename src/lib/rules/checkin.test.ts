@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { checkinScore, complianceRatio, preInductionHp } from "./checkin";
+import { currentWeekStart } from "./dates";
+import { checkinScore, complianceRatio, preInductionHp, workoutMark, workoutsForMark } from "./checkin";
 import { deliverDiscord, formatCheckin, formatSaturdayTally, formatThursdayReminder } from "./discord";
 import { cappedAward } from "./awards";
 
@@ -11,6 +12,14 @@ describe("weekly check-in", () => {
     expect(checkinScore({ workouts: 2, wis: false, int: true, cha: true })).toBe(0);
     expect(checkinScore({ workouts: 1, wis: true, int: true, cha: true })).toBe(0);
     expect(checkinScore({ workouts: 0, wis: true, int: true, cha: true })).toBe(0);
+    expect(workoutMark(0)).toBe(0);
+    expect(workoutMark(2)).toBe(1);
+    expect(workoutMark(3)).toBe(2);
+    expect(checkinScore({ workouts: workoutsForMark(2), wis: true, int: true, cha: true })).toBe(2);
+    expect(checkinScore({ workouts: workoutsForMark(1), wis: true, int: true, cha: true })).toBe(1);
+    expect(checkinScore({ workouts: workoutsForMark(0), wis: true, int: true, cha: true })).toBe(0);
+    expect(currentWeekStart("2026-10-31")).toBe("2026-10-26");
+    expect(currentWeekStart("2026-11-01")).toBe("2026-10-26");
   });
 
   it("computes compliance from roster and weeks", () => {

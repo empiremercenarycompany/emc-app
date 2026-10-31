@@ -49,6 +49,12 @@ const PLAYER_COPY = [
   "src/components/character-sheet.tsx",
   "src/components/npc-form.tsx",
   "src/components/dice-roller.tsx",
+  "src/app/profile/page.tsx",
+  "src/app/intake/page.tsx",
+  "src/components/check-in-form.tsx",
+  "src/components/intake-form.tsx",
+  "src/components/work-kind.tsx",
+  "src/components/term.tsx",
 ];
 
 describe("player-facing copy", () => {
@@ -67,6 +73,16 @@ describe("player-facing copy", () => {
     for (const file of PLAYER_COPY) {
       const text = readFileSync(path.join(ROOT, file), "utf8");
       if (/\bpoints?\b/i.test(text)) hits.push(file);
+    }
+    expect(hits).toEqual([]);
+  });
+
+  it("does not render a TODO marker", () => {
+    const hits: string[] = [];
+    for (const file of filesIn("src/app").concat(filesIn("src/components"))) {
+      if (!file.endsWith(".tsx")) continue;
+      const text = readFileSync(file, "utf8");
+      if (/TODO\(/.test(text)) hits.push(path.relative(ROOT, file));
     }
     expect(hits).toEqual([]);
   });

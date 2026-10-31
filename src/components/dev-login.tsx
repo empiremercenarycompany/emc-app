@@ -50,7 +50,7 @@ export function DevLogin() {
             disabled={pending !== null}
             onClick={() => choose(account.email, account.label)}
           >
-            {pending === account.label ? "Opening" : account.label}
+            {pending === account.label ? "Opening the gates..." : account.label}
           </button>
         ))}
       </div>

@@ -50,11 +50,12 @@ function abilityLabel(name: string) {
 export default async function CharacterPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ preview?: string }>;
+  searchParams?: Promise<{ preview?: string; welcomed?: string }>;
 }) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
-  const previewName = (await searchParams)?.preview;
+  const params = await searchParams;
+  const previewName = params?.preview;
   const host = (await headers()).get("host");
   if (!viewer.userId && previewName && devLoginAllowed(process.env.NEXT_PUBLIC_DEV_LOGIN, host)) {
     const row = roster.characters.find((item) => item.name === previewName);
@@ -81,6 +82,7 @@ export default async function CharacterPage({
             features={<p className="text-mute">{row.background}</p>}
             inventory={<p className="text-mute">Nothing carried yet.</p>}
             npcs={<p className="text-mute">No notes yet.</p>}
+            progress={<p className="text-mute">Progress sits on this tab.</p>}
           />
         </Page>
       );
@@ -101,12 +103,15 @@ export default async function CharacterPage({
           features={<p className="text-mute">Features arrive with induction.</p>}
           inventory={<p className="text-mute">Nothing carried yet.</p>}
           npcs={<NpcForm characterId={null} />}
-        >
-          <p>Not final yet: see your DM or trainer to lock these in.</p>
-          <p>Ready to move. A finalized placement can go back until the next session starts.</p>
-          <p>Locked. When the next session starts, a finalized placement stays.</p>
-          <p className="text-mute">What you have not placed stays ready, however old it is.</p>
-        </CharacterSheet>
+          progress={
+            <>
+              <p>Not final yet: see your DM or trainer to lock these in.</p>
+              <p>Ready to move. A confirmed change can go back until the next session starts.</p>
+              <p>Locked. When the next session starts, a confirmed change stays.</p>
+              <p className="text-mute">What you have not placed stays ready, however old it is.</p>
+            </>
+          }
+        />
         <Link className="button primary" href="/sign-in">
           Join the Company
         </Link>
@@ -184,6 +189,7 @@ export default async function CharacterPage({
 
   return (
     <Page title={character.name} lede={character.class ?? "Not yet inducted"}>
+      {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
       <CharacterSheet
         name={character.name}
         classLabel={`${character.rank} · ${character.class ?? "Not yet inducted"}`}
@@ -207,39 +213,39 @@ export default async function CharacterPage({
         conflicts={character.seed_flags ?? null}
         features={
           <>
-      <Panel>
+            <p>
+              {character.rank} · level {character.level}
+              {character.species ? ` · ${speciesLabel(character.species)}` : ""}
+            </p>
+            <p>
+              {character.profession}
+              {character.profession_tool
+                ? ` · ${TOOL_LABELS[character.profession_tool] ?? character.profession_tool}`
+                : ""}
+              {character.origin_feat ? ` · ${character.origin_feat}` : ""}
+            </p>
+            {(character.background_skills ?? []).length > 0 ? (
+              <p>{(character.background_skills ?? []).map((skill) => skillLabel(skill)).join(", ")}</p>
+            ) : null}
+            <p className="text-mute">
+              {character.inducted_at
+                ? "Combat numbers follow induction."
+                : `Before induction, HP is ${preInductionHp({
+                    constitution: character.constitution,
+                    species: character.species,
+                    originWord: character.origin_word,
+                  })}.`}
+            </p>
+          </>
+        }
+        progress={
+          <>
+        <Panel>
         <p>
-          {character.rank} · level {character.level}
-          {character.species ? ` · ${speciesLabel(character.species)}` : ""}
+          Ready to assign · Workouts {character.physical_points} · Nutrition and sleep {character.constitution_points} ·
+          Mental {character.mental_points} · Social {character.social_points ?? 0} · Attendance {character.free_points ?? 0}
         </p>
-        <p>
-          {character.profession}
-          {character.profession_tool
-            ? ` · ${TOOL_LABELS[character.profession_tool] ?? character.profession_tool}`
-            : ""}
-          {character.origin_word && character.origin_word !== character.profession
-            ? ` · ${character.origin_word}`
-            : ""}
-          {character.origin_feat ? ` · ${character.origin_feat}` : ""}
-        </p>
-        {(character.background_skills ?? []).length > 0 ? (
-          <p>{(character.background_skills ?? []).map((skill) => skillLabel(skill)).join(", ")}</p>
-        ) : null}
-        <p className="text-mute">
-          {character.inducted_at
-            ? "Combat numbers follow induction."
-            : `Before induction, HP is ${preInductionHp({
-                constitution: character.constitution,
-                species: character.species,
-                originWord: character.origin_word,
-              })}.`}
-        </p>
-        <p>
-          Build {impact?.build_total ?? "—"} of {viewer.config?.point_buy_budget ?? 27}. Physical bank{" "}
-          {character.physical_points} · Constitution bank {character.constitution_points} · Mental bank{" "}
-          {character.mental_points} · Social bank {character.social_points ?? 0} · Free bank {character.free_points ?? 0}
-        </p>
-        <p className="text-mute">What you have not placed stays ready. A DM or trainer locks a placement in person. It stays when the next session starts.</p>
+        <p className="text-mute">What you have not placed stays ready. A DM or trainer confirms a change in person. It stays when the next session starts.</p>
         <div>
           <p className="font-bold">Not final yet: see your DM or trainer to lock these in</p>
           {provisional.length === 0 ? <p className="text-mute">Nothing is waiting.</p> : null}
@@ -269,12 +275,12 @@ export default async function CharacterPage({
         </div>
       </Panel>
       <Panel title="Abilities">
-        <ul className="grid grid-cols-2 gap-2">
+        <ul className="ability-row">
           {ABILITIES.map((ability) => (
-            <li key={ability} className="border border-steel p-2">
-              <span className="text-mute">{LABELS[ability]}</span>
-              <span className="ml-2 text-2xl">{scores[ability]}</span>
-              <span className="ml-2">{formatModifier(abilityModifier(scores[ability]))}</span>
+            <li key={ability} className="ability-card">
+              <span className="ability-name">{LABELS[ability]}</span>
+              <span className="ability-score">{scores[ability]}</span>
+              <span className="ability-mod">{formatModifier(abilityModifier(scores[ability]))}</span>
             </li>
           ))}
         </ul>
@@ -305,7 +311,7 @@ export default async function CharacterPage({
           ))}
         </ul>
       </Panel>
-      <Panel title="Ledger">
+      <Panel title="Record of changes">
         {(ledger ?? []).length === 0 ? <p className="text-mute">No entries yet.</p> : null}
         <ul className="flex flex-col gap-2">
           {(ledger ?? []).map((row) => (
@@ -337,9 +343,9 @@ export default async function CharacterPage({
           );
         })}
       </Panel>
-      <Panel title="Build plan">
-        <p className="text-mute">Your target array. The DM can read it. You place every increase.</p>
-        <ResultForm action={saveBuildPlan} submit="Save Build plan">
+      <Panel title="Target scores">
+        <p className="text-mute">The scores you are aiming for. Your DM can read them. You choose every increase.</p>
+        <ResultForm action={saveBuildPlan} submit="Save target scores">
           <input type="hidden" name="character_id" value={character.id} />
           {ABILITIES.map((ability) => (
             <label key={ability}>

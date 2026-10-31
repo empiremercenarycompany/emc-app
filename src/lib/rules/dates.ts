@@ -1,3 +1,6 @@
+/** Company clock. One zone for the calendar, the schedule, and the weekly check-in. */
+export const COMPANY_ZONE = "America/Denver";
+
 /** Calendar dates stored as UTC midnights. They are dates, not instants. */
 
 export function utcDate(year: number, month: number, day: number): Date {
@@ -42,6 +45,19 @@ export function formatDate(value: Date): string {
 export function addUtcDays(value: Date, days: number): Date {
   const day = asUtcDate(value);
   return new Date(day.getTime() + days * 86_400_000);
+}
+
+/** Monday of the company week that contains `day`. Sunday belongs to the Monday before it. */
+export function mondayOnOrBefore(day: Date): Date {
+  const weekday = asUtcDate(day).getUTCDay();
+  const delta = weekday === 0 ? -6 : 1 - weekday;
+  return addUtcDays(day, delta);
+}
+
+/** Week starting Monday, from the company date when we have one. */
+export function currentWeekStart(today: string | null, now = new Date()): string {
+  const day = today ? parseDate(today) : calendarDate(now, COMPANY_ZONE);
+  return formatDate(mondayOnOrBefore(day));
 }
 
 export function parseDate(value: string): Date {

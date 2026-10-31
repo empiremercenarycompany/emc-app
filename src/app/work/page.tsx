@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
+import { WorkKindFields } from "@/components/work-kind";
 import { logWorkout } from "@/lib/actions/activity";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { EQUIPMENT_LABELS, EQUIPMENT_VERSIONS } from "@/lib/rules/library";
@@ -35,8 +36,11 @@ export default async function WorkPage() {
       : [];
 
   return (
-    <Page title="Work" lede="Record what you did. Staff confirm it before it is ready to place.">
+      <Page title="Work" lede="Record what you did. Staff confirm it before it is ready to assign.">
       {setup ? <Notice>{setup}</Notice> : null}
+      {viewer.beginner ? (
+        <Notice>Write what you did in plain words. The kind of work decides which ability it can raise.</Notice>
+      ) : null}
       {!viewer.character ? (
         <p>
           <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
@@ -52,20 +56,10 @@ export default async function WorkPage() {
             What you did
             <input name="exercise" required placeholder="Swing, carry, run" />
           </label>
-          <label>
-            Kind
-            <input name="type" required placeholder="Strength or cardio" />
-          </label>
+          <WorkKindFields />
           <label>
             Date
             <input type="date" name="date" required max={viewer.today ?? undefined} defaultValue={viewer.today ?? undefined} />
-          </label>
-          <label>
-            This counts toward
-            <select name="bank_pool" defaultValue="physical">
-              <option value="physical">Strength or Dexterity</option>
-              <option value="constitution">Constitution, if this is cardio</option>
-            </select>
           </label>
         </ResultForm>
       </Panel>
@@ -99,13 +93,7 @@ export default async function WorkPage() {
                   <input name="sets" inputMode="numeric" placeholder="Sets" />
                   <input name="reps" inputMode="numeric" placeholder="Reps" />
                   <input name="weight" inputMode="decimal" placeholder="Weight" />
-                  <label>
-                    This counts toward
-                    <select name="bank_pool" defaultValue="physical">
-                      <option value="physical">Strength or Dexterity</option>
-                      <option value="constitution">Constitution, if this is cardio</option>
-                    </select>
-                  </label>
+                  <WorkKindFields />
                   <textarea name="notes" placeholder="Notes" />
                 </ResultForm>
               ))

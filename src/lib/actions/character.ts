@@ -3,25 +3,42 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { actionClient, asImpact, dbError } from "@/lib/action-client";
+import { backgroundById, papersMissing, recruitScores } from "@/lib/rules/backgrounds";
+import type { AbilityName } from "@/lib/rules/starting-array";
 import type { ActionResult } from "@/lib/types";
 
 export async function createCharacter(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
 
+  const name = String(formData.get("name") ?? "");
+  const species = String(formData.get("species") ?? "");
+  const backgroundId = String(formData.get("background_id") ?? "");
+  const mode = String(formData.get("bonus_mode") ?? "");
+  const plus2 = String(formData.get("plus2") ?? "") as AbilityName;
+  const plus1 = String(formData.get("plus1") ?? "") as AbilityName;
+  const background = backgroundById(backgroundId);
+  const scores =
+    background && (mode === "plus1" || mode === "plus2")
+      ? recruitScores(mode, background.abilities, plus2, plus1)
+      : null;
+  const missing = papersMissing({ name, species, backgroundId, scores });
+  if (missing.length > 0) return { error: missing[0] };
+
   const { error: rpcError } = await supabase.rpc("file_recruitment_papers", {
-    p_name: String(formData.get("name") ?? ""),
-    p_species: String(formData.get("species") ?? ""),
-    p_background_id: String(formData.get("background_id") ?? ""),
+    p_name: name,
+    p_species: species,
+    p_background_id: backgroundId,
     p_tool_id: String(formData.get("tool_id") ?? ""),
-    p_bonus_mode: String(formData.get("bonus_mode") ?? ""),
-    p_plus2: String(formData.get("plus2") ?? ""),
-    p_plus1: String(formData.get("plus1") ?? ""),
+    p_bonus_mode: mode,
+    p_plus2: plus2,
+    p_plus1: plus1,
+    p_pronouns: String(formData.get("pronouns") ?? ""),
   });
   const message = dbError(rpcError);
   if (message) return { error: message };
   revalidatePath("/");
-  redirect("/character");
+  redirect("/character?welcomed=1");
 }
 
 export async function saveNotes(formData: FormData): Promise<ActionResult> {

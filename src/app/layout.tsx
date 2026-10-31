@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
+import Link from "next/link";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { loadViewer } from "@/lib/company";
@@ -49,8 +50,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
       <body>
         <RegisterSw />
+        {viewer.userId ? (
+          <div className="identity-bar">
+            <Link href="/profile" className="identity">
+              {viewer.avatarUrl ? (
+                // The portrait is the recruit's own mark. next/image would resample a remote file we do not host.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="avatar" src={viewer.avatarUrl} alt="" />
+              ) : (
+                <span className="avatar" aria-hidden="true">
+                  {(viewer.displayName?.trim().charAt(0) || "R").toUpperCase()}
+                </span>
+              )}
+              <span>{viewer.displayName?.trim() || "Recruit"}</span>
+            </Link>
+          </div>
+        ) : null}
         {children}
-        <SiteNav signedIn={Boolean(viewer.userId)} />
+        <SiteNav signedIn={Boolean(viewer.userId)} role={viewer.role} />
       </body>
     </html>
   );

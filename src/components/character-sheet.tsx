@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { DiceRoller } from "@/components/dice-roller";
+import { Term } from "@/components/term";
 import { checkExpression } from "@/lib/rules/dice";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
 import { skillLabel } from "@/lib/rules/skill-names";
@@ -17,7 +18,7 @@ const LABELS: Record<AbilityName, string> = {
   charisma: "Charisma",
 };
 
-const TABS = ["Skills", "Attacks", "Features", "Inventory", "NPCs"] as const;
+const TABS = ["Skills", "Attacks", "Features", "Inventory", "NPCs", "Progress"] as const;
 
 export function CharacterSheet({
   name,
@@ -36,10 +37,10 @@ export function CharacterSheet({
   recordedSpells = null,
   recordedFeats = null,
   conflicts = null,
-  children,
   features,
   inventory,
   npcs,
+  progress,
 }: {
   name: string;
   classLabel: string;
@@ -57,12 +58,11 @@ export function CharacterSheet({
   recordedSpells?: string[] | null;
   recordedFeats?: string[] | null;
   conflicts?: string[] | null;
-  children?: ReactNode;
   features: ReactNode;
   inventory: ReactNode;
   npcs: ReactNode;
+  progress: ReactNode;
 }) {
-  const track = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState(0);
   const [roll, setRoll] = useState<string | null>(null);
   const dex = abilityModifier(scores.dexterity);
@@ -73,10 +73,7 @@ export function CharacterSheet({
   const trained = new Set<string>([...(skillId ? [skillId] : []), ...(skillIds ?? [])]);
 
   function show(index: number) {
-    const next = (index + TABS.length) % TABS.length;
-    setTab(next);
-    const panel = track.current?.children.item(next) as HTMLElement | null;
-    panel?.scrollIntoView({ inline: "start", block: "nearest" });
+    setTab((index + TABS.length) % TABS.length);
   }
 
   function onKeys(event: KeyboardEvent) {
@@ -146,6 +143,9 @@ export function CharacterSheet({
     </div>,
     <div key="inventory">{inventory}</div>,
     <div key="npcs">{npcs}</div>,
+    <div key="progress" className="flex flex-col gap-3">
+      {progress}
+    </div>,
   ];
 
   return (
@@ -156,21 +156,31 @@ export function CharacterSheet({
           {classLabel} · level {level}
         </p>
         <p>
-          HP {hp} · AC {ac} · Speed {speed} · Initiative {formatModifier(dex)}
-          {saves && saves.length > 0 ? ` · Saves ${saves.join(", ")}` : ""}
+          <Term id="hp">HP {hp}</Term>
+          {" · "}
+          <Term id="ac">AC {ac}</Term>
+          {" · "}
+          Speed {speed}
+          {" · "}
+          <Term id="initiative">Initiative {formatModifier(dex)}</Term>
+          {saves && saves.length > 0 ? (
+            <>
+              {" · "}
+              <Term id="saves">Saves {saves.join(", ")}</Term>
+            </>
+          ) : null}
         </p>
-        <ul className="grid grid-cols-3 gap-2">
+        <ul className="ability-row">
           {ABILITIES.map((ability) => (
             <li key={ability}>
-              <button className="secondary w-full" type="button" onClick={() => offer(checkExpression(abilityModifier(scores[ability])))}>
-                {LABELS[ability]}
-                <span className="ml-2 text-2xl">{scores[ability]}</span>
-                <span className="ml-1">{formatModifier(abilityModifier(scores[ability]))}</span>
+              <button className="secondary ability-pill" type="button" onClick={() => offer(checkExpression(abilityModifier(scores[ability])))}>
+                <span className="ability-name">{LABELS[ability]}</span>
+                <span className="ability-score">{scores[ability]}</span>
+                <span className="ability-mod">{formatModifier(abilityModifier(scores[ability]))}</span>
               </button>
             </li>
           ))}
         </ul>
-        {children}
       </section>
       <div role="tablist" aria-label="Sheet sections" className="flex gap-2 overflow-x-auto" onKeyDown={onKeys}>
         {TABS.map((label, index) => (
@@ -186,9 +196,9 @@ export function CharacterSheet({
           </button>
         ))}
       </div>
-      <div ref={track} className="sheet-track" onKeyDown={onKeys} tabIndex={0}>
+      <div onKeyDown={onKeys}>
         {panels.map((panel, index) => (
-          <section key={TABS[index]} className="sheet-panel" role="tabpanel" aria-label={TABS[index]}>
+          <section key={TABS[index]} className="sheet-panel" role="tabpanel" aria-label={TABS[index]} hidden={tab !== index}>
             <h2>{TABS[index]}</h2>
             {panel}
           </section>

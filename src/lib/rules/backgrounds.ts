@@ -83,8 +83,43 @@ export const BACKGROUNDS: RecruitBackground[] = [
   { id: "wayfarer", name: "Wayfarer", abilities: ["dexterity", "wisdom", "charisma"], skills: ["insight", "stealth"], tools: ["thieves"], toolChoice: null, feat: "Lucky" },
 ];
 
+export const BACKGROUND_BLURB: Record<string, string> = {
+  artisan: "You have made things with your hands.",
+  charlatan: "You have talked your way through tight spots.",
+  criminal: "You have lived by nerve and quiet hands.",
+  farmer: "You have worked the land and kept things alive.",
+  guard: "You have stood a post and watched a gate.",
+  hermit: "You have spent time apart and learned how to mend.",
+  merchant: "You have traded, bargained, and kept a road.",
+  noble: "You have moved among people who expect to be heard.",
+  sailor: "You have worked a deck in rough weather.",
+  scribe: "You have kept records and noticed what others miss.",
+  soldier: "You have drilled and fought before.",
+  wayfarer: "You have lived on the road and learned its tricks.",
+};
+
 export function backgroundById(id: string): RecruitBackground | undefined {
   return BACKGROUNDS.find((row) => row.id === id);
+}
+
+/** A missing preview is a dash. It never pretends the array is all 8s. */
+export function shownScore(scores: AbilityScores | null, ability: AbilityName): string {
+  if (!scores) return "—";
+  return String(scores[ability]);
+}
+
+export function papersMissing(input: {
+  name: string;
+  species: string;
+  backgroundId: string;
+  scores: AbilityScores | null;
+}): string[] {
+  const missing: string[] = [];
+  if (!input.name.trim()) missing.push("Add your name.");
+  if (!input.species) missing.push("Choose your people.");
+  if (!input.backgroundId || !backgroundById(input.backgroundId)) missing.push("Choose your past.");
+  if (!input.scores) missing.push("Pick two different abilities.");
+  return missing;
 }
 
 export function toolChoiceLabel(choice: ToolChoice): string {

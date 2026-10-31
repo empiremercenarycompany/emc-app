@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Choice } from "@/components/choice";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveDrill, setPublished } from "@/lib/actions/library";
@@ -24,7 +25,7 @@ export default async function LibraryPage() {
   const editor = isLibraryEditor(viewer.role);
 
   return (
-    <Page title="Library" lede="Three equipment versions. A STR drill needs all five movements before it publishes.">
+    <Page title="Library" lede="Company workouts. Each one has a gym version, a lighter version, and a home version.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
       {(drills ?? [])
@@ -43,6 +44,9 @@ export default async function LibraryPage() {
             ) : null}
           </Panel>
         ))}
+      {(drills ?? []).filter((drill) => drill.published || editor || viewer.role === "dm").length === 0 ? (
+        <p className="text-mute">No drills yet. Your trainer posts them before a session.</p>
+      ) : null}
       {editor ? (
         <Panel title="New drill">
           <ResultForm action={saveDrill} submit="Save drill">
@@ -60,12 +64,11 @@ export default async function LibraryPage() {
               <option value="veteran">Veteran</option>
             </select>
             <fieldset className="flex flex-col gap-1">
-              <legend>STR movements</legend>
+              <legend>Strength movements</legend>
               {STR_COMPONENTS.map((component) => (
-                <label key={component} className="flex items-center gap-2">
-                  <input className="w-auto" type="checkbox" name="components" value={component} />
+                <Choice key={component} name="components" value={component}>
                   {COMPONENT_LABELS[component]}
-                </label>
+                </Choice>
               ))}
             </fieldset>
             <label>
@@ -80,11 +83,9 @@ export default async function LibraryPage() {
               At home
               <textarea name="instructions_at_home" />
             </label>
-            <label className="flex items-center gap-2">
-              <input className="w-auto" type="checkbox" name="publish" /> Publish now
-            </label>
+            <Choice name="publish">Publish now</Choice>
           </ResultForm>
-          <p className="text-sm text-mute">TODO(John): the Veteran tier stays closed until its week is set.</p>
+          <p className="text-sm text-mute">Veteran drills stay closed.</p>
         </Panel>
       ) : null}
     </Page>

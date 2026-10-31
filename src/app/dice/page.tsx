@@ -25,7 +25,7 @@ export default async function DicePage() {
     : [];
 
   return (
-    <Page title="Dice" lede="NdX+M. Advantage keeps the higher roll. Disadvantage keeps the lower.">
+    <Page title="Dice" lede="Roll a die. Advantage keeps the higher roll. Disadvantage keeps the lower.">
       {!viewer.userId ? (
         <p className="text-mute">
           Rolls work without an account. <Link href="/sign-in">Sign in</Link> to save one on a sheet.

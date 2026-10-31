@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { finalizeStats } from "@/lib/actions/muster";
@@ -25,6 +25,8 @@ const BANK: Record<string, string> = {
 
 export default async function TrainerPage() {
   const viewer = await loadViewer();
+  if (!viewer.userId) redirect("/sign-in");
+  if (!isLogApprover(viewer.role)) redirect("/");
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const trainer = isLogApprover(viewer.role);
@@ -46,12 +48,6 @@ export default async function TrainerPage() {
   return (
     <Page title="Trainer" lede="In person at the gym. Read the change, then finalize one recruit.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Sign in</Link>. A trainer finalizes the Build face to face.
-        </p>
-      ) : null}
-      {viewer.userId && !trainer ? <p>A player account cannot finalize a Build.</p> : null}
       <Panel title="Waiting">
         <p>Not final yet: see your DM or trainer to lock these in.</p>
         {trainer ? (
@@ -78,7 +74,7 @@ export default async function TrainerPage() {
                 Recruit
                 <select name="character_id" required defaultValue="">
                   <option value="" disabled>
-                    Name
+                    Choose a recruit
                   </option>
                   {(people ?? []).map((person) => (
                     <option key={person.id} value={person.id}>
@@ -89,14 +85,7 @@ export default async function TrainerPage() {
               </label>
             </ResultForm>
           </>
-        ) : (
-          <>
-            <p className="text-mute">Nothing is waiting.</p>
-            <button className="primary" type="button">
-              Finalize stats
-            </button>
-          </>
-        )}
+        ) : null}
       </Panel>
     </Page>
   );

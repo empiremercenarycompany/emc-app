@@ -5,7 +5,7 @@ import { checkIn } from "@/lib/actions/activity";
 import { saveCalendarEvent } from "@/lib/actions/campaign";
 import { createSession } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
-import { calendarBlocks, sampleCalendar, type CalendarBlock } from "@/lib/rules/calendar";
+import { calendarBlocks, type CalendarBlock } from "@/lib/rules/calendar";
 import { parseDate } from "@/lib/rules/dates";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
@@ -87,17 +87,13 @@ export default async function CalendarPage() {
   return (
     <Page
       title="Calendar"
-      lede="Company dates use America/Denver. A longer row is a three-parter and shares one cap. A gap is an off-week and earns nothing."
+      lede="A longer row is a three-parter and shares one cap. A gap is an off-week and earns nothing."
     >
       {setup ? <Notice>{setup}</Notice> : null}
-      <Panel title="How a window reads">
-        <p className="text-mute">This sample is not the company schedule. It shows the two shapes staff can publish.</p>
-        <BlockList blocks={sampleCalendar()} />
-      </Panel>
       {viewer.userId && viewer.config ? (
         <Panel title="Company calendar">
           <p className="text-mute">
-            Cohort placeholder {viewer.config.cohort_start}. Induction week {viewer.config.induction_week}. Level 2 week{" "}
+            Starts {viewer.config.cohort_start}. Induction week {viewer.config.induction_week}. Level 2 week{" "}
             {viewer.config.level_two_week ?? 16}. Level 3 week {viewer.config.level_three_week ?? 32}.
           </p>
           {(windows ?? []).length === 0 ? (
@@ -128,10 +124,7 @@ export default async function CalendarPage() {
             ) : null}
           </article>
         ))}
-        <p className="text-sm text-mute">
-          Attendance stores a reward placeholder ({viewer.config?.attendance_loot ?? "unset"}) and grants nothing. TODO(John):
-          what attendance pays.
-        </p>
+        <p className="text-sm text-mute">Checking in records that you were there.</p>
         {isStaff(viewer.role) ? (
           <ResultForm action={createSession} submit="Save session">
             <input name="title" required placeholder="Title" />

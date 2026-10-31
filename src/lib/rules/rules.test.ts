@@ -168,7 +168,7 @@ describe("attribute pools", () => {
 
 describe("first-adventure awards", () => {
   it("keeps John's numbers in the default config", () => {
-    expect(defaultProgressionConfig.timeZone).toBe("America/Boise");
+    expect(defaultProgressionConfig.timeZone).toBe("America/Denver");
     expect(defaultProgressionConfig.cohortStart).toEqual(utcDate(2027, 1, 2));
     expect(defaultProgressionConfig.backfillDays).toBe(14);
     expect(defaultProgressionConfig.pointsPerWorkout).toBe(1);

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Choice } from "@/components/choice";
 import { ResultForm } from "@/components/result-form";
 import { JournalBuilder, type MenuExercise } from "@/components/journal-builder";
 import { Notice, Page, Panel } from "@/components/ui";
@@ -121,7 +122,10 @@ export default async function JournalPage() {
     <Page title="Journal" lede="Approved exercises only. Drag or tap to build the list, then record the session.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
-      {viewer.character ? (
+      {viewer.character && menuPools.length === 0 ? (
+        <p className="text-mute">No lists yet. Your trainer posts exercises before you build a workout.</p>
+      ) : null}
+      {viewer.character && menuPools.length > 0 ? (
         <JournalBuilder
           pools={menuPools}
           exercisesByPool={exercisesByPool}
@@ -132,7 +136,8 @@ export default async function JournalPage() {
               : null
           }
         />
-      ) : viewer.userId ? (
+      ) : null}
+      {!viewer.character && viewer.userId ? (
         <Link href="/character/new">Fill Out Recruitment Papers before building a workout.</Link>
       ) : null}
       {curator ? (
@@ -155,16 +160,15 @@ export default async function JournalPage() {
               List title
               <input name="title" required />
             </label>
-            <label className="flex items-center gap-2">
-              <input className="w-auto" type="checkbox" name="shared" defaultChecked /> Shared with the company
-            </label>
+            <Choice name="shared" defaultChecked>
+              Shared with the company
+            </Choice>
             {(exercises ?? [])
               .filter((exercise) => exercise.status === "approved")
               .map((exercise) => (
-                <label key={exercise.id} className="flex items-center gap-2">
-                  <input className="w-auto" type="checkbox" name="exercise_id" value={exercise.id} />
+                <Choice key={exercise.id} name="exercise_id" value={exercise.id}>
                   {exercise.name}
-                </label>
+                </Choice>
               ))}
           </ResultForm>
           <ResultForm action={saveTemplate} submit="Save template">
@@ -182,10 +186,9 @@ export default async function JournalPage() {
             {(exercises ?? [])
               .filter((exercise) => exercise.status === "approved")
               .map((exercise) => (
-                <label key={exercise.id} className="flex items-center gap-2">
-                  <input className="w-auto" type="checkbox" name="exercise_id" value={exercise.id} />
+                <Choice key={exercise.id} name="exercise_id" value={exercise.id}>
                   {exercise.name}
-                </label>
+                </Choice>
               ))}
           </ResultForm>
           <ResultForm action={assignTemplate} submit="Assign template">
@@ -225,7 +228,7 @@ export default async function JournalPage() {
             <input type="date" name="period_start" />
             <input type="date" name="period_end" />
           </ResultForm>
-          <p className="text-sm text-mute">A flag does not change attributes. TODO(John): what the hook pays.</p>
+          <p className="text-sm text-mute">A flag does not change attributes.</p>
         </Panel>
       ) : null}
     </Page>

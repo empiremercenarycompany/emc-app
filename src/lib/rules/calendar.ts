@@ -1,4 +1,4 @@
-import { addUtcDays, asUtcDate, calendarDaysBetween, formatDate } from "./dates";
+import { COMPANY_ZONE, addUtcDays, asUtcDate, calendarDaysBetween, formatDate } from "./dates";
 import { sessionFor, type CohortSession } from "./progression";
 
 export type CalendarKind = "session" | "off-week" | "three-parter";
@@ -83,7 +83,7 @@ export function calendarBlocks(input: {
       anchor,
       schedule: input.schedule,
       config: {
-        timeZone: "America/Denver",
+        timeZone: COMPANY_ZONE,
         cohortStart: anchor,
         backfillDays: 14,
         goalBackfillDays: 14,

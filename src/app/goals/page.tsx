@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Choice } from "@/components/choice";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { createGoal, logGoal } from "@/lib/actions/activity";
@@ -60,9 +61,7 @@ export default async function GoalsPage() {
                 How often
                 <input name="target_frequency" />
               </label>
-              <label className="flex items-center gap-2">
-                <input className="w-auto" type="checkbox" name="is_long_term" /> Long term
-              </label>
+              <Choice name="is_long_term">Long term</Choice>
               <label>
                 Period start
                 <input type="date" name="period_start" />
@@ -72,10 +71,7 @@ export default async function GoalsPage() {
                 <input type="date" name="period_end" />
               </label>
             </ResultForm>
-            <p className="text-sm text-mute">
-              A monthly period must stay inside one calendar month. TODO(John): goal completions use the same backfill
-              window as workouts.
-            </p>
+            <p className="text-sm text-mute">A monthly period must stay inside one calendar month.</p>
           </Panel>
           {(goals ?? []).map((goal) => (
             <Panel key={goal.id} title={goal.title}>

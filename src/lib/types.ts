@@ -132,6 +132,7 @@ export type Viewer = {
   userId: string | null;
   email: string | null;
   displayName: string | null;
+  avatarUrl: string | null;
   role: AppRole | null;
   guildId: string | null;
   canApproveLore: boolean;
@@ -141,6 +142,14 @@ export type Viewer = {
   today: string | null;
   session: SessionWindow | null;
   week: number | null;
+  beginner: boolean;
+  intake: {
+    dnd: string;
+    gym: string;
+    goals: string[];
+    timeslotId: string | null;
+    reminders: boolean;
+  } | null;
 };
 
 export function isStaff(role: AppRole | null): boolean {

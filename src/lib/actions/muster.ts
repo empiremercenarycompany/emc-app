@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actionClient, dbError } from "@/lib/action-client";
+import { actionClient, dbError, requireRole } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/types";
 
 function touch() {
@@ -13,6 +13,8 @@ function touch() {
 }
 
 export async function recordMuster(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("record_table_muster", {
@@ -35,6 +37,8 @@ export async function recordMuster(formData: FormData): Promise<ActionResult> {
 }
 
 export async function approveSquadMuster(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("approve_squad_muster", {
@@ -48,6 +52,8 @@ export async function approveSquadMuster(formData: FormData): Promise<ActionResu
 }
 
 export async function finalizeStats(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("finalize_character_build", {
@@ -60,6 +66,8 @@ export async function finalizeStats(formData: FormData): Promise<ActionResult> {
 }
 
 export async function finalizeSquadStats(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("finalize_squad_build", {

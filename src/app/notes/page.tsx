@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveStaffNote } from "@/lib/actions/campaign";
@@ -8,6 +8,8 @@ import { isStaff } from "@/lib/types";
 
 export default async function NotesPage() {
   const viewer = await loadViewer();
+  if (!viewer.userId) redirect("/sign-in");
+  if (!isStaff(viewer.role)) redirect("/");
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const staff = isStaff(viewer.role);
@@ -37,12 +39,6 @@ export default async function NotesPage() {
   return (
     <Page title="Notes" lede="Players do not see these notes. They stay with staff.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Sign in</Link>. A player account cannot read this book.
-        </p>
-      ) : null}
-      {viewer.userId && !staff ? <p>A player account cannot read staff notes.</p> : null}
       {staff ? (
         <>
           <Panel title="Write">

@@ -64,7 +64,10 @@ export function NpcForm({
       <p className={used > CAP ? "text-parchment" : "text-mute"} data-testid="npc-counter">
         {used} / {CAP}
       </p>
-      <p className="text-mute">Leave out faith, worship, and innate magic.</p>
+      <p className="text-mute">
+        Describe someone you could meet in town. Leave out faith, worship, and innate magic. Example: a retired guard who
+        keeps the gate and remembers every name.
+      </p>
       <button className="primary" type="submit">
         Submit for review
       </button>

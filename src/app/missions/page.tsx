@@ -88,10 +88,7 @@ export default async function MissionsPage() {
             <textarea name="notes" placeholder="Note the table can read" />
           </ResultForm>
         ) : null}
-        <p className="text-sm text-mute">
-          The attendance reward is {viewer.config?.attendance_loot ?? "unset"}. Check-in copies that placeholder and grants nothing.
-          TODO(John): what it should pay. Group-goal payout is {viewer.config?.group_goal_payout ?? "unset"}.
-        </p>
+        <p className="text-sm text-mute">Checking in records that you were there.</p>
         {viewer.role === "dm" ? (
           <ResultForm action={correctAttendance} submit="Correct attendance" secondary>
             <select name="session_id" required defaultValue="">

@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Choice } from "@/components/choice";
+import { Term } from "@/components/term";
 import { saveDice } from "@/lib/actions/activity";
 import { parseDice, rollDice, type DiceRoll } from "@/lib/rules/dice";
 
@@ -87,19 +89,12 @@ export function DiceRoller({
           }}
         />
       </label>
-      <label className="flex items-center gap-2">
-        <input className="w-auto" type="checkbox" checked={advantage} onChange={(event) => setAdvantage(event.target.checked)} />
-        Advantage
-      </label>
-      <label className="flex items-center gap-2">
-        <input
-          className="w-auto"
-          type="checkbox"
-          checked={disadvantage}
-          onChange={(event) => setDisadvantage(event.target.checked)}
-        />
+      <Choice checked={advantage} onChange={setAdvantage}>
+        <Term id="advantage">Advantage</Term>
+      </Choice>
+      <Choice checked={disadvantage} onChange={setDisadvantage}>
         Disadvantage
-      </label>
+      </Choice>
       <button className="primary" type="button" onClick={() => rollNow()}>
         Roll
       </button>

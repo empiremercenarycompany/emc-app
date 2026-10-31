@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actionClient, dbError } from "@/lib/action-client";
+import { actionClient, dbError, requireRole } from "@/lib/action-client";
 import type { ActionResult } from "@/lib/types";
 
 function touch() {
@@ -27,6 +27,8 @@ export async function saveNpc(formData: FormData): Promise<ActionResult> {
 }
 
 export async function approveNpc(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("staff");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("approve_character_npc", {
@@ -39,6 +41,8 @@ export async function approveNpc(formData: FormData): Promise<ActionResult> {
 }
 
 export async function returnNpc(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("staff");
+  if (denied) return denied;
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
   const { error: rpcError } = await supabase.rpc("return_character_npc", {

@@ -1,4 +1,4 @@
-import { utcDate } from "./dates";
+import { COMPANY_ZONE, utcDate } from "./dates";
 
 /**
  * Mirror of the seeded `scoring_config` row. The database is authoritative
@@ -46,7 +46,7 @@ export type ProgressionConfig = {
 };
 
 export const defaultProgressionConfig: ProgressionConfig = {
-  timeZone: "America/Boise",
+  timeZone: COMPANY_ZONE,
   cohortStart: utcDate(2027, 1, 2),
   backfillDays: 14,
   goalBackfillDays: 14,

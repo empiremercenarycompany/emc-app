@@ -1,3 +1,17 @@
+/** The workouts card. 0 is one session or none, 1 is two, 2 is three or more. */
+export function workoutMark(workouts: number): 0 | 1 | 2 {
+  if (workouts <= 1) return 0;
+  if (workouts === 2) return 1;
+  return 2;
+}
+
+/** Stored workout count for a tapped mark, so the week score stays the same rule. */
+export function workoutsForMark(mark: 0 | 1 | 2): number {
+  if (mark === 0) return 0;
+  if (mark === 1) return 2;
+  return 3;
+}
+
 /** Weekly compliance score. Max is 2. A workout count of 0 or 1 scores 0. */
 export function checkinScore(input: {
   workouts: number;

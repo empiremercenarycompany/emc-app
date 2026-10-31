@@ -43,11 +43,12 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
 });
 
-test("table muster lists the roster columns", async ({ page }) => {
+test("table muster is closed to a player", async ({ page }) => {
   await page.goto("/muster");
-  await expect(page.getByRole("heading", { name: "Table Muster" })).toBeVisible();
-  await expect(page.getByText("Nutrition and sleep").first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Approve all" })).toBeVisible();
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page.getByRole("button", { name: "Approve all" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Finalize all" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Send back" })).toHaveCount(0);
 });
 
 test("the buff menu names the temporary awards", async ({ page }) => {
@@ -68,41 +69,38 @@ test("work opens on one record form", async ({ page }) => {
   await page.goto("/work");
   await expect(page.getByRole("heading", { name: "Record work" })).toBeVisible();
   await expect(page.getByLabel("What you did")).toBeVisible();
-  await expect(page.getByLabel("This counts toward")).toBeVisible();
+  await expect(page.getByLabel("What kind of work?")).toBeVisible();
+  await expect(page.getByText("Counts toward Strength or Dexterity.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Record work" })).toBeVisible();
 });
 
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
+  await page.getByRole("tab", { name: "Progress" }).click();
   await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
   await expect(page.getByText("Locked")).toBeVisible();
+  await expect(page.getByText(/Build \d+ of 27/)).toHaveCount(0);
 });
 
-test("trainer check-in shows the finalize step", async ({ page }) => {
+test("trainer check-in is closed to a player", async ({ page }) => {
   await page.goto("/trainer");
-  await expect(page.getByRole("heading", { name: "Trainer" })).toBeVisible();
-  await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Finalize stats" })).toBeVisible();
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await expect(page.getByRole("button", { name: "Finalize stats" })).toHaveCount(0);
 });
 
-test("table muster can finalize the squad", async ({ page }) => {
-  await page.goto("/muster");
-  await expect(page.getByRole("button", { name: "Finalize stats" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Finalize all" })).toBeVisible();
-});
-
-test("the calendar shows off-weeks and three-parters", async ({ page }) => {
+test("the calendar does not show a sample or a second time zone", async ({ page }) => {
   await page.goto("/calendar");
-  await expect(page.getByText("America/Denver")).toBeVisible();
-  await expect(page.getByText("Three-parter 1 · 2027-01-04 to 2027-01-31")).toBeVisible();
-  await expect(page.getByText("Off-week · 2027-02-01 to 2027-02-14")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Calendar" })).toBeVisible();
+  await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
+  await expect(page.getByText("America/Denver")).toHaveCount(0);
+  await expect(page.getByText("America/Boise")).toHaveCount(0);
 });
 
 test("staff notes are not on the player sheet", async ({ page }) => {
   await page.goto("/notes");
-  await expect(page.getByText("Players do not see these notes.")).toBeVisible();
+  await expect(page).toHaveURL(/\/sign-in$/);
   await page.goto("/character");
   await expect(page.getByRole("button", { name: "Set level" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Record milestone" })).toHaveCount(0);
@@ -114,6 +112,7 @@ test("the sheet sections swipe", async ({ page }) => {
   await skills.focus();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("tab", { name: "Attacks" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel", { name: "Skills" })).toBeHidden();
   await expect(page.getByRole("button", { name: /Unarmed strike/ })).toBeVisible();
 });
 
@@ -134,11 +133,21 @@ test("an NPC note can be submitted for review", async ({ page }) => {
   await expect(page.getByText("Pending: your DM will review this")).toBeVisible();
 });
 
-test("the muster queue can approve or send a note back", async ({ page }) => {
-  await page.goto("/muster");
-  await expect(page.getByRole("heading", { name: "NPC review" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Approve", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Send back" })).toBeVisible();
+test("the menu opens an overlay and does not 404", async ({ page }) => {
+  await page.goto("/");
+  const menu = page.getByRole("button", { name: "Menu" });
+  await expect(menu).toHaveAttribute("type", "button");
+  await menu.click();
+  const overlay = page.getByRole("dialog", { name: "Menu" });
+  await expect(overlay).toBeVisible();
+  await expect(overlay.getByRole("link", { name: "Table Muster" })).toHaveCount(0);
+  await expect(overlay.getByRole("link", { name: "Trainer" })).toHaveCount(0);
+  await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);
+  const background = await overlay.evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(background).toBe("rgb(17, 17, 17)");
+  await page.goto("/menu");
+  await expect(page).not.toHaveURL(/\/menu$/);
+  await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
 });
 
 test("the manifest names the company", async ({ request }) => {

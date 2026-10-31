@@ -28,21 +28,22 @@ export default async function SchedulePage() {
       : [];
 
   return (
-    <Page title="Schedule" lede="Company time is America/Boise. Sessions are every other Saturday. An empty window list falls back to the cadence.">
+    <Page title="Schedule" lede="Sessions are every other Saturday. An empty list still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
       <Panel title="Company clock">
-        <p>Today {viewer.today ?? "—"} · {viewer.config?.time_zone ?? "America/Boise"}</p>
+        <p>Today {viewer.today ?? "—"}</p>
         <p>Next adventure {viewer.config?.cohort_start ?? "unset"} · posters {viewer.config?.posters_launch ?? "2027-01-04"}</p>
         <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
         <p className="text-mute">
-          Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included.
-          Display only.
+          Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No
+          payments are taken in the app.
         </p>
         <p>
-          Each week you can place {viewer.config?.weekly_point_cap ?? 4}, and {viewer.config?.pool_point_cap ?? 2} from one
-          kind of work. The Build stops at {viewer.config?.point_buy_budget ?? 27}.
+          Each week, {viewer.config?.weekly_point_cap ?? 4} logs can count, and {viewer.config?.pool_point_cap ?? 2} from
+          one kind of work.
         </p>
+        {isStaff(viewer.role) ? <p>The Build stops at {viewer.config?.point_buy_budget ?? 27}.</p> : null}
         {viewer.session ? (
           <p>
             This session {viewer.session.session_number}: {viewer.session.start_date} to {viewer.session.end_date}
@@ -130,8 +131,7 @@ export default async function SchedulePage() {
             </select>
           </ResultForm>
           <p className="text-sm text-mute">
-            Induction opens at week {viewer.config?.induction_week ?? 6}. Every class row ships disabled. TODO(John): which
-            martial classes open. A class that is not enabled is refused.
+            Induction opens at week {viewer.config?.induction_week ?? 6}. A class that is not enabled is refused.
           </p>
           <ResultForm action={setLevel} submit="Set level">
             <select name="character_id" required defaultValue="">
