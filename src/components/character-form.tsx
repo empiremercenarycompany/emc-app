@@ -3,68 +3,65 @@
 import { useMemo, useState } from "react";
 import { ResultForm } from "@/components/result-form";
 import { createCharacter } from "@/lib/actions/character";
+import {
+  BACKGROUNDS,
+  TOOL_LABELS,
+  backgroundById,
+  recruitScores,
+  toolChoiceLabel,
+  type RecruitBackground,
+} from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
-import { ABILITIES, scoresFromBonuses, isValidStartingArray, type AbilityName } from "@/lib/rules/starting-array";
+import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
-const LABELS: Record<AbilityName, string> = {
-  strength: "Strength",
-  dexterity: "Dexterity",
-  constitution: "Constitution",
-  intelligence: "Intelligence",
-  wisdom: "Wisdom",
-  charisma: "Charisma",
+const SHORT: Record<AbilityName, string> = {
+  strength: "STR",
+  dexterity: "DEX",
+  constitution: "CON",
+  intelligence: "INT",
+  wisdom: "WIS",
+  charisma: "CHA",
 };
 
-export function CharacterForm({
-  species,
-  tools,
-  skills,
-}: {
-  species: { id: string; name: string }[];
-  tools: { id: string; name: string }[];
-  skills: { id: string; display_name: string }[];
-}) {
-  const [mode, setMode] = useState<"plus2" | "plus1">("plus2");
-  const [ten, setTen] = useState<AbilityName>("strength");
-  const [nine, setNine] = useState<AbilityName>("dexterity");
-  const [nines, setNines] = useState<AbilityName[]>(["strength", "dexterity", "constitution"]);
+export function CharacterForm({ species }: { species: { id: string; name: string }[] }) {
+  const [backgroundId, setBackgroundId] = useState("farmer");
+  const background = backgroundById(backgroundId) ?? BACKGROUNDS[0];
+  const [toolId, setToolId] = useState(background.tools[0]);
+  const [mode, setMode] = useState<"plus1" | "plus2">("plus1");
+  const [plus2, setPlus2] = useState<AbilityName>(background.abilities[0]);
+  const [plus1, setPlus1] = useState<AbilityName>(background.abilities[1]);
 
-  const scores = useMemo(() => {
-    if (mode === "plus2") return scoresFromBonuses("plus2", [ten, nine]);
-    return scoresFromBonuses("plus1", nines);
-  }, [mode, ten, nine, nines]);
-  const valid = isValidStartingArray(scores);
-
-  function toggleNine(ability: AbilityName) {
-    setNines((current) => {
-      if (current.includes(ability)) return current.filter((item) => item !== ability);
-      if (current.length >= 3) return [...current.slice(1), ability];
-      return [...current, ability];
-    });
+  function chooseBackground(id: string) {
+    const next = backgroundById(id);
+    if (!next) return;
+    setBackgroundId(id);
+    setToolId(next.tools[0]);
+    setPlus2(next.abilities[0]);
+    setPlus1(next.abilities[1]);
   }
 
+  const scores = useMemo(
+    () => recruitScores(mode, background.abilities, plus2, plus1),
+    [mode, background, plus2, plus1],
+  );
+  const choice = background.tools.length > 1;
+
   return (
-    <ResultForm action={createCharacter} submit="Sign the Recruit Oath" primary>
-      <label className="flex flex-col gap-1">
+    <ResultForm action={createCharacter} submit="Sign your papers" primary>
+      <input type="hidden" name="background_id" value={background.id} />
+      <input type="hidden" name="tool_id" value={choice ? toolId : background.tools[0]} />
+      <input type="hidden" name="bonus_mode" value={mode} />
+      <input type="hidden" name="plus2" value={plus2} />
+      <input type="hidden" name="plus1" value={plus1} />
+      <label>
         Name
         <input name="name" required maxLength={80} />
       </label>
-      <label className="flex flex-col gap-1">
-        Origin word
-        <input name="origin_word" required maxLength={40} />
-        <span className="text-sm text-mute">TODO(lore: check with Sage/Master Canon)</span>
-      </label>
-      <label className="flex flex-col gap-1">
-        Profession
-        <input name="profession" required maxLength={80} />
-      </label>
-      <label className="flex flex-col gap-1">
+      <label>
         Species
-        <select name="species" required defaultValue="">
-          <option value="" disabled>
-            Choose
-          </option>
+        <select name="species" required defaultValue={species[0]?.id ?? ""}>
+          {species.length === 0 ? <option value="">Choose after you sign in</option> : null}
           {species.map((row) => (
             <option key={row.id} value={row.id}>
               {speciesLabel(row.id, row.name)}
@@ -72,104 +69,105 @@ export function CharacterForm({
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1">
-        Tool
-        <select name="profession_tool" required defaultValue="">
-          <option value="" disabled>
-            Choose
-          </option>
-          {tools.map((row) => (
+      <label>
+        Background
+        <select
+          aria-label="Background"
+          value={background.id}
+          onChange={(event) => chooseBackground(event.target.value)}
+        >
+          {BACKGROUNDS.map((row) => (
             <option key={row.id} value={row.id}>
               {row.name}
             </option>
           ))}
         </select>
       </label>
-      <label className="flex flex-col gap-1">
-        Skill
-        <select name="profession_skill" required defaultValue="">
-          <option value="" disabled>
-            Choose
-          </option>
-          {skills.map((row) => (
-            <option key={row.id} value={row.id}>
-              {skillLabel(row.id, row.display_name)}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <fieldset className="flex flex-col gap-2 border border-steel p-3">
-        <legend>Starting array</legend>
-        <p className="text-sm text-mute">All 8s, then either +2 and +1, or +1 three times. That background is separate from the 27.</p>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === "plus2"}
-            onChange={() => setMode("plus2")}
-            className="w-auto"
-          />
-          +2 and +1
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === "plus1"}
-            onChange={() => setMode("plus1")}
-            className="w-auto"
-          />
-          +1, +1, and +1
-        </label>
-        {mode === "plus2" ? (
-          <div className="grid grid-cols-2 gap-2">
-            <label>
-              Score 10
-              <select value={ten} onChange={(event) => setTen(event.target.value as AbilityName)}>
-                {ABILITIES.map((ability) => (
-                  <option key={ability} value={ability}>
-                    {LABELS[ability]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Score 9
-              <select value={nine} onChange={(event) => setNine(event.target.value as AbilityName)}>
-                {ABILITIES.map((ability) => (
-                  <option key={ability} value={ability}>
-                    {LABELS[ability]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {ABILITIES.map((ability) => (
-              <label key={ability} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-auto"
-                  checked={nines.includes(ability)}
-                  onChange={() => toggleNine(ability)}
-                />
-                {LABELS[ability]}
-              </label>
+      <Filled label="Skills" value={background.skills.map((skill) => skillLabel(skill)).join(", ")} />
+      {choice ? (
+        <label>
+          {toolChoiceLabel(background.toolChoice ?? "artisan")}
+          <select aria-label={toolChoiceLabel(background.toolChoice ?? "artisan")} value={toolId} onChange={(event) => setToolId(event.target.value)}>
+            {background.tools.map((id) => (
+              <option key={id} value={id}>
+                {TOOL_LABELS[id] ?? id}
+              </option>
             ))}
+          </select>
+        </label>
+      ) : (
+        <Filled label="Tool" value={TOOL_LABELS[background.tools[0]] ?? background.tools[0]} />
+      )}
+      <Filled label="Feat" value={background.feat} />
+      <Filled label="Abilities" value={background.abilities.map((ability) => SHORT[ability]).join(", ")} />
+      <fieldset className="flex flex-col gap-3 border border-steel p-3">
+        <legend>Ability bonus</legend>
+        <div className="flex flex-col gap-2" role="radiogroup" aria-label="Ability bonus">
+          <label className="flex min-h-11 items-center gap-2">
+            <input className="w-auto" type="radio" name="shown_mode" checked={mode === "plus1"} onChange={() => setMode("plus1")} />
+            +1 to all three
+          </label>
+          <label className="flex min-h-11 items-center gap-2">
+            <input className="w-auto" type="radio" name="shown_mode" checked={mode === "plus2"} onChange={() => setMode("plus2")} />
+            +2 to one, +1 to another
+          </label>
+        </div>
+        {mode === "plus2" ? (
+          <div className="flex flex-col gap-3">
+            <ChipRow label="+2" value={plus2} options={background.abilities} onChange={setPlus2} blocked={plus1} />
+            <ChipRow label="+1" value={plus1} options={background.abilities} onChange={setPlus1} blocked={plus2} />
           </div>
-        )}
-        <ul className="grid grid-cols-3 gap-2 text-sm">
+        ) : null}
+        <ul className="grid grid-cols-3 gap-2">
           {ABILITIES.map((ability) => (
-            <li key={ability}>
-              {LABELS[ability]} {scores[ability]}
-              <input type="hidden" name={ability} value={scores[ability]} />
+            <li key={ability} className="stat">
+              {SHORT[ability]} {scores?.[ability] ?? 8}
             </li>
           ))}
         </ul>
-        {valid ? null : <p role="alert">Pick two different abilities, or exactly three for the +1 array.</p>}
+        {scores ? null : <p role="alert">Pick two different abilities.</p>}
       </fieldset>
     </ResultForm>
+  );
+}
+
+function Filled({ label, value }: { label: string; value: string }) {
+  return (
+    <label>
+      {label}
+      <input readOnly aria-label={label} value={value} />
+    </label>
+  );
+}
+
+function ChipRow({
+  label,
+  value,
+  options,
+  onChange,
+  blocked,
+}: {
+  label: string;
+  value: AbilityName;
+  options: RecruitBackground["abilities"];
+  onChange: (ability: AbilityName) => void;
+  blocked: AbilityName;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="stat">{label}</span>
+      {options.map((ability) => (
+        <button
+          key={ability}
+          type="button"
+          className="secondary"
+          aria-pressed={value === ability}
+          disabled={ability === blocked}
+          onClick={() => onChange(ability)}
+        >
+          {SHORT[ability]}
+        </button>
+      ))}
+    </div>
   );
 }

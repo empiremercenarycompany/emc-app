@@ -8,7 +8,7 @@ export default function AboutPage() {
         <p>
           Bleakspire is a fortress with a small city around it.
         </p>
-        <p className="text-mute">Skill labels come from company config. A rename of one label is still open.</p>
+        <p className="text-mute">Arcana is shown as Alchemy. Religion is shown as Culture.</p>
       </Panel>
       <Panel title="Rules source">
         <p>
@@ -21,9 +21,9 @@ export default function AboutPage() {
         <p>Homebrew rows use their own source and attribution columns. This app does not copy rules text.</p>
       </Panel>
       <Panel title="Type">
-        <p>Body text is Barlow. Subheads, buttons, and labels are Barlow Condensed. Both are under the SIL Open Font License.</p>
+        <p>Body text is Barlow. Buttons and labels are Barlow Condensed. Both are under the SIL Open Font License.</p>
         <p className="text-mute">
-          Big titles use Barlow Condensed. Corleone is a local file only, and only when the switch asks for it. That file is not in this repo.
+          Screen titles use Corleone when the file is on this machine, and Barlow Condensed 800 when it is not. The font file is not in this repo.
         </p>
       </Panel>
     </Page>

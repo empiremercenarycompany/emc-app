@@ -16,6 +16,9 @@ supabase/.temp
 coverage
 .DS_Store
 
-# Local Corleone file. Never commit font files. Logo PNGs in public/brand/ are tracked.
+# Local Corleone file. Licensed for web and app use, but this repo is public.
+# Drop Corleone.woff2 (or .otf / .ttf) in public/fonts/private/. See that folder's README.
 public/brand/local/*
 !public/brand/local/.gitkeep
+public/fonts/private/*
+!public/fonts/private/README.md

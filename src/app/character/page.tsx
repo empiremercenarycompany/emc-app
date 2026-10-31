@@ -13,6 +13,8 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
+import { TOOL_LABELS } from "@/lib/rules/backgrounds";
+import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
@@ -115,7 +117,7 @@ export default async function CharacterPage({
     return (
       <Page title="Character" lede="Not yet inducted">
         <Link className="button primary" href="/character/new">
-          Sign the Recruit Oath
+          Fill Out Recruitment Papers
         </Link>
       </Page>
     );
@@ -193,6 +195,7 @@ export default async function CharacterPage({
           originWord: character.origin_word,
         })}
         skillId={character.profession_skill}
+        skillIds={character.background_skills ?? null}
         acOverride={character.sheet?.ac ?? null}
         speedOverride={character.sheet?.speed ?? null}
         saves={character.sheet?.saves ?? null}
@@ -211,8 +214,17 @@ export default async function CharacterPage({
         </p>
         <p>
           {character.profession}
-          {character.origin_word ? ` · ${character.origin_word}` : ""}
+          {character.profession_tool
+            ? ` · ${TOOL_LABELS[character.profession_tool] ?? character.profession_tool}`
+            : ""}
+          {character.origin_word && character.origin_word !== character.profession
+            ? ` · ${character.origin_word}`
+            : ""}
+          {character.origin_feat ? ` · ${character.origin_feat}` : ""}
         </p>
+        {(character.background_skills ?? []).length > 0 ? (
+          <p>{(character.background_skills ?? []).map((skill) => skillLabel(skill)).join(", ")}</p>
+        ) : null}
         <p className="text-mute">
           {character.inducted_at
             ? "Combat numbers follow induction."

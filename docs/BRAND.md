@@ -16,16 +16,17 @@ Confirmed. Do not add a sixth brand color.
 
 Red as text on Iron Black fails contrast, so it is not used that way. Parchment is the text on a red fill. Bronze is for large type and marks, not for body copy. Steel is not body text. Secondary text uses the contrast-safe mute `#C4BFB2`.
 
-Red audit: the only red fill is `button.primary` and `.button.primary` in `src/app/globals.css`. Repeated actions (saving a name, posting a note, raising one ability) use a steel outline. A page keeps one red action: Join the Company, the Recruit Oath, Record Work, or Roll.
+Red audit: the only red fill is `button.primary` and `.button.primary` in `src/app/globals.css`. Repeated actions (saving a name, posting a note, raising one ability) use a steel outline. A page keeps one red action: Join the Company, Sign your papers, Record Work, or Roll.
 
 ## Type
 
 `FONT_PAIR` in `src/lib/brand.ts` is the only switch.
 
-- `barlow` (default). Body and UI text are Barlow Regular, from Google Fonts, SIL Open Font License. Subheads, buttons, labels, and tabs are Barlow Condensed. Big titles (screen titles, rank and induction titles) are Barlow Condensed too.
-- `corleone`. Same Barlow pair, except those big titles use Corleone when `public/brand/local/Corleone.woff2` is on disk. If that file is missing, titles stay Barlow Condensed. The `@font-face` is not emitted unless the file is there.
+Body and help text are Barlow 400/500. Labels, buttons, tabs, and stat names are Barlow Condensed 600–700, uppercase. Screen titles and the wordmark use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif` at weight 800, uppercase, and only for those short lines. The loaded face is in that stack, so a missing file still renders Barlow Condensed 800.
 
-League Spartan is not used. Never commit Corleone font files. The license is unconfirmed.
+EMC holds a Corleone license for web and app use. The file is never committed. `@font-face` loads `public/fonts/private/Corleone.woff2`, then `.otf`, then `.ttf`. A missing file falls through to Barlow Condensed 800.
+
+League Spartan and Cinzel are not used.
 
 ## Logo
 

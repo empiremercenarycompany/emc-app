@@ -11,6 +11,9 @@ export type CharacterRow = {
   profession_tool: string | null;
   profession_skill: string | null;
   origin_word: string | null;
+  background_id?: string | null;
+  background_skills?: string[] | null;
+  origin_feat?: string | null;
   class: string | null;
   level: number;
   rank: string;

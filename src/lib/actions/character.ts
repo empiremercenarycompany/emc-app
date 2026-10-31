@@ -3,35 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { actionClient, asImpact, dbError } from "@/lib/action-client";
-import { ABILITIES, isValidStartingArray, type AbilityName, type AbilityScores } from "@/lib/rules/starting-array";
 import type { ActionResult } from "@/lib/types";
-
-function score(formData: FormData, ability: AbilityName): number {
-  return Number(formData.get(ability));
-}
 
 export async function createCharacter(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
 
-  const scores = Object.fromEntries(ABILITIES.map((ability) => [ability, score(formData, ability)])) as AbilityScores;
-  if (!isValidStartingArray(scores)) {
-    return { error: "That starting array is not one of the two legal recruit builds." };
-  }
-
-  const { error: rpcError } = await supabase.rpc("create_character", {
+  const { error: rpcError } = await supabase.rpc("file_recruitment_papers", {
     p_name: String(formData.get("name") ?? ""),
-    p_origin_word: String(formData.get("origin_word") ?? ""),
-    p_profession: String(formData.get("profession") ?? ""),
-    p_profession_tool: String(formData.get("profession_tool") ?? ""),
-    p_profession_skill: String(formData.get("profession_skill") ?? ""),
     p_species: String(formData.get("species") ?? ""),
-    p_strength: scores.strength,
-    p_dexterity: scores.dexterity,
-    p_constitution: scores.constitution,
-    p_intelligence: scores.intelligence,
-    p_wisdom: scores.wisdom,
-    p_charisma: scores.charisma,
+    p_background_id: String(formData.get("background_id") ?? ""),
+    p_tool_id: String(formData.get("tool_id") ?? ""),
+    p_bonus_mode: String(formData.get("bonus_mode") ?? ""),
+    p_plus2: String(formData.get("plus2") ?? ""),
+    p_plus1: String(formData.get("plus1") ?? ""),
   });
   const message = dbError(rpcError);
   if (message) return { error: message };

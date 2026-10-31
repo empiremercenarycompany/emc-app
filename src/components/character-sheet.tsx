@@ -26,6 +26,7 @@ export function CharacterSheet({
   scores,
   hp,
   skillId,
+  skillIds = null,
   acOverride = null,
   speedOverride = null,
   saves = null,
@@ -46,6 +47,7 @@ export function CharacterSheet({
   scores: Record<AbilityName, number>;
   hp: number;
   skillId: string | null;
+  skillIds?: string[] | null;
   acOverride?: number | null;
   speedOverride?: number | null;
   saves?: string[] | null;
@@ -68,6 +70,7 @@ export function CharacterSheet({
   const ac = acOverride ?? armorClass(dex);
   const speed = speedOverride ?? walkingSpeed();
   const bonus = proficiencyBonus(level);
+  const trained = new Set<string>([...(skillId ? [skillId] : []), ...(skillIds ?? [])]);
 
   function show(index: number) {
     const next = (index + TABS.length) % TABS.length;
@@ -100,7 +103,7 @@ export function CharacterSheet({
             </button>
           ))
         : SHEET_SKILLS.map((skill) => {
-            const mod = abilityModifier(scores[skill.ability]) + (skill.id === skillId ? bonus : 0);
+            const mod = abilityModifier(scores[skill.ability]) + (trained.has(skill.id) ? bonus : 0);
             const expression = checkExpression(mod);
             return (
               <button key={skill.id} className="secondary" type="button" onClick={() => offer(expression)}>

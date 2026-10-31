@@ -32,7 +32,7 @@ export default async function GoalsPage() {
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.character ? (
         <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
-          {viewer.userId ? "Sign the Recruit Oath first." : "Join the Company first."}
+          {viewer.userId ? "Fill Out Recruitment Papers first." : "Join the Company first."}
         </Link>
       ) : (
         <>

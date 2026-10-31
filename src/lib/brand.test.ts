@@ -16,7 +16,14 @@ describe("brand fonts", () => {
     expect(FONT_PAIRS.barlow.heading).toBe("Barlow Condensed");
     expect(FONT_PAIRS[FONT_PAIR].body).toBe("Barlow");
     expect(headingFace()).toBe("Barlow Condensed");
-    expect(CORLEONE_FILE.startsWith("public/brand/local/")).toBe(true);
+    expect(CORLEONE_FILE).toBe("public/fonts/private/Corleone.woff2");
+    const cssEarly = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
+    expect(cssEarly).toContain(
+      '--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif',
+    );
+    expect(cssEarly).toContain("/fonts/private/Corleone.woff2");
+    const ignore = readFileSync(path.join(process.cwd(), ".gitignore"), "utf8");
+    expect(ignore).toContain("public/fonts/private/*");
     expect(existsSync(path.join(process.cwd(), LOGO_DARK))).toBe(true);
     expect(existsSync(path.join(process.cwd(), LOGO_MARK))).toBe(true);
     expect(pngSize(HELM_ICON)).toEqual({ w: 1024, h: 1024 });

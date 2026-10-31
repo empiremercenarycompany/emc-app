@@ -15,7 +15,7 @@ The marks in `public/brand/` are part of the repo:
 
 No light-background logo is made. On a light screen the dark mark sits on an Iron Black panel. The app icon files are downscales of the helm crop. The full badge is not scaled up into an icon.
 
-Corleone stays local. Add `public/brand/local/Corleone.woff2` and leave it untracked, then set `FONT_PAIR` in `src/lib/brand.ts` to `"corleone"`. If the file is missing, titles stay Barlow Condensed.
+Corleone is licensed for web and app use. Drop `Corleone.woff2` (or `.otf` / `.ttf`) in `public/fonts/private/` and leave it untracked. Headings use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif`. If the file is missing, titles stay Barlow Condensed 800. See `public/fonts/private/README.md`.
 
 Body text is Barlow. Subheads, buttons, labels, and tabs are Barlow Condensed. Both load from Google Fonts. League Spartan is not used.
 

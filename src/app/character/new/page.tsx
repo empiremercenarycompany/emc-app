@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { CharacterForm } from "@/components/character-form";
 import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
@@ -10,24 +9,15 @@ export default async function NewCharacterPage() {
   const setup = setupMessage(viewer);
   if (viewer.character) redirect("/character");
   const supabase = await createClient();
-  const [species, tools, skills] = supabase
-    ? await Promise.all([
-        supabase.from("content_species").select("id, name").order("name"),
-        supabase.from("profession_tools").select("id, name").order("name"),
-        supabase.from("skill_labels").select("id, display_name").order("display_name"),
-      ])
-    : [null, null, null];
+  const species = supabase
+    ? (await supabase.from("content_species").select("id, name").order("name")).data
+    : [];
 
   return (
-    <Page title="Recruit oath" lede="One recruit. The Company checks the array.">
+    <Page title="Recruitment Papers" lede="Report for duty. The Company fills the skills, the tool, and the feat from your background.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Sign in</Link> before you take the oath.
-        </p>
-      ) : (
-        <CharacterForm species={species?.data ?? []} tools={tools?.data ?? []} skills={skills?.data ?? []} />
-      )}
+      {!viewer.userId ? <p className="text-mute">Sign in before the papers are filed.</p> : null}
+      <CharacterForm species={species ?? []} />
     </Page>
   );
 }

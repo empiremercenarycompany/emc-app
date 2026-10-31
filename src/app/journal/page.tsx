@@ -133,7 +133,7 @@ export default async function JournalPage() {
           }
         />
       ) : viewer.userId ? (
-        <Link href="/character/new">Sign the Recruit Oath before building a workout.</Link>
+        <Link href="/character/new">Fill Out Recruitment Papers before building a workout.</Link>
       ) : null}
       {curator ? (
         <Panel title="Curator">

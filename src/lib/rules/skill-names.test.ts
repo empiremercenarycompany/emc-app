@@ -7,6 +7,8 @@ describe("skill labels", () => {
     expect(skillLabel("Arcana")).toBe(ALCHEMY);
     expect(skillLabel("religion")).toBe(CULTURE);
     expect(skillLabel("Religion")).toBe(CULTURE);
-    expect(skillLabel("stealth", "Stealth")).toBe("Stealth");
+    expect(skillLabel("stealth")).toBe("Stealth");
+    expect(skillLabel("animal_handling")).toBe("Animal Handling");
+    expect(skillLabel("sleight_of_hand")).toBe("Sleight of Hand");
   });
 });

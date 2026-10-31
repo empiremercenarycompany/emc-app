@@ -46,7 +46,7 @@ export default async function BarracksPage() {
         <Panel title="Start here">
           <ol className="list-decimal pl-5">
             <li>Join the Company</li>
-            <li>Sign the Recruit Oath</li>
+            <li>Fill Out Recruitment Papers</li>
             <li>Record work</li>
           </ol>
           {!viewer.userId ? (
@@ -55,7 +55,7 @@ export default async function BarracksPage() {
             </Link>
           ) : (
             <Link className="button primary" href="/character/new">
-              Sign the Recruit Oath
+              Fill Out Recruitment Papers
             </Link>
           )}
         </Panel>

@@ -22,8 +22,14 @@ export const FONT_PAIRS = {
   },
 } as const;
 
-/** Gitignored. Drop the file here locally. Do not commit it. */
-export const CORLEONE_FILE = "public/brand/local/Corleone.woff2";
+/** Gitignored. Licensed, but never committed. woff2, then otf, then ttf. */
+export const CORLEONE_FILES = [
+  "public/fonts/private/Corleone.woff2",
+  "public/fonts/private/Corleone.otf",
+  "public/fonts/private/Corleone.ttf",
+] as const;
+
+export const CORLEONE_FILE = CORLEONE_FILES[0];
 
 /** Full badge on black. Splash and About. */
 export const LOGO_DARK = "public/brand/logo_dark.png";
@@ -41,9 +47,8 @@ export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));
 }
 
-/** Big titles only. Subheads, buttons, labels, and tabs stay Barlow Condensed. */
+/** Big titles only. Missing files keep Barlow Condensed through the CSS stack. */
 export function headingFace(): "Barlow Condensed" | "Corleone" {
-  if (FONT_PAIR !== "corleone") return "Barlow Condensed";
-  if (!localFileReady(CORLEONE_FILE)) return "Barlow Condensed";
-  return "Corleone";
+  if (CORLEONE_FILES.some((file) => localFileReady(file))) return "Corleone";
+  return "Barlow Condensed";
 }

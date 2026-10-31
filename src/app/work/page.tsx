@@ -40,7 +40,7 @@ export default async function WorkPage() {
       {!viewer.character ? (
         <p>
           <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
-            {viewer.userId ? "Sign the Recruit Oath" : "Sign in"}
+            {viewer.userId ? "Fill Out Recruitment Papers" : "Sign in"}
           </Link>{" "}
           before recording work.
         </p>
