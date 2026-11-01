@@ -3,16 +3,16 @@ import { expect, test } from "@playwright/test";
 test("barracks shows the company lines", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("A squad, a story, and a reason to keep showing up.")).toBeVisible();
-  await expect(page.getByText("Train. Record. Advance.").first()).toBeVisible();
-  await expect(page.getByText("Your week shapes your character and the story.")).toBeVisible();
+  await expect(page.getByText("Train. Record. Advance.")).toHaveCount(0);
+  await expect(page.getByText("Your week shapes your character and the story.")).toHaveCount(0);
   await expect(page.getByText("Go forth and conquer.")).toBeVisible();
-  await expect(page.locator("img[src='/brand/emc_mark.png']")).toBeVisible();
+  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
 });
 
 test("about attributes the SRD and stays clear of invented place copy", async ({ page }) => {
   await page.goto("/about");
-  await expect(page.locator("img[src='/brand/emc_mark.png']")).toBeVisible();
+  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
   await expect(page.getByText("Bleakspire is a fortress with a small city around it.")).toBeVisible();
   await expect(page.getByText(/Creative Commons Attribution 4\.0/)).toBeVisible();
   await expect(page.getByText(/System Reference Document 5\.2/)).toBeVisible();
@@ -35,9 +35,10 @@ test("dice roller keeps a total", async ({ page }) => {
 test("sign-in asks for an email link", async ({ page }) => {
   await page.goto("/sign-in");
   await expect(page.getByRole("heading", { name: "Join the Company" })).toBeVisible();
-  await expect(page.locator("img[src='/brand/emc_mark.png']")).toBeVisible();
+  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Join the Company" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
+  await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Discord" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
@@ -63,6 +64,10 @@ test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
   await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
   await expect(page.getByText(/Friday at 11:59 PM/)).toBeVisible();
+  await expect(page.getByText("Known · week 4")).toBeVisible();
+  await expect(page.getByText("Vouched For · week 20")).toBeVisible();
+  await expect(page.getByText("Esteemed of Bleakspire · week 52")).toBeVisible();
+  await expect(page.getByText(/Pillar of Bleakspire II/)).toBeVisible();
 });
 
 test("work opens on one record form", async ({ page }) => {
@@ -122,7 +127,7 @@ test("the sheet sections swipe", async ({ page }) => {
   const skills = page.getByRole("tab", { name: "Skills" });
   await skills.focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tab", { name: "Attacks" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "Gear" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("tabpanel", { name: "Skills" })).toBeHidden();
   await expect(page.getByRole("button", { name: /Unarmed strike/ })).toBeVisible();
 });
@@ -136,7 +141,7 @@ test("the dice roller keeps a d20", async ({ page }) => {
 
 test("an NPC note can be submitted for review", async ({ page }) => {
   await page.goto("/character");
-  await page.getByRole("tab", { name: "NPCs" }).click();
+  await page.getByRole("tab", { name: "Story" }).click();
   await page.getByLabel("Name").fill("Mara");
   await page.getByLabel("Relationship to me").fill("Sister");
   await expect(page.getByTestId("npc-counter")).toHaveText("6 / 500");
@@ -157,7 +162,7 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await expect(overlay.getByRole("link", { name: "Trainer" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);
   const background = await overlay.evaluate((element) => getComputedStyle(element).backgroundColor);
-  expect(background).toBe("rgb(17, 17, 17)");
+  expect(background).toBe("rgb(26, 22, 19)");
   await page.goto("/menu");
   await expect(page).not.toHaveURL(/\/menu$/);
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();

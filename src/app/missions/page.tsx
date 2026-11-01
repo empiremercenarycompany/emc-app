@@ -7,6 +7,7 @@ import { logObjective } from "@/lib/actions/activity";
 import { correctAttendance } from "@/lib/actions/campaign";
 import { createSession } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
+import { embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
 
@@ -29,7 +30,7 @@ export default async function MissionsPage() {
       ? (
           await supabase
             .from("sessions")
-            .select("id, title, session_date, scheduled_at")
+            .select("id, title, session_date, scheduled_at, adventures(title)")
             .eq("guild_id", viewer.guildId)
             .order("scheduled_at", { ascending: false })
             .limit(8)
@@ -91,9 +92,13 @@ export default async function MissionsPage() {
         {(sessions ?? []).map((session) => (
           <div key={session.id}>
             <p>
-              {session.title}
-              {session.session_date ? ` · ${session.session_date}` : ""}
-              {session.scheduled_at && !session.session_date ? ` · ${session.scheduled_at}` : ""}
+              {postedSessionLine({
+                title: session.title,
+                adventureTitle: embeddedTitle(
+                  session.adventures as { title?: string | null } | { title?: string | null }[] | null,
+                ),
+                sessionDate: session.session_date,
+              })}
             </p>
             {viewer.character ? (
               <ResultForm action={checkIn} submit="Check in">

@@ -3,7 +3,9 @@ import { CheckInForm } from "@/components/check-in-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
-import { currentWeekStart } from "@/lib/rules/dates";
+import { companyWeekNumber } from "@/lib/rules/calendar";
+import { CLEARANCE_LADDER, clearanceRank, PILLAR_INTERVAL, PILLAR_NAME } from "@/lib/rules/clearance";
+import { currentWeekStart, parseDate } from "@/lib/rules/dates";
 import { isStaff } from "@/lib/types";
 
 export default async function CheckInPage() {
@@ -25,12 +27,17 @@ export default async function CheckInPage() {
             .limit(8)
         ).data
       : [];
+  const companyWeek =
+    viewer.today && viewer.config?.cohort_start
+      ? companyWeekNumber(parseDate(viewer.today), parseDate(viewer.config.cohort_start))
+      : null;
+  const rank = clearanceRank(companyWeek);
 
   return (
-    <Page
-      title="Check-in"
-      lede="Due Friday at 11:59 PM. Four objectives. Your week shapes your character and the story. This does not lock your character."
-    >
+    <Page hero mark={false} title="Check-in" lede="Four quick questions">
+      <p className="span-all text-center">
+        Due Friday at 11:59 PM. Honest answers help your trainer help you. This does not lock your character.
+      </p>
       {setup ? <Notice>{setup}</Notice> : null}
       {viewer.beginner ? (
         <Notice>Tap the card that matches your week. You do not need to know the dice.</Notice>
@@ -46,6 +53,19 @@ export default async function CheckInPage() {
           <CheckInForm defaultWeek={currentWeekStart(viewer.today)} />
         </Panel>
       ) : null}
+      <Panel title="Clearance">
+        <ul>
+          {CLEARANCE_LADDER.map((tier) => (
+            <li key={tier.week}>
+              {tier.name} · week {tier.week}
+            </li>
+          ))}
+        </ul>
+        <p className="text-mute">
+          {PILLAR_NAME} follows every {PILLAR_INTERVAL} weeks. Repeats are numbered, {PILLAR_NAME} II, then III.
+        </p>
+        {rank ? <p>This week: {rank}.</p> : <p className="text-mute">No clearance yet.</p>}
+      </Panel>
       <Panel title="Record">
         {(mine ?? []).length === 0 ? <p className="text-mute">No check-ins yet.</p> : null}
         <ul>

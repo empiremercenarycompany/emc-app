@@ -9,14 +9,24 @@ import { Notice, Page, Panel } from "@/components/ui";
 import { saveBuildPlan } from "@/lib/actions/campaign";
 import { useBuff } from "@/lib/actions/muster";
 import { saveNotes, spendIncrease } from "@/lib/actions/character";
+import { setSubclass } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { preInductionHp } from "@/lib/rules/checkin";
-import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
+import { LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
+import {
+  constitutionBankReady,
+  constitutionGoalCurrent,
+  constitutionGoalOption,
+  constitutionInitiative,
+  CON_GOAL_SCORE_MIN_DEFAULT,
+} from "@/lib/rules/constitution-goal";
+import { currentWeekStart } from "@/lib/rules/dates";
 import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
+import { isLogApprover, isStaff, type CharacterRow } from "@/lib/types";
 
 const LABELS: Record<AbilityName, string> = {
   strength: "Strength",
@@ -50,7 +60,7 @@ function abilityLabel(name: string) {
 export default async function CharacterPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ preview?: string; welcomed?: string }>;
+  searchParams?: Promise<{ preview?: string; welcomed?: string; recruit?: string }>;
 }) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
@@ -62,7 +72,7 @@ export default async function CharacterPage({
     if (row) {
       const scores = row.scores;
       return (
-        <Page title={row.name} lede={row.className}>
+        <Page title="Character" mark={false}>
           <CharacterSheet
             name={row.name}
             classLabel={`${speciesLabel(row.species, row.species.charAt(0).toUpperCase() + row.species.slice(1))}${row.lineage ? ` · ${row.lineage}` : ""} · ${row.className}`}
@@ -90,7 +100,7 @@ export default async function CharacterPage({
   }
   if (!viewer.userId) {
     return (
-      <Page title="Character">
+      <Page title="Character" mark={false}>
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
         <CharacterSheet
@@ -118,9 +128,104 @@ export default async function CharacterPage({
       </Page>
     );
   }
+  const recruitId = params?.recruit?.trim();
+  if (recruitId && viewer.userId && isLogApprover(viewer.role) && recruitId !== viewer.character?.id) {
+    const recruitClient = await createClient();
+    const recruit = (
+      recruitClient && viewer.guildId
+        ? (
+            await recruitClient
+              .from("characters")
+              .select("*")
+              .eq("id", recruitId)
+              .eq("guild_id", viewer.guildId)
+              .maybeSingle()
+          ).data
+        : null
+    ) as CharacterRow | null;
+    if (!recruit) {
+      return (
+        <Page title="Character" mark={false}>
+          <p>That sheet is not in this company.</p>
+        </Page>
+      );
+    }
+    const recruitScores = {
+      strength: recruit.strength,
+      dexterity: recruit.dexterity,
+      constitution: recruit.constitution,
+      intelligence: recruit.intelligence,
+      wisdom: recruit.wisdom,
+      charisma: recruit.charisma,
+    };
+    return (
+      <Page title="Character" lede={recruit.name} mark={false}>
+        <CharacterSheet
+          name={recruit.name}
+          classLabel={`${recruit.rank} · ${recruit.class ?? "Not yet inducted"}`}
+          level={recruit.level}
+          scores={recruitScores}
+          hp={
+            recruit.sheet?.hp ??
+            preInductionHp({
+              constitution: recruit.constitution,
+              species: recruit.species,
+              originWord: recruit.origin_word,
+            })
+          }
+          skillId={recruit.profession_skill}
+          skillIds={recruit.background_skills ?? null}
+          acOverride={recruit.sheet?.ac ?? null}
+          speedOverride={recruit.sheet?.speed ?? null}
+          saves={recruit.sheet?.saves ?? null}
+          recordedSkills={recruit.sheet?.skills ?? null}
+          recordedAttacks={recruit.sheet?.attacks ?? null}
+          recordedFeatures={recruit.sheet?.features ?? null}
+          recordedSpells={recruit.sheet?.spells ?? null}
+          recordedFeats={recruit.sheet?.feats ?? null}
+          features={
+            <p>
+              {recruit.rank} · level {recruit.level}
+              {recruit.species ? ` · ${speciesLabel(recruit.species)}` : ""}
+            </p>
+          }
+          inventory={<p className="text-mute">Staff view. The recruit keeps their own list.</p>}
+          npcs={<p className="text-mute">Open the recruit&apos;s story from the table.</p>}
+          progress={<p>Build changes stay with the recruit until you finalize them in person.</p>}
+          subclass={
+            recruit.level >= 3
+              ? {
+                  name: recruit.subclass_name ?? null,
+                  features: recruit.subclass_features ?? null,
+                  spells: recruit.subclass_spells ?? null,
+                }
+              : null
+          }
+        />
+        {isStaff(viewer.role) ? (
+          <ResultForm action={setSubclass} submit="Save subclass">
+            <input type="hidden" name="character_id" value={recruit.id} />
+            <label>
+              Subclass name
+              <input name="subclass_name" defaultValue={recruit.subclass_name ?? ""} />
+            </label>
+            <label>
+              Features
+              <textarea name="subclass_features" defaultValue={recruit.subclass_features ?? ""} />
+            </label>
+            <label>
+              Spells
+              <textarea name="subclass_spells" defaultValue={recruit.subclass_spells ?? ""} />
+            </label>
+          </ResultForm>
+        ) : null}
+      </Page>
+    );
+  }
+
   if (!viewer.character) {
     return (
-      <Page title="Character" lede="Not yet inducted">
+      <Page title="Character" lede="Not yet inducted" mark={false}>
         <Link className="button primary" href="/character/new">
           Fill Out Recruitment Papers
         </Link>
@@ -186,9 +291,45 @@ export default async function CharacterPage({
     wisdom: character.wisdom,
     charisma: character.charisma,
   };
+  const weekStart = currentWeekStart(viewer.today);
+  const goalMark =
+    supabase && character.constitution_goal_id
+      ? (
+          await supabase
+            .from("constitution_goal_weeks")
+            .select("week_start, option_id")
+            .eq("character_id", character.id)
+            .eq("week_start", weekStart)
+            .maybeSingle()
+        ).data
+      : null;
+  const goalChoice = constitutionGoalOption(character.constitution_goal_id);
+  const initiative = constitutionInitiative({
+    dexModifier: 0,
+    ready: constitutionBankReady({
+      score: character.constitution,
+      unspent: character.constitution_points,
+      scoreMin: viewer.config?.con_goal_score_min ?? CON_GOAL_SCORE_MIN_DEFAULT,
+    }),
+    current: constitutionGoalCurrent({
+      choiceId: character.constitution_goal_id ?? null,
+      markedWeek: goalMark && goalMark.option_id === character.constitution_goal_id ? goalMark.week_start : null,
+      weekStart,
+    }),
+    condition: goalChoice?.condition ?? null,
+  });
+  const stepQuery =
+    supabase && character.level === 3
+      ? await supabase
+          .from("goals")
+          .select("id", { count: "exact", head: true })
+          .eq("character_id", character.id)
+          .not("parent_id", "is", null)
+          .not("completed_at", "is", null)
+      : null;
 
   return (
-    <Page title={character.name} lede={character.class ?? "Not yet inducted"}>
+    <Page title="Character" mark={false}>
       {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
       <CharacterSheet
         name={character.name}
@@ -211,6 +352,27 @@ export default async function CharacterPage({
         recordedSpells={character.sheet?.spells ?? null}
         recordedFeats={character.sheet?.feats ?? null}
         conflicts={character.seed_flags ?? null}
+        levelFourCompleted={stepQuery && !stepQuery.error ? (stepQuery.count ?? 0) : null}
+        levelFourRequired={viewer.config?.level_four_steps_required ?? LEVEL_FOUR_STEPS_DEFAULT}
+        initiativeBonus={initiative.note ? initiative.total : 0}
+        initiativeNote={initiative.note}
+        conditionLabel={initiative.note ? (goalChoice?.condition ?? null) : null}
+        subclass={
+          character.level >= 3
+            ? {
+                name: character.subclass_name ?? null,
+                features: character.subclass_features ?? null,
+                spells: character.subclass_spells ?? null,
+              }
+            : null
+        }
+        milestone={
+          <p>
+            Level {viewer.config?.level_after_adventure_1 ?? 2} opens at week {viewer.config?.level_two_week ?? 16}. Level{" "}
+            {viewer.config?.level_after_adventure_2 ?? 3} opens at week {viewer.config?.level_three_week ?? 32}. Staff
+            record one step at a time. Nothing levels by itself, and a milestone does not lower a level.
+          </p>
+        }
         features={
           <>
             <p>
@@ -274,16 +436,7 @@ export default async function CharacterPage({
           ))}
         </div>
       </Panel>
-      <Panel title="Abilities">
-        <ul className="ability-row">
-          {ABILITIES.map((ability) => (
-            <li key={ability} className="ability-card">
-              <span className="ability-name">{LABELS[ability]}</span>
-              <span className="ability-score">{scores[ability]}</span>
-              <span className="ability-mod">{formatModifier(abilityModifier(scores[ability]))}</span>
-            </li>
-          ))}
-        </ul>
+      <Panel title="Raise an ability">
         {increases.map((increase: { ability: string; to: number; cost: number; pool: string }) => {
           const next = { ...scores, [increase.ability]: increase.to };
           return (

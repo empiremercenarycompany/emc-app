@@ -13,6 +13,8 @@ export function ResultForm({
   showSubmit = true,
   allowSubmit = true,
   submitDisabled = false,
+  done,
+  celebrate = false,
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
   submit: string;
@@ -22,6 +24,8 @@ export function ResultForm({
   showSubmit?: boolean;
   allowSubmit?: boolean;
   submitDisabled?: boolean;
+  done?: string;
+  celebrate?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => action(formData),
@@ -48,7 +52,7 @@ export function ResultForm({
         </button>
       ) : null}
       {state && "error" in state ? <p role="alert">{state.error}</p> : null}
-      {state && "ok" in state ? <p>Saved.</p> : null}
+      {state && "ok" in state ? <p className={celebrate ? "reward-ready" : undefined}>{done ?? "Saved."}</p> : null}
       {state && "impact" in state ? <ImpactCard impact={state.impact} /> : null}
     </form>
   );

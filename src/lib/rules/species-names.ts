@@ -1,11 +1,12 @@
 /**
  * Player-facing species names. Stored ids stay aasimar and tiefling.
- * Inferni is a placeholder. Change INFERNI here when John picks the real name.
+ * Inferni is the working final name. John may still rename it.
+ * Change INFERNI here and nowhere else.
  * These two labels are homebrew. See docs/SPECIES.md.
  */
 export const SERAPH = "Seraph";
 
-/** Placeholder. One place to rename later. */
+/** Working final name. One place to rename later. */
 export const INFERNI = "Inferni";
 
 const DISPLAY: Record<string, string> = {

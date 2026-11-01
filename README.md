@@ -14,7 +14,7 @@ The marks in `public/brand/` are the approved v2 set:
 
 Nothing is recolored. The wide lockup is not used. Headings are live type.
 
-Corleone is licensed for web and app use. Drop `Corleone.woff2` (or `.otf` / `.ttf`) in `public/fonts/private/` and leave it untracked. Headings use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif`. If the file is missing, titles stay Barlow Condensed 800. See `public/fonts/private/README.md`.
+Corleone is FontMesa's cut, licensed for web and app use, and never committed. Put `Corleone-Regular.woff2` (`font-family: Corleone`, mixed-case display) and `Corleone-Due-Regular.woff2` (`font-family: "Corleone Due"`, all-caps headings) in `public/fonts/corleone/` (gitignored). Both faces are weight 400. The display stack is `"Corleone Due", Corleone, "Barlow Condensed", sans-serif`. A missing file does not fail the build; headings then use Barlow Condensed 800. See `public/fonts/private/README.md`.
 
 Body text is Barlow. Subheads, buttons, labels, and tabs are Barlow Condensed. Both load from Google Fonts. League Spartan is not used.
 

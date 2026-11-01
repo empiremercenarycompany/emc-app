@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
-import { checkIn } from "@/lib/actions/activity";
+import { markAttendance } from "@/lib/actions/activity";
 import { advanceMilestone, saveCalendarEvent } from "@/lib/actions/campaign";
 import { awardBuff } from "@/lib/actions/muster";
-import { clearSessions, createSession, induct, setAppRole, setCohortSession, setCohortStart, setLevel } from "@/lib/actions/staff";
+import { clearSessions, createSession, induct, setAppRole, setCohortSession, setCohortStart, setLevel, setSubclass } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
+import { cohortAdventure, cohortBeginsLine, embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
 import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus } from "@/lib/rules/calendar";
-import { COMPANY_ZONE, calendarDate, formatDate, parseDate } from "@/lib/rules/dates";
+import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from "@/lib/rules/dates";
+import { attendanceOpen, nextPostedSession } from "@/lib/rules/table-sessions";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
@@ -29,7 +31,15 @@ function blockMark(block: CalendarBlock, focus: SessionFocus | null): string | n
   return focus.when === "now" ? "Now" : "Next";
 }
 
-function BlockList({ blocks, focus }: { blocks: CalendarBlock[]; focus: SessionFocus | null }) {
+function BlockList({
+  blocks,
+  focus,
+  adventureTitle,
+}: {
+  blocks: CalendarBlock[];
+  focus: SessionFocus | null;
+  adventureTitle: string | null;
+}) {
   return (
     <ul className="flex flex-col gap-2">
       {blocks.map((block) => {
@@ -40,9 +50,10 @@ function BlockList({ blocks, focus }: { blocks: CalendarBlock[]; focus: SessionF
             className={mark ? "border border-bronze p-2" : "border border-steel p-2"}
           >
             <p>
+              {adventureTitle ? `${adventureTitle} · ` : ""}
               {KIND_LABEL[block.kind]}
               {block.sessionNumber != null ? ` ${block.sessionNumber}` : ""}
-              {mark ? ` · ${mark}` : ""} · {block.start} to {block.end}
+              {mark ? ` · ${mark}` : ""} · {formatMuster(block.start)} to {formatMuster(block.end)}
             </p>
             {block.markers.length > 0 ? <p className="text-mute">{block.markers.join(" · ")}</p> : null}
           </li>
@@ -67,10 +78,6 @@ export default async function SchedulePage() {
     slotRows && slotRows.length > 0
       ? slotRows.map((slot) => ({ id: String(slot.id), label: String(slot.label), adultsOnly: Boolean(slot.adults_only) }))
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
-  const notes =
-    supabase && isStaff(viewer.role)
-      ? (await supabase.from("config_notes").select("key, note").order("key")).data
-      : [];
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name, user_id, class, level").eq("guild_id", viewer.guildId)).data
@@ -84,10 +91,14 @@ export default async function SchedulePage() {
       ? (
           await supabase
             .from("sessions")
-            .select("id, title, session_date, off_week, cohort_session_number, notes")
+            .select("id, title, session_date, off_week, cohort_session_number, notes, squad_id, adventures(title)")
             .eq("guild_id", viewer.guildId)
             .order("session_date", { ascending: true })
         ).data
+      : [];
+  const adventureRows =
+    supabase && viewer.guildId
+      ? (await supabase.from("adventures").select("number, title, start_date, status").eq("guild_id", viewer.guildId)).data
       : [];
   const events =
     supabase && viewer.guildId
@@ -123,6 +134,12 @@ export default async function SchedulePage() {
       : [];
   const today = viewer.today ?? formatDate(calendarDate(new Date(), COMPANY_ZONE));
   const focus = nextSessionBlock(live, today);
+  const postedRows = (tables ?? []).map((session) => ({
+    ...session,
+    adventureTitle: embeddedTitle(session.adventures as { title?: string | null } | { title?: string | null }[] | null),
+  }));
+  const posted = nextPostedSession(postedRows, today, viewer.character?.squad_id ?? null);
+  const cohort = cohortAdventure(adventureRows ?? [], viewer.config?.cohort_start ?? null);
   const yours = slots.find((slot) => slot.id === viewer.intake?.timeslotId) ?? null;
 
   return (
@@ -130,22 +147,31 @@ export default async function SchedulePage() {
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Next session">
         <p>Today {today}</p>
-        {focus ? (
+        {posted ? (
           <p>
-            {focus.when === "now" ? "This session" : "Next session"}
-            {focus.block.sessionNumber != null ? ` ${focus.block.sessionNumber}` : ""}: {focus.block.start} to{" "}
-            {focus.block.end}
+            Next session:{" "}
+            {postedSessionLine({
+              title: posted.title,
+              adventureTitle: posted.adventureTitle,
+              sessionDate: posted.session_date,
+            })}
           </p>
-        ) : viewer.userId ? (
-          <p>No session is on the calendar after today. You can still record work.</p>
+        ) : cohort ? (
+          <p>{cohortBeginsLine(cohort.title, cohort.start)}</p>
+        ) : focus ? (
+          <p>
+            Next session: {formatMuster(focus.block.start)}
+          </p>
         ) : (
+          <p>Next muster will be posted here.</p>
+        )}
+        {!viewer.userId ? (
           <p>
             <Link href="/sign-in">Sign in</Link> to see the next session.
           </p>
-        )}
-        {focus && focus.block.markers.length > 0 ? <p className="text-mute">{focus.block.markers.join(" · ")}</p> : null}
+        ) : null}
+        {!posted && focus && focus.block.markers.length > 0 ? <p className="text-mute">{focus.block.markers.join(" · ")}</p> : null}
         <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
-        <p className="text-mute">Posters {viewer.config?.posters_launch ?? "2027-01-04"}</p>
       </Panel>
       <Panel title="Times">
         <ul className="flex flex-col gap-2">
@@ -171,13 +197,16 @@ export default async function SchedulePage() {
         {viewer.userId && viewer.config ? (
           <>
             <p className="text-mute">
-              Starts {viewer.config.cohort_start}. Induction week {viewer.config.induction_week}. Level 2 week{" "}
-              {viewer.config.level_two_week ?? 16}. Level 3 week {viewer.config.level_three_week ?? 32}.
+              {cohort
+                ? cohortBeginsLine(cohort.title, cohort.start)
+                : `Begins ${formatMuster(viewer.config.cohort_start)}`}
+              . Induction week {viewer.config.induction_week}. Level 2 week {viewer.config.level_two_week ?? 16}. Level 3
+              week {viewer.config.level_three_week ?? 32}. This list is the award calendar. It is not the posted episode.
             </p>
             {(windows ?? []).length === 0 ? (
               <p className="text-mute">No published windows. The 14-day cadence is the fallback.</p>
             ) : null}
-            <BlockList blocks={live} focus={focus} />
+            <BlockList blocks={live} focus={posted ? null : focus} adventureTitle={cohort?.title ?? null} />
           </>
         ) : viewer.userId ? (
           <p className="text-mute">The schedule is not set yet.</p>
@@ -199,23 +228,29 @@ export default async function SchedulePage() {
       </Panel>
       <Panel title="Table sessions">
         {(tables ?? []).length === 0 ? <p className="text-mute">No table sessions yet.</p> : null}
-        {(tables ?? []).map((session) => (
+        {postedRows.map((session) => (
           <article key={session.id}>
             <p>
-              {session.title}
-              {session.session_date ? ` · ${session.session_date}` : ""}
+              {postedSessionLine({
+                title: session.title,
+                adventureTitle: session.adventureTitle,
+                sessionDate: session.session_date,
+              })}
               {session.off_week ? " · Off-week" : ""}
               {session.cohort_session_number != null ? ` · Window ${session.cohort_session_number}` : ""}
             </p>
             {session.notes ? <p className="text-mute">{session.notes}</p> : null}
-            {viewer.character ? (
-              <ResultForm action={checkIn} submit="Check in">
+            {viewer.character && attendanceOpen(session.session_date, today) ? (
+              <ResultForm action={markAttendance} submit="I was there">
                 <input type="hidden" name="session_id" value={session.id} />
               </ResultForm>
             ) : null}
           </article>
         ))}
-        <p className="text-sm text-mute">Checking in records that you were there.</p>
+        <p className="text-sm text-mute">
+          I was there is for that episode&apos;s day. The weekly check-in stays due Friday at 11:59 PM, including a week
+          with no session.
+        </p>
         {isStaff(viewer.role) ? (
           <ResultForm action={createSession} submit="Save session">
             <input name="title" required placeholder="Title" />
@@ -339,6 +374,31 @@ export default async function SchedulePage() {
             <input name="level" required inputMode="numeric" placeholder="Level" />
           </ResultForm>
           <p className="text-sm text-mute">A level change is written down. It does not move the Build.</p>
+          <ResultForm action={setSubclass} submit="Save subclass">
+            <select name="character_id" required defaultValue="">
+              <option value="" disabled>
+                Character
+              </option>
+              {(people ?? []).map((person) => (
+                <option key={person.id} value={person.id}>
+                  {person.name}
+                </option>
+              ))}
+            </select>
+            <label>
+              Subclass name
+              <input name="subclass_name" />
+            </label>
+            <label>
+              Features
+              <textarea name="subclass_features" />
+            </label>
+            <label>
+              Spells
+              <textarea name="subclass_spells" />
+            </label>
+          </ResultForm>
+          <p className="text-sm text-mute">Write the name and what it does. Leave it blank until you decide. Homebrew names are allowed. Do not paste book text.</p>
           <ResultForm action={setAppRole} submit="Set role">
             <input name="user_id" required placeholder="User id" />
             <select name="role" defaultValue="player">
@@ -369,18 +429,6 @@ export default async function SchedulePage() {
               ))}
             </select>
           </ResultForm>
-        </Panel>
-      ) : null}
-      {isStaff(viewer.role) ? (
-        <Panel title="Open settings">
-          <ul className="flex flex-col gap-2">
-            {(notes ?? []).map((note) => (
-              <li key={note.key}>
-                <span className="text-mute">{note.key}. </span>
-                {note.note}
-              </li>
-            ))}
-          </ul>
         </Panel>
       ) : null}
     </Page>

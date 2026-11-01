@@ -2,23 +2,32 @@
 
 import { useState, type KeyboardEvent, type ReactNode } from "react";
 import { DiceRoller } from "@/components/dice-roller";
+import { EmptyState } from "@/components/empty-state";
 import { Term } from "@/components/term";
+import { attackParts } from "@/lib/rules/attacks";
+import { conditionTermId } from "@/lib/rules/constitution-goal";
 import { checkExpression } from "@/lib/rules/dice";
+import { levelFourProgress, showsLevelFourProgress, showsMilestoneLevels } from "@/lib/rules/level-four";
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { SHEET_SKILLS, armorClass, proficiencyBonus, walkingSpeed } from "@/lib/rules/sheet";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
-const LABELS: Record<AbilityName, string> = {
-  strength: "Strength",
-  dexterity: "Dexterity",
-  constitution: "Constitution",
-  intelligence: "Intelligence",
-  wisdom: "Wisdom",
-  charisma: "Charisma",
+const CRESTS: Record<AbilityName, { id: string; label: string; meaning: string; built: string }> = {
+  strength: { id: "str", label: "Strength", meaning: "How hard you can push, pull and lift.", built: "workouts" },
+  dexterity: { id: "dex", label: "Dexterity", meaning: "Balance, speed and quick reflexes.", built: "workouts" },
+  constitution: {
+    id: "con",
+    label: "Constitution",
+    meaning: "Stamina, and how well you shake off hits.",
+    built: "nutrition + sleep",
+  },
+  intelligence: { id: "int", label: "Intelligence", meaning: "Memory and clear thinking.", built: "mental goals" },
+  wisdom: { id: "wis", label: "Wisdom", meaning: "Awareness and good judgment.", built: "mental goals" },
+  charisma: { id: "cha", label: "Charisma", meaning: "How well you connect with people.", built: "social goals" },
 };
 
-const TABS = ["Skills", "Attacks", "Features", "Inventory", "NPCs", "Progress"] as const;
+const TABS = ["Overview", "Skills", "Gear", "Story", "Progress"] as const;
 
 export function CharacterSheet({
   name,
@@ -41,6 +50,13 @@ export function CharacterSheet({
   inventory,
   npcs,
   progress,
+  levelFourCompleted = null,
+  levelFourRequired = null,
+  milestone = null,
+  initiativeBonus = 0,
+  initiativeNote = null,
+  conditionLabel = null,
+  subclass = null,
 }: {
   name: string;
   classLabel: string;
@@ -62,6 +78,13 @@ export function CharacterSheet({
   inventory: ReactNode;
   npcs: ReactNode;
   progress: ReactNode;
+  levelFourCompleted?: number | null;
+  levelFourRequired?: number | null;
+  milestone?: ReactNode;
+  initiativeBonus?: number;
+  initiativeNote?: string | null;
+  conditionLabel?: string | null;
+  subclass?: { name: string | null; features: string | null; spells: string | null } | null;
 }) {
   const [tab, setTab] = useState(0);
   const [roll, setRoll] = useState<string | null>(null);
@@ -71,141 +94,252 @@ export function CharacterSheet({
   const speed = speedOverride ?? walkingSpeed();
   const bonus = proficiencyBonus(level);
   const trained = new Set<string>([...(skillId ? [skillId] : []), ...(skillIds ?? [])]);
+  const recorded = new Set((recordedSkills ?? []).map((skill) => skill.toLowerCase()));
+  const mark = name.trim().charAt(0).toUpperCase() || "R";
+  const toward =
+    showsLevelFourProgress(level) && levelFourCompleted != null
+      ? levelFourProgress(levelFourCompleted, levelFourRequired)
+      : null;
 
   function show(index: number) {
     setTab((index + TABS.length) % TABS.length);
   }
 
-  function onKeys(event: KeyboardEvent) {
-    if (event.key === "ArrowRight") {
-      event.preventDefault();
-      show(tab + 1);
-    }
-    if (event.key === "ArrowLeft") {
-      event.preventDefault();
-      show(tab - 1);
-    }
+  function onKeys(event: KeyboardEvent<HTMLDivElement>) {
+    const index = Number((event.target as HTMLElement).dataset.index);
+    const delta = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+    if (!delta || !Number.isInteger(index)) return;
+    event.preventDefault();
+    const next = (index + delta + TABS.length) % TABS.length;
+    show(next);
+    event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
   }
 
   function offer(expression: string) {
     setRoll(expression);
   }
 
-  const panels = [
-    <div key="skills" className="flex flex-col gap-2">
-      {(recordedSkills ?? []).length > 0
-        ? recordedSkills!.map((skill) => (
-            <button key={skill} className="secondary" type="button" onClick={() => offer("1d20")}>
-              {skillLabel(skill)}
-            </button>
-          ))
-        : SHEET_SKILLS.map((skill) => {
-            const mod = abilityModifier(scores[skill.ability]) + (trained.has(skill.id) ? bonus : 0);
-            const expression = checkExpression(mod);
-            return (
-              <button key={skill.id} className="secondary" type="button" onClick={() => offer(expression)}>
-                {skill.name} · {formatModifier(mod)} · {expression}
-              </button>
-            );
-          })}
-    </div>,
-    <div key="attacks" className="flex flex-col gap-2">
-      {(recordedAttacks ?? []).length > 0 ? (
-        recordedAttacks!.map((attack) => (
-          <button key={attack} className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
-            {attack}
-          </button>
-        ))
-      ) : (
-        <button className="secondary" type="button" onClick={() => offer(checkExpression(str))}>
-          Unarmed strike · {checkExpression(str)}
-        </button>
-      )}
-      {(recordedAttacks ?? []).length === 0 ? <p className="text-mute">More attacks arrive at induction.</p> : null}
-    </div>,
-    <div key="features" className="flex flex-col gap-2">
-      {(recordedFeatures ?? []).map((feature) => (
-        <p key={feature}>{feature}</p>
-      ))}
-      {(recordedSpells ?? []).length > 0 ? <p>Spells: {(recordedSpells ?? []).join(", ")}</p> : null}
-      {(recordedFeats ?? []).length > 0 ? <p>Feats: {(recordedFeats ?? []).join(", ")}</p> : null}
-      {(conflicts ?? []).length > 0 ? (
-        <div>
-          <p className="font-bold">Recorded conflicts</p>
-          {(conflicts ?? []).map((flag) => (
-            <p key={flag} className="text-mute">
-              {flag}
-            </p>
-          ))}
+  function trainedSkill(skill: (typeof SHEET_SKILLS)[number]): boolean {
+    return (
+      trained.has(skill.id) ||
+      recorded.has(skill.name.toLowerCase()) ||
+      recorded.has(skillLabel(skill.id).toLowerCase()) ||
+      recorded.has(skill.id)
+    );
+  }
+
+  const overview = (
+    <article className="paper sheet-doc">
+      <div className="sheet-id">
+        <div className="level-ring" aria-hidden="true">
+          <svg viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r="40" className="ring-track" />
+            <circle cx="48" cy="48" r="40" className="ring-value" />
+            <text x="48" y="56" textAnchor="middle">
+              {mark}
+            </text>
+          </svg>
         </div>
+        <div>
+          <h2 className="sheet-name">{name}</h2>
+          <p className="sheet-rank">{classLabel}</p>
+          <p className="sheet-level">
+            Level {level}
+            {toward ? ` · Toward level 4 · ${toward.label}` : null}
+          </p>
+        </div>
+      </div>
+      <div className="stat-row">
+        {(
+          [
+            ["hp", String(hp), "HP"],
+            ["ac", String(ac), "AC"],
+            ["speed", String(speed), "Speed"],
+          ] as const
+        ).map(([id, value, label]) => (
+          <div key={id} className="stat-chip">
+            <div className="stat-value">{value}</div>
+            <Term id={id}>{label}</Term>
+          </div>
+        ))}
+      </div>
+      <p className="sheet-note">
+        <Term id="initiative">Initiative {formatModifier(dex + initiativeBonus)}</Term>
+        {conditionLabel && conditionTermId(conditionLabel) ? (
+          <Term id={conditionTermId(conditionLabel) ?? "initiative"} className="condition-chip">
+            {conditionLabel}
+          </Term>
+        ) : initiativeNote ? (
+          <span> · {initiativeNote}</span>
+        ) : null}
+        {saves && saves.length > 0 ? (
+          <>
+            {" · "}
+            <Term id="saves">Saves {saves.join(", ")}</Term>
+          </>
+        ) : null}
+      </p>
+      <h3 className="sheet-abilities-title">Your six abilities</h3>
+      <p className="sheet-note">Your real life builds these. Tap a name to learn more.</p>
+      <ul className="crest-grid">
+        {ABILITIES.map((ability) => {
+          const crest = CRESTS[ability];
+          const modifier = abilityModifier(scores[ability]);
+          return (
+            <li key={ability} className="crest">
+              <Term id={crest.id}>{crest.label}</Term>
+              <div className="crest-mod">{formatModifier(modifier)}</div>
+              <div className="crest-score">Score {scores[ability]}</div>
+              <p>{crest.meaning}</p>
+              <span className="built-tag">Built by {crest.built}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </article>
+  );
+
+  const skills = (
+    <article className="paper">
+      <p className="sheet-note">Trained skills are highlighted. Roll adds your number to a d20.</p>
+      {ABILITIES.map((ability) => {
+        const crest = CRESTS[ability];
+        const rows = SHEET_SKILLS.filter((skill) => skill.ability === ability);
+        if (rows.length === 0) return null;
+        return (
+          <section key={ability} className="skill-group">
+            <div className="skill-head">
+              <h3>{crest.label}</h3>
+              <span>{crest.built}</span>
+            </div>
+            <ul>
+              {rows.map((skill) => {
+                const mod = abilityModifier(scores[skill.ability]) + (trainedSkill(skill) ? bonus : 0);
+                const expression = checkExpression(mod);
+                return (
+                  <li key={skill.id} className={trainedSkill(skill) ? "skill-row trained" : "skill-row"}>
+                    <span>
+                      {skillLabel(skill.id)}
+                      {trainedSkill(skill) ? <span className="trained-pill">Trained</span> : null}
+                    </span>
+                    <span className="skill-mod">{formatModifier(mod)}</span>
+                    <button type="button" className="roll-btn" onClick={() => offer(expression)}>
+                      Roll
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+    </article>
+  );
+
+  const gear = (
+    <div className="flex flex-col gap-3">
+      <article className="paper">
+        {(recordedAttacks ?? []).length > 0 ? (
+          <ul className="weapon-list">
+            {recordedAttacks!.map((attack) => {
+              const parts = attackParts(attack);
+              return (
+                <li key={attack}>
+                  <button className="weapon-row" type="button" onClick={() => offer(checkExpression(str))}>
+                    <span>{parts.name}</span>
+                    {parts.bonus ? <span>{parts.bonus}</span> : null}
+                    {parts.damage ? <span>{parts.damage}</span> : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <EmptyState title="No attacks on the sheet yet">
+            <p>More attacks arrive at induction.</p>
+            <button className="weapon-row" type="button" onClick={() => offer(checkExpression(str))}>
+              <span>Unarmed strike</span>
+              <span>{checkExpression(str)}</span>
+            </button>
+          </EmptyState>
+        )}
+      </article>
+      <article className="paper">{inventory}</article>
+    </div>
+  );
+
+  const story = (
+    <div className="flex flex-col gap-3">
+      {level >= 3 ? (
+        <article className="paper">
+          <h3>Subclass</h3>
+          {subclass?.name ? <p>{subclass.name}</p> : <p className="sheet-note">Your DM records a subclass here.</p>}
+          {subclass?.features ? <p>{subclass.features}</p> : null}
+          {subclass?.spells ? <p>Spells: {subclass.spells}</p> : null}
+        </article>
       ) : null}
-      {features}
-    </div>,
-    <div key="inventory">{inventory}</div>,
-    <div key="npcs">{npcs}</div>,
-    <div key="progress" className="flex flex-col gap-3">
+      <article className="paper">
+        {(recordedFeatures ?? []).map((feature) => (
+          <p key={feature}>{feature}</p>
+        ))}
+        {(recordedSpells ?? []).length > 0 ? <p>Spells: {(recordedSpells ?? []).join(", ")}</p> : null}
+        {(recordedFeats ?? []).length > 0 ? <p>Feats: {(recordedFeats ?? []).join(", ")}</p> : null}
+        {(conflicts ?? []).length > 0 ? (
+          <div>
+            <p className="font-bold">Recorded conflicts</p>
+            {(conflicts ?? []).map((flag) => (
+              <p key={flag} className="text-mute">
+                {flag}
+              </p>
+            ))}
+          </div>
+        ) : null}
+        {features}
+      </article>
+      <article className="paper">{npcs}</article>
+    </div>
+  );
+
+  const progressPanel = (
+    <div className="flex flex-col gap-3">
+      {showsMilestoneLevels(level) && milestone ? <article className="paper">{milestone}</article> : null}
+      {toward ? (
+        <article className="paper">
+          <p className="eyebrow">Toward level 4</p>
+          <p className="progress-fraction">{toward.label}</p>
+          <p>Completed short-term goals.</p>
+        </article>
+      ) : null}
       {progress}
-    </div>,
-  ];
+    </div>
+  );
+
+  const panels = [overview, skills, gear, story, progressPanel];
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="border border-steel p-4">
-        <h2>{name}</h2>
-        <p>
-          {classLabel} · level {level}
-        </p>
-        <p>
-          <Term id="hp">HP {hp}</Term>
-          {" · "}
-          <Term id="ac">AC {ac}</Term>
-          {" · "}
-          Speed {speed}
-          {" · "}
-          <Term id="initiative">Initiative {formatModifier(dex)}</Term>
-          {saves && saves.length > 0 ? (
-            <>
-              {" · "}
-              <Term id="saves">Saves {saves.join(", ")}</Term>
-            </>
-          ) : null}
-        </p>
-        <ul className="ability-row">
-          {ABILITIES.map((ability) => (
-            <li key={ability}>
-              <button className="secondary ability-pill" type="button" onClick={() => offer(checkExpression(abilityModifier(scores[ability])))}>
-                <span className="ability-name">{LABELS[ability]}</span>
-                <span className="ability-score">{scores[ability]}</span>
-                <span className="ability-mod">{formatModifier(abilityModifier(scores[ability]))}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
-      <div role="tablist" aria-label="Sheet sections" className="flex gap-2 overflow-x-auto" onKeyDown={onKeys}>
+    <div className="span-all flex flex-col gap-4">
+      <div role="tablist" aria-label="Sheet sections" className="segmented" onKeyDown={onKeys}>
         {TABS.map((label, index) => (
           <button
             key={label}
             role="tab"
             type="button"
             aria-selected={tab === index}
-            className={tab === index ? "primary" : "secondary"}
+            data-index={index}
+            className={tab === index ? "is-on" : undefined}
             onClick={() => show(index)}
           >
             {label}
           </button>
         ))}
       </div>
-      <div onKeyDown={onKeys}>
-        {panels.map((panel, index) => (
-          <section key={TABS[index]} className="sheet-panel" role="tabpanel" aria-label={TABS[index]} hidden={tab !== index}>
-            <h2>{TABS[index]}</h2>
-            {panel}
-          </section>
-        ))}
-      </div>
+      {panels.map((panel, index) => (
+        <section key={TABS[index]} role="tabpanel" aria-label={TABS[index]} hidden={tab !== index}>
+          {panel}
+        </section>
+      ))}
       {roll ? (
-        <section className="border border-steel p-4">
+        <section className="card">
           <h2>Roll</h2>
           <DiceRoller initialExpression={roll} />
         </section>

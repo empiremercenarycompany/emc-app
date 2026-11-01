@@ -1,9 +1,12 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { approveNpc, returnNpc } from "@/lib/actions/npcs";
 import { approveSquadMuster, finalizeSquadStats, finalizeStats, recordMuster } from "@/lib/actions/muster";
 import { loadViewer, setupMessage } from "@/lib/company";
+import { embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
+import { GOAL_REWARD_READY } from "@/lib/rules/level-four";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
 
@@ -15,6 +18,18 @@ const ABILITY: Record<string, string> = {
   wisdom: "Wisdom",
   charisma: "Charisma",
 };
+
+function sessionLabel(session: {
+  title: string;
+  session_date: string | null;
+  adventures?: { title?: string | null } | { title?: string | null }[] | null;
+}): string {
+  return postedSessionLine({
+    title: session.title,
+    adventureTitle: embeddedTitle(session.adventures),
+    sessionDate: session.session_date,
+  });
+}
 
 const BANK: Record<string, string> = {
   physical: "workouts",
@@ -35,7 +50,7 @@ export default async function MusterPage() {
       ? (
           await supabase
             .from("sessions")
-            .select("id, title, session_date")
+            .select("id, title, session_date, adventures(title)")
             .eq("guild_id", viewer.guildId)
             .order("session_date", { ascending: false })
         ).data
@@ -68,6 +83,22 @@ export default async function MusterPage() {
             .gt("remaining", 0)
         ).data
       : [];
+  const readyRewards =
+    supabase && isStaff(viewer.role)
+      ? (
+          await supabase
+            .from("goal_rewards")
+            .select("id, character_id, goals(title)")
+            .eq("status", "ready")
+        ).data
+      : [];
+  const rewardTitles = (characterId: string) =>
+    (readyRewards ?? [])
+      .filter((reward) => reward.character_id === characterId)
+      .map((reward) => {
+        const goal = Array.isArray(reward.goals) ? reward.goals[0] : reward.goals;
+        return goal?.title ?? "Step";
+      });
 
   return (
     <Page title="Table Muster" lede="In-person check-in before the episode. Confirm the week, then approve the squad.">
@@ -80,8 +111,7 @@ export default async function MusterPage() {
               <option value="">Choose a session</option>
               {(sessions ?? []).map((session) => (
                 <option key={session.id} value={session.id}>
-                  {session.title}
-                  {session.session_date ? ` · ${session.session_date}` : ""}
+                  {sessionLabel(session)}
                 </option>
               ))}
             </select>
@@ -110,9 +140,20 @@ export default async function MusterPage() {
         </ul>
         {(people ?? []).length === 0 ? <p>No roster loaded.</p> : null}
         <ul>
-          {(people ?? []).map((person) => (
-            <li key={person.id}>{person.name}</li>
-          ))}
+          {(people ?? []).map((person) => {
+            const titles = rewardTitles(person.id);
+            return (
+              <li key={person.id}>
+                <p>{person.name}</p>
+                {titles.map((title) => (
+                  <p key={title}>
+                    {GOAL_REWARD_READY} · {title}
+                  </p>
+                ))}
+                <Link href={`/character?recruit=${person.id}`}>Open sheet</Link>
+              </li>
+            );
+          })}
         </ul>
         {isStaff(viewer.role) ? (
           <ResultForm action={recordMuster} submit="Record muster">
@@ -122,7 +163,7 @@ export default async function MusterPage() {
               </option>
               {(sessions ?? []).map((session) => (
                 <option key={session.id} value={session.id}>
-                  {session.title}
+                  {sessionLabel(session)}
                 </option>
               ))}
             </select>
@@ -175,7 +216,7 @@ export default async function MusterPage() {
               </option>
               {(sessions ?? []).map((session) => (
                 <option key={session.id} value={session.id}>
-                  {session.title}
+                  {sessionLabel(session)}
                 </option>
               ))}
             </select>
@@ -201,7 +242,14 @@ export default async function MusterPage() {
               return (
                 <div key={person.id}>
                   <p>{person.name}</p>
-                  {lines.length === 0 ? <p className="text-mute">Nothing waiting.</p> : null}
+                  {lines.length === 0 && rewardTitles(person.id).length === 0 ? (
+                    <p className="text-mute">Nothing waiting.</p>
+                  ) : null}
+                  {rewardTitles(person.id).map((title) => (
+                    <p key={`${person.id}-${title}`}>
+                      {GOAL_REWARD_READY} · {title}
+                    </p>
+                  ))}
                   {lines.map((line) => (
                     <p key={`${person.id}-${line.ability}-${line.pool}`} className="text-mute">
                       {ABILITY[line.ability] ?? line.ability} · {line.remaining} · {BANK[line.pool] ?? line.pool}

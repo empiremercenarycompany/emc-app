@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actionClient, asImpact, dbError } from "@/lib/action-client";
+import { actionClient, asImpact, dbError, requireRole } from "@/lib/action-client";
+import { currentWeekStart } from "@/lib/rules/dates";
+import { cmartComplete, cmartRequired, mentalCategory, type CmartId, CMART_CHECKS } from "@/lib/rules/cmart";
 import type { ActionResult } from "@/lib/types";
 
 function touch() {
@@ -12,6 +14,7 @@ function touch() {
   revalidatePath("/missions");
   revalidatePath("/squad");
   revalidatePath("/journal");
+  revalidatePath("/trainer");
 }
 
 export async function logWorkout(formData: FormData): Promise<ActionResult> {
@@ -52,6 +55,27 @@ export async function logWorkout(formData: FormData): Promise<ActionResult> {
 export async function logGoal(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
+  const goalId = String(formData.get("goal_id") ?? "");
+  const { data: goal } = await supabase
+    .from("goals")
+    .select("category, cmart_clear, cmart_measurable, cmart_attainable, cmart_relevant, cmart_timed")
+    .eq("id", goalId)
+    .maybeSingle();
+  const { data: config } = await supabase.from("scoring_config").select("mental_goal_cmart").eq("id", 1).maybeSingle();
+  if (
+    goal &&
+    mentalCategory(String(goal.category)) &&
+    cmartRequired(config?.mental_goal_cmart) &&
+    !cmartComplete({
+      cmart_clear: Boolean(goal.cmart_clear),
+      cmart_measurable: Boolean(goal.cmart_measurable),
+      cmart_attainable: Boolean(goal.cmart_attainable),
+      cmart_relevant: Boolean(goal.cmart_relevant),
+      cmart_timed: Boolean(goal.cmart_timed),
+    })
+  ) {
+    return { error: "All five checks have to be on before this counts." };
+  }
   const { data, error: rpcError } = await supabase.rpc("log_activity", {
     p_kind: "goal",
     p_payload: {
@@ -69,24 +93,161 @@ export async function logGoal(formData: FormData): Promise<ActionResult> {
 export async function createGoal(formData: FormData): Promise<ActionResult> {
   const { supabase, user, error } = await actionClient();
   if (!supabase || !user || error) return { error: error ?? "Sign in first." };
-  const { data: character } = await supabase.from("characters").select("id").eq("user_id", user.id).maybeSingle();
+  const { data: character } = await supabase.from("characters").select("id, level").eq("user_id", user.id).maybeSingle();
   if (!character) return { error: "Create a character first." };
-  const periodStart = String(formData.get("period_start") ?? "");
-  const periodEnd = String(formData.get("period_end") ?? "");
-  const { error: insertError } = await supabase.from("goals").insert({
+  let periodStart = String(formData.get("period_start") ?? "");
+  let periodEnd = String(formData.get("period_end") ?? "");
+  if (periodEnd && !periodStart) periodStart = periodEnd;
+  if (periodStart && !periodEnd) periodEnd = periodStart;
+  const parentId = String(formData.get("parent_id") ?? "").trim();
+  const longTerm = parentId ? false : formData.get("is_long_term") === "on";
+  if ((parentId || longTerm) && character.level !== 3) {
+    return { error: "Long-term goals toward level 4 are for level 3." };
+  }
+  const category = String(formData.get("category") ?? "");
+  const flags = Object.fromEntries(CMART_CHECKS.map((check) => [check.id, formData.get(check.id) === "on"])) as Partial<
+    Record<CmartId, boolean>
+  >;
+  const { data: config } = await supabase.from("scoring_config").select("mental_goal_cmart").eq("id", 1).maybeSingle();
+  const required = cmartRequired(config?.mental_goal_cmart);
+  const active = !mentalCategory(category) || !required || cmartComplete(flags);
+  const row: Record<string, string | boolean | null> = {
     character_id: character.id,
-    category: String(formData.get("category") ?? ""),
+    category,
     title: String(formData.get("title") ?? "").trim(),
     description: String(formData.get("description") ?? "").trim() || null,
     target_frequency: String(formData.get("target_frequency") ?? "").trim() || null,
-    is_long_term: formData.get("is_long_term") === "on",
+    is_long_term: longTerm,
     period_start: periodStart || null,
     period_end: periodEnd || null,
-  });
+  };
+  if (parentId) row.parent_id = parentId;
+  const mental = mentalCategory(category);
+  const markedDone = formData.get("marked_done") === "on";
+  if (mental) {
+    row.is_active = active;
+    row.marked_done = markedDone;
+    for (const check of CMART_CHECKS) row[check.id] = flags[check.id] === true;
+  }
+  const { error: insertError } = await supabase.from("goals").insert(row);
   const message = dbError(insertError);
   if (message) return { error: message };
-  revalidatePath("/goals");
+  touch();
   return { ok: true };
+}
+
+export async function chooseConstitutionGoal(formData: FormData): Promise<ActionResult> {
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const optionId = String(formData.get("option_id") ?? "").trim();
+  if (!/^[a-z0-9_]+$/.test(optionId)) return { error: "Choose a Constitution goal." };
+  const { error: updateError } = await supabase
+    .from("characters")
+    .update({ constitution_goal_id: optionId })
+    .eq("user_id", user.id);
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+/** Marks this week current. Does not call log_activity and does not grant a buff. */
+export async function markConstitutionGoalWeek(formData: FormData): Promise<ActionResult> {
+  void formData;
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const { data: character } = await supabase
+    .from("characters")
+    .select("id, constitution_goal_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!character?.constitution_goal_id) return { error: "Choose a Constitution goal first." };
+  const weekStart = currentWeekStart(null);
+  const { error: upsertError } = await supabase.from("constitution_goal_weeks").upsert(
+    {
+      character_id: character.id,
+      option_id: character.constitution_goal_id,
+      week_start: weekStart,
+      marked_on: weekStart,
+    },
+    { onConflict: "character_id,week_start" },
+  );
+  const message = dbError(upsertError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+/** Finishes a short-term step. Does not call log_activity, so nothing is granted. */
+export async function completeShortTermGoal(formData: FormData): Promise<ActionResult> {
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const { data: mine } = await supabase.from("characters").select("id, level").eq("user_id", user.id).maybeSingle();
+  if (!mine) return { error: "Create a character first." };
+  if (mine.level !== 3) return { error: "Long-term goals toward level 4 are for level 3." };
+  const goalId = String(formData.get("goal_id") ?? "");
+  const { data, error: updateError } = await supabase
+    .from("goals")
+    .update({ completed_at: new Date().toISOString() })
+    .eq("id", goalId)
+    .not("parent_id", "is", null)
+    .is("completed_at", null)
+    .select("id")
+    .maybeSingle();
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  if (!data) return { error: "That step is already finished, or it is not a short-term step." };
+  touch();
+  return { ok: true };
+}
+
+/** Staff record the buff and the story. The player already finished the step. */
+export async function recordGoalReward(formData: FormData): Promise<ActionResult> {
+  const denied = await requireRole("approver");
+  if (denied) return denied;
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const rewardId = String(formData.get("reward_id") ?? "");
+  const choice = String(formData.get("buff_id") ?? "");
+  const other = String(formData.get("buff_other") ?? "").trim();
+  const story = String(formData.get("story_reward") ?? "").trim();
+  if (!story) return { error: "Write the story reward." };
+  const patch: Record<string, string | null> = {
+    story_reward: story,
+    status: "recorded",
+    recorded_by: user.id,
+    recorded_at: new Date().toISOString(),
+    buff_id: null,
+    buff_other: null,
+  };
+  if (choice === "other") {
+    if (!other) return { error: "Name the other buff." };
+    patch.buff_other = other;
+  } else if (choice) {
+    patch.buff_id = choice;
+  } else {
+    return { error: "Choose a buff." };
+  }
+  const { error: updateError } = await supabase.from("goal_rewards").update(patch).eq("id", rewardId).eq("status", "ready");
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+/** Schedule table attendance. Only on that session's date. The weekly Friday check-in is a different action. */
+export async function markAttendance(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const sessionId = String(formData.get("session_id") ?? "");
+  const { data: session } = await supabase.from("sessions").select("session_date").eq("id", sessionId).maybeSingle();
+  const { data: today } = await supabase.rpc("company_today");
+  const sessionDay = String(session?.session_date ?? "").slice(0, 10);
+  const companyDay = typeof today === "string" ? today.slice(0, 10) : "";
+  if (!sessionDay || sessionDay !== companyDay) {
+    return { error: "Attendance opens on the day of that session." };
+  }
+  return checkIn(formData);
 }
 
 export async function checkIn(formData: FormData): Promise<ActionResult> {

@@ -8,44 +8,69 @@ import type { ActionResult } from "@/lib/types";
 
 type Mark = 0 | 1 | 2;
 
+const WORKOUTS: { mark: Mark; label: string }[] = [
+  { mark: 0, label: "0–1 sessions" },
+  { mark: 1, label: "2 sessions" },
+  { mark: 2, label: "3 or more sessions" },
+];
+
 export function CheckInForm({ defaultWeek }: { defaultWeek: string }) {
-  const [workouts, setWorkouts] = useState<Mark>(0);
-  const [wis, setWis] = useState(false);
-  const [intelligence, setIntelligence] = useState(false);
-  const [charisma, setCharisma] = useState(false);
+  const [workouts, setWorkouts] = useState<Mark | null>(null);
+  const [wis, setWis] = useState<boolean | null>(null);
+  const [intelligence, setIntelligence] = useState<boolean | null>(null);
+  const [charisma, setCharisma] = useState<boolean | null>(null);
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => submitCheckin(formData),
     null,
   );
-  const total = checkinScore({
-    workouts: workoutsForMark(workouts),
-    wis,
-    int: intelligence,
-    cha: charisma,
-  });
+  const answers = [workouts, wis, intelligence, charisma];
+  const filed = answers.filter((value) => value !== null).length;
+  const ready = filed === 4 && workouts !== null && wis !== null && intelligence !== null && charisma !== null;
+  const total = ready
+    ? checkinScore({
+        workouts: workoutsForMark(workouts),
+        wis,
+        int: intelligence,
+        cha: charisma,
+      })
+    : null;
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      <div className="check-progress" aria-hidden="true">
+        {answers.map((value, index) => (
+          <span key={index} className={value !== null ? "on" : undefined} />
+        ))}
+      </div>
       <label>
         Week starting Monday
         <input type="date" name="week_start" required defaultValue={defaultWeek} />
       </label>
-      <ScoreCard title="Workouts" line="0 is one session or none. 1 is two. 2 is three or more.">
-        <TapRow name="workout-mark" value={workouts} onChange={setWorkouts} />
+      <ScoreCard title="Workouts" line="How many sessions did you get in this week?">
+        <div className="choice-grid three" role="radiogroup" aria-label="Workouts">
+          {WORKOUTS.map((option) => (
+            <button
+              key={option.mark}
+              type="button"
+              aria-pressed={workouts === option.mark}
+              onClick={() => setWorkouts(option.mark)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </ScoreCard>
-      <ScoreCard title="Wisdom" line="Met or missed. A miss lowers the week by one, unless workouts already scored 0.">
-        <YesNo pressed={wis} onChange={setWis} label="Wisdom" />
+      <ScoreCard title="Wisdom" line="Did you meet your goal this week?">
+        <YesNo value={wis} onChange={setWis} label="Wisdom" />
       </ScoreCard>
-      <ScoreCard title="Intelligence" line="Met or missed. A miss lowers the week by one, unless workouts already scored 0.">
-        <YesNo pressed={intelligence} onChange={setIntelligence} label="Intelligence" />
+      <ScoreCard title="Intelligence" line="Did you meet your goal this week?">
+        <YesNo value={intelligence} onChange={setIntelligence} label="Intelligence" />
       </ScoreCard>
-      <ScoreCard title="Charisma" line="Met or missed. A miss lowers the week by one, unless workouts already scored 0.">
-        <YesNo pressed={charisma} onChange={setCharisma} label="Charisma" />
+      <ScoreCard title="Charisma" line="Did you meet your goal this week?">
+        <YesNo value={charisma} onChange={setCharisma} label="Charisma" />
       </ScoreCard>
-      <p>
-        This week&apos;s mark is {total}.
-      </p>
-      <input type="hidden" name="workouts" value={workoutsForMark(workouts)} />
+      <p className="miss-note">A miss isn&apos;t failure. It tells us where to help. Nothing here locks your character.</p>
+      {ready && workouts !== null ? <input type="hidden" name="workouts" value={workoutsForMark(workouts)} /> : null}
       {wis ? <input type="hidden" name="wis" value="on" /> : null}
       {intelligence ? <input type="hidden" name="int_mark" value="on" /> : null}
       {charisma ? <input type="hidden" name="cha" value="on" /> : null}
@@ -67,64 +92,45 @@ export function CheckInForm({ defaultWeek }: { defaultWeek: string }) {
           <Choice name="injury_sub">Injury or at-home substitution</Choice>
         </div>
       </details>
-      <button className="primary" disabled={pending} type="submit">
-        {pending ? "Saving" : "Submit check-in"}
+      {total != null ? <p>This week&apos;s mark is {total}.</p> : null}
+      <button className="primary" disabled={pending || !ready} type="submit">
+        {pending ? "Saving" : ready ? "File your check-in" : `${4 - filed} more to go`}
       </button>
+      <p className="text-mute">Due Friday, 11:59 PM. You can change answers until then.</p>
       {state && "error" in state ? <p role="alert">{state.error}</p> : null}
-      {state && "ok" in state ? <p role="status">Saved. This week&apos;s mark is {total}.</p> : null}
+      {state && "ok" in state ? <p role="status">Saved.</p> : null}
     </form>
   );
 }
 
 function ScoreCard({ title, line, children }: { title: string; line: string; children: ReactNode }) {
   return (
-    <fieldset className="score-card">
-      <legend>{title}</legend>
-      <p className="text-mute">{line}</p>
+    <fieldset className="paper">
+      <legend className="sheet-name">{title}</legend>
+      <p>{line}</p>
       {children}
     </fieldset>
   );
 }
 
-function TapRow({ name, value, onChange }: { name: string; value: Mark; onChange: (mark: Mark) => void }) {
-  return (
-    <div className="score-taps" role="radiogroup" aria-label={name}>
-      {([2, 1, 0] as const).map((mark) => (
-        <button
-          key={mark}
-          type="button"
-          className={value === mark ? "primary" : "secondary"}
-          aria-pressed={value === mark}
-          onClick={() => onChange(mark)}
-        >
-          {mark}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 function YesNo({
-  pressed,
+  value,
   onChange,
   label,
 }: {
-  pressed: boolean;
+  value: boolean | null;
   onChange: (value: boolean) => void;
   label: string;
 }) {
   return (
-    <div className="score-taps" role="radiogroup" aria-label={label}>
-      <button type="button" className={pressed ? "primary" : "secondary"} aria-pressed={pressed} onClick={() => onChange(true)}>
-        Met
+    <div className="choice-grid two" role="radiogroup" aria-label={label}>
+      <button type="button" aria-pressed={value === true} onClick={() => onChange(true)}>
+        Yes
+        <span className="block text-sm normal-case">I met it</span>
       </button>
-      <button
-        type="button"
-        className={!pressed ? "primary" : "secondary"}
-        aria-pressed={!pressed}
-        onClick={() => onChange(false)}
-      >
-        Missed
+      <button type="button" aria-pressed={value === false} onClick={() => onChange(false)}>
+        Not this week
+        <span className="block text-sm normal-case">That&apos;s okay</span>
       </button>
     </div>
   );

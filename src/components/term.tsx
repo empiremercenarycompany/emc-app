@@ -1,28 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { GLOSSARY, type GlossaryId } from "@/lib/rules/glossary";
+import { useRef } from "react";
+import { visibleTerm } from "@/lib/rules/codex";
+import { useTermSheet } from "@/components/codex-provider";
 
-export function Term({ id, children }: { id: GlossaryId; children?: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const entry = GLOSSARY[id];
+const HOLD_MS = 550;
+
+export function Term({ id, children, className }: { id: string; children?: React.ReactNode; className?: string }) {
+  const term = visibleTerm(id);
+  const sheet = useTermSheet();
+  const timer = useRef<number | null>(null);
+  const held = useRef(false);
+  const label = children ?? term?.short ?? term?.term;
+
+  if (!term) return <span>{label}</span>;
+
+  function open() {
+    sheet.open(term!.id);
+  }
+
+  function clearHold() {
+    if (timer.current != null) window.clearTimeout(timer.current);
+    timer.current = null;
+  }
+
   return (
-    <span className="term">
-      {children ?? entry.term}
-      <button
-        type="button"
-        className="term-button"
-        aria-expanded={open}
-        aria-label={`${entry.term}, plain meaning`}
-        onClick={() => setOpen((value) => !value)}
-      >
-        i
-      </button>
-      {open ? (
-        <span className="term-pop" role="tooltip">
-          {entry.plain}
-        </span>
-      ) : null}
-    </span>
+    <button
+      type="button"
+      className={className ? `term-link ${className}` : "term-link"}
+      aria-haspopup="dialog"
+      aria-expanded={sheet.activeId === term.id}
+      onClick={() => {
+        if (held.current) {
+          held.current = false;
+          return;
+        }
+        open();
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        open();
+      }}
+      onPointerDown={() => {
+        held.current = false;
+        clearHold();
+        timer.current = window.setTimeout(() => {
+          held.current = true;
+          open();
+        }, HOLD_MS);
+      }}
+      onPointerUp={clearHold}
+      onPointerLeave={clearHold}
+      onPointerCancel={clearHold}
+    >
+      {label}
+    </button>
   );
 }
