@@ -3,7 +3,7 @@ export const CLEARANCE_LADDER = [
   { week: 4, name: "Known" },
   { week: 10, name: "Trusted" },
   { week: 20, name: "Vouched For" },
-  { week: 36, name: "Honored" },
+  { week: 36, name: "Honoured" },
   { week: 52, name: "Esteemed of Bleakspire" },
 ] as const;
 

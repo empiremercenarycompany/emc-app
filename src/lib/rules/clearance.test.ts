@@ -16,8 +16,8 @@ describe("clearance ranks", () => {
     expect(clearanceRank(19)).toBe("Trusted");
     expect(clearanceRank(20)).toBe("Vouched For");
     expect(clearanceRank(35)).toBe("Vouched For");
-    expect(clearanceRank(36)).toBe("Honored");
-    expect(clearanceRank(51)).toBe("Honored");
+    expect(clearanceRank(36)).toBe("Honoured");
+    expect(clearanceRank(51)).toBe("Honoured");
     expect(clearanceRank(52)).toBe("Esteemed of Bleakspire");
     expect(clearanceRank(77)).toBe("Esteemed of Bleakspire");
     expect(clearanceRank(78)).toBe("Pillar of Bleakspire");
