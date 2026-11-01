@@ -121,6 +121,11 @@ export default async function JournalPage() {
   return (
     <Page title="Journal" lede="Approved exercises only. Drag or tap to build the list, then record the session.">
       {setup ? <Notice>{setup}</Notice> : null}
+      <Panel title="Also on paper">
+        <p>Sleep and cardio are this week&apos;s Constitution goal.</p>
+        <Link href="/goals">Open goals</Link>
+        <p className="text-mute">Sets, reps, and weight are recorded on the workout below.</p>
+      </Panel>
       {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
       {viewer.character && menuPools.length === 0 ? (
         <p className="text-mute">No lists yet. Your trainer posts exercises before you build a workout.</p>

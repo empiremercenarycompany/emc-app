@@ -7,6 +7,7 @@ import { signOut } from "@/lib/actions/staff";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { recruitName } from "@/lib/recruit-name";
 
 export default async function ProfilePage() {
   const viewer = await loadViewer();
@@ -24,7 +25,15 @@ export default async function ProfilePage() {
       ? slots
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adults_only: slot.adultsOnly }));
   const timeLabel = times.find((slot) => slot.id === viewer.intake?.timeslotId)?.label ?? "Not chosen";
-  const initial = (viewer.displayName?.trim().charAt(0) || viewer.character?.name?.charAt(0) || "R").toUpperCase();
+  const shownName = recruitName({
+    characterName: viewer.character?.name,
+    displayName: viewer.displayName,
+    email: viewer.email,
+  });
+  const initial = shownName.charAt(0).toUpperCase();
+  const storedName = (viewer.displayName ?? "").trim();
+  const mailbox = (viewer.email ?? "").split("@")[0]?.trim().toLowerCase();
+  const nameField = storedName && storedName.toLowerCase() !== mailbox && !storedName.includes("@") ? storedName : "";
 
   return (
     <Page title="Profile" lede="Who the Company sees when you walk in.">
@@ -45,7 +54,7 @@ export default async function ProfilePage() {
                   {initial}
                 </span>
               )}
-              <span>{viewer.displayName?.trim() || viewer.character?.name || "Recruit"}</span>
+              <span className="recruit-name">{shownName}</span>
             </div>
             <p>{squadName ?? "No squad yet"}</p>
             <p>Preferred time {timeLabel}</p>
@@ -54,7 +63,7 @@ export default async function ProfilePage() {
             <ResultForm action={saveDisplayName} submit="Save name">
               <label>
                 What the Company calls you
-                <input name="display_name" defaultValue={viewer.displayName ?? ""} maxLength={80} />
+                <input name="display_name" defaultValue={nameField} maxLength={80} />
               </label>
             </ResultForm>
           </Panel>
