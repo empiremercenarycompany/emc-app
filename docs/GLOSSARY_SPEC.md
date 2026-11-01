@@ -183,7 +183,9 @@ No staff policy. A DM running SQL as themselves still cannot read the table. (A 
 
 ## 5. Chits
 
-A chit is something a player holds with one person or one faction. The page shows that they hold it. It is not a score, not a week count, and not a rank.
+John, Nov 1, 2026: the player-facing name is **chit**. If a player holds a chit for an entry, that chit shows on the glossary entry.
+
+A chit is something a player holds with one person or one faction. It is not a score, not a week count, and not a rank. The entry itself is where they see it. On screen: "You hold a chit with [name]." Do not call it Standing, Clearance, rank, or a mark.
 
 **Granting.** Only a DM or other staff (`is_staff()`, which is already the DM, admin, and curator grant roles). A player cannot give themselves a chit. Each grant records who did it, when, and why, and the table session if it happened at the table.
 
@@ -208,14 +210,20 @@ The repo has no word "Standing", no reputation score, and no chit. Searches for 
 
 What does exist, and must stay separate:
 
-- **Clearance** is a civic honor from weeks in the company: Known, Trusted, Vouched For, Honored, Esteemed of Bleakspire, then Pillar of Bleakspire. It is on the check-in screen. What each honor unlocks is still empty. Depth tiers (60, 70, 80, 90, 100) are a different ladder and also unnamed.
+- **Clearance** is a civic honor from weeks in the company: Known, Trusted, Vouched For, Honoured, Esteemed of Bleakspire, then Pillar of Bleakspire. It is on the check-in screen. What each honor unlocks is still empty. Depth tiers (60, 70, 80, 90, 100) are a different ladder and also unnamed. The spelling is Honoured.
 - **Clearance mark** in the Discord formatter is the weekly check-in score out of 2. It is not a relationship with a person.
 - **Ranks** (Recruit, Sergeant, Captain) are still placeholders. They are not story tokens.
 - **Buffs** are temporary table awards (heroic inspiration, and so on). They are not held with a faction.
 
-"Standing" would sit too close to Clearance. "Known" and "Trusted" are already Clearance names. A player who "has standing" with a faction will sound like they earned a civic honor.
+"Standing" would sit too close to Clearance. "Known" and "Trusted" are already Clearance names. A player who "has standing" with a faction will sound like they earned a civic honor. That name is not used.
 
-**Recommendation, for John and Sage to rename:** call the token a **chit** in the interface, matching John's word. Do not call it Standing, Clearance, rank, or a mark. On screen: "You hold a chit with [name]." The final name is theirs.
+### Other names John set the same day
+
+These are not glossary entries. They are recorded here so the story book does not drift from the rest of the app.
+
+- Player-facing species names are **Seraph** and **Inferni**. The stored ids stay `aasimar` and `tiefling`. Sage owns the exact sentences around those names.
+- The Clearance honor at week 36 is spelled **Honoured**.
+- **Orc** and **Ork** are two different things in canon. Nothing in the app may merge them, alias one to the other, or autocorrect one into the other.
 
 ## 6. Unlocking
 
@@ -272,7 +280,7 @@ The glossary is not part of Garet's prototype. That test is sign-up, the sheet, 
 | --- | --- | --- | --- |
 | Not in the prototype | Nothing | — | Garet's loop does not need it. |
 | Read-only book with unlocks | Search, pictures that are cleared, pages the DM has revealed. No notes, no chits, no chat. | Small: the entry table, the reveal log, the private art bucket, one screen. | A reasonable candidate for the January 2 adventure (Adventure 3), and only if Sage has a handful of reviewed pages ready. Looking someone up at the table is the first real use. |
-| Notes and chits | Private notes, and a line that a player holds a chit. Staff grant and revoke. | Medium: two more tables, policies, and a small staff control. | After players have used the book once. Chits change the table. They should not ship in the same week as the first pages. |
+| Notes and chits | Private notes, and the chit shown on the glossary entry when the player holds one. Staff grant and revoke. | Medium: two more tables, policies, and a small staff control. | After players have used the book once. Chits change the table. They should not ship in the same week as the first pages. |
 | Talking to a person | v2. Uses the voice card, encounters, and chits. Still no path to the DM file. | Large, and not this app's next build. | The roadmap already puts officer chat later. Interactive people wait until the boundaries exist. |
 
 January 2 is a candidate, not a promise. If the reviewed pages are not ready, skip it rather than publish example people.
@@ -281,13 +289,12 @@ January 2 is a candidate, not a promise. If the reviewed pages are not ready, sk
 
 1. Is the DM role allowed to read every dossier, or only your account?
 2. May a DM read a player's private glossary notes? This spec says no until you say otherwise.
-3. What is the player-facing name of a chit? Sage flagged "Standing". This spec recommends "chit" and asks you and Sage not to reuse Clearance, rank, or mark.
-4. Can a chit be spent or only revoked by staff? Should a player ever mark one spent?
-5. Does a chit exist for places and objects, or only for people and factions?
-6. For January 2, do you want a read-only book at all, and will Sage have reviewed pages by then?
-7. Who publishes: only `can_approve_lore`, and may the drafter also be the approver when that is you?
-8. Should a revealed page ever be hidden again after it was said at the table?
-9. Do factions get the same DM file (personality is a poor fit; secrets and voice might), or only people?
-10. May a later chat read the player's private notes, or only canon pages, encounters, and chits?
-11. Where should commissioned masters live (not in the app's storage)?
-12. Do you want the story book as its own destination, or a section reached from the Codex screen without mixing the two kinds of entries?
+3. Can a chit be spent or only revoked by staff? Should a player ever mark one spent?
+4. Does a chit exist for places and objects, or only for people and factions?
+5. For January 2, do you want a read-only book at all, and will Sage have reviewed pages by then?
+6. Who publishes: only `can_approve_lore`, and may the drafter also be the approver when that is you?
+7. Should a revealed page ever be hidden again after it was said at the table?
+8. Do factions get the same DM file (personality is a poor fit; secrets and voice might), or only people?
+9. May a later chat read the player's private notes, or only canon pages, encounters, and chits?
+10. Where should commissioned masters live (not in the app's storage)?
+11. Do you want the story book as its own destination, or a section reached from the Codex screen without mixing the two kinds of entries?
