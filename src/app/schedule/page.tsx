@@ -146,7 +146,7 @@ export default async function SchedulePage() {
     <Page title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Next session">
-        <p>Today {today}</p>
+        <p>Today, {formatMuster(today.slice(0, 10))}</p>
         {posted ? (
           <p>
             Next session:{" "}

@@ -17,6 +17,7 @@ import {
   CON_GOAL_SCORE_MIN_DEFAULT,
 } from "@/lib/rules/constitution-goal";
 import { showsLevelFourProgress, levelFourProgress, LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
+import { recruitName } from "@/lib/recruit-name";
 import { isStaff } from "@/lib/types";
 
 const WEEK_ITEMS = [
@@ -92,7 +93,11 @@ export default async function BarracksPage() {
     slotRows && slotRows.length > 0
       ? slotRows.map((slot) => (slot.adults_only ? `${slot.label} (18+)` : slot.label)).join(", ")
       : TIMESLOT_FALLBACK.map((slot) => (slot.adultsOnly ? `${slot.label} (18+)` : slot.label)).join(", ");
-  const welcome = viewer.character?.name?.trim() || viewer.displayName?.trim() || "Recruit";
+  const welcome = recruitName({
+    characterName: viewer.character?.name,
+    displayName: viewer.displayName,
+    email: viewer.email,
+  });
   const filedCount = checkin ? 4 : 0;
   const statGoals =
     supabase && viewer.character
@@ -174,8 +179,8 @@ export default async function BarracksPage() {
   return (
     <Page mark={false}>
       <header className="hero-band span-all">
-        <p className="eyebrow hero-kicker">Welcome back</p>
-        <h1>{welcome}</h1>
+        <p className="eyebrow hero-kicker">{viewer.firstVisit ? "Welcome" : "Welcome back"}</p>
+        <h1 className="recruit-name">{welcome}</h1>
         <p>
           {postedLine ? (
             <>
@@ -205,24 +210,19 @@ export default async function BarracksPage() {
       {!viewer.character ? (
         <Panel title="Start here" wide>
           <ol className="list-decimal pl-5">
-            <li>Join the Company</li>
+            <li>{viewer.userId ? "Join the Company — Done" : "Join the Company"}</li>
             <li>Fill Out Recruitment Papers</li>
             <li>Record work</li>
           </ol>
-          {!viewer.userId ? (
-            <Link className="button primary" href="/sign-in">
-              Join the Company
-            </Link>
-          ) : (
+          {viewer.userId ? (
             <Link className="button primary" href="/character/new">
               Fill Out Recruitment Papers
             </Link>
-          )}
-          {viewer.userId && !viewer.intake ? (
-            <Link className="button" href="/intake">
-              Tell us about you
+          ) : (
+            <Link className="button primary" href="/sign-in">
+              Join the Company
             </Link>
-          ) : null}
+          )}
         </Panel>
       ) : (
         <Panel wide>
@@ -249,6 +249,11 @@ export default async function BarracksPage() {
           <Link className="button primary" href={checkin ? "/work" : "/check-in"}>
             {checkin ? "Record work" : "File your check-in"}
           </Link>
+          {!viewer.intake ? (
+            <p className="text-center">
+              <Link href="/intake">Tell us about you</Link> when you have a minute. Four short answers.
+            </p>
+          ) : null}
           <p className="text-center text-mute">
             Due Friday, 11:59 PM. Your <Term id="clearance">Clearance</Term> is on this weekly check-in, separate from{" "}
             <Term id="company-muster">muster</Term>.

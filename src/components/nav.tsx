@@ -127,7 +127,7 @@ export function SiteNav({
       {open ? (
         <div id="company-menu" className="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
-            <p>
+            <p className="recruit-name">
               {displayName?.trim() || "Recruit"}
               {roleLabel ? ` · ${roleLabel}` : ""}
             </p>

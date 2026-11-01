@@ -5,6 +5,7 @@ import { DisplayFace } from "@/components/display-face";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
+import { recruitName } from "@/lib/recruit-name";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -63,7 +64,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteNav
             signedIn={Boolean(viewer.userId)}
             role={viewer.role}
-            displayName={viewer.displayName}
+            displayName={recruitName({
+              characterName: viewer.character?.name,
+              displayName: viewer.displayName,
+              email: viewer.email,
+            })}
             avatarUrl={viewer.avatarUrl}
             roleLabel={roleLabel}
           />

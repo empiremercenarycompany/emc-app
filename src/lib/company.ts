@@ -27,6 +27,7 @@ const EMPTY: Viewer = {
   session: null,
   week: null,
   beginner: false,
+  firstVisit: true,
   intake: null,
 };
 
@@ -41,7 +42,7 @@ export async function loadViewer(): Promise<Viewer> {
   }
 
   const [profile, membership, character, config, todayResult, intakeResult] = await Promise.all([
-    supabase.from("profiles").select("display_name, avatar_url, app_role, can_approve_lore").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("display_name, avatar_url, app_role, can_approve_lore, last_seen_at").eq("id", user.id).maybeSingle(),
     supabase.from("guild_memberships").select("guild_id, rank").eq("user_id", user.id).maybeSingle(),
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
@@ -101,6 +102,7 @@ export async function loadViewer(): Promise<Viewer> {
     session,
     week,
     beginner: beginnerHints(intake ? { dnd: intake.dnd, gym: intake.gym } : null),
+    firstVisit: !profile.data?.last_seen_at,
     intake,
   };
 }

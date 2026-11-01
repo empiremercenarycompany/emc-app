@@ -101,7 +101,7 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Schedule", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Calendar", exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Next session" })).toBeVisible();
-  await expect(page.getByText(/Today \d{4}-\d{2}-\d{2}/)).toBeVisible();
+  await expect(page.getByText(/Today, [A-Za-z]+, [A-Za-z]+ \d{1,2}/)).toBeVisible();
   await expect(page.getByRole("heading", { name: "Times" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
   await expect(page.getByText("9–12")).toBeVisible();

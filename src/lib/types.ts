@@ -156,6 +156,7 @@ export type Viewer = {
   session: SessionWindow | null;
   week: number | null;
   beginner: boolean;
+  firstVisit: boolean;
   intake: {
     dnd: string;
     gym: string;
