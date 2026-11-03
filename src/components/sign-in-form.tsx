@@ -59,7 +59,7 @@ export function SignInForm() {
       </button>
       <p className="text-sm text-mute">Discord and Google stay off until the Company configures them.</p>
       {message ? <p role="status">{message}</p> : null}
-      {sent ? <p>Open the link in the same browser you're using now.</p> : null}
+      {sent ? <p>{"Open the link in the same browser you're using now."}</p> : null}
     </form>
   );
 }
