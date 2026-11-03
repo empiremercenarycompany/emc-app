@@ -14,7 +14,9 @@ export default async function SignInPage({
   const devLogin = devLoginAllowed(process.env.NEXT_PUBLIC_DEV_LOGIN, host);
   return (
     <Page badge title="Join the Company" lede="A magic link is the only door. No password is stored here.">
-      {params.error ? <p role="alert">That link did not sign you in. Request another.</p> : null}
+      {params.error ? (
+        <p role="alert">That link has to be opened in the same browser that asked for it. Request another below.</p>
+      ) : null}
       <SignInForm />
       {devLogin ? <DevLogin /> : null}
     </Page>
