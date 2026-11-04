@@ -28,6 +28,7 @@ import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 import { PortraitForm } from "@/components/portrait-form";
 import { signedPortraitUrl } from "@/lib/portraits";
+import { allowanceFor } from "@/lib/pacing-config";
 import { isLogApprover, isStaff, type CharacterRow } from "@/lib/types";
 
 const LABELS: Record<AbilityName, string> = {
@@ -259,6 +260,17 @@ export default async function CharacterPage({
           .limit(30)
       ).data
     : [];
+  const earnedRows = supabase
+    ? (
+        await supabase
+          .from("attribute_point_ledger")
+          .select("points_awarded")
+          .eq("character_id", character.id)
+          .gt("points_awarded", 0)
+      ).data
+    : [];
+  const earned = (earnedRows ?? []).reduce((sum, row) => sum + Number(row.points_awarded), 0);
+  const pace = allowanceFor(viewer.week, earned);
   const impact = supabase ? (await supabase.rpc("character_impact", { p_character_id: character.id })).data : null;
   const mobility = supabase
     ? (await supabase.rpc("build_mobility", { p_character_id: character.id })).data
@@ -337,6 +349,13 @@ export default async function CharacterPage({
   return (
     <Page title="Character" mark={false}>
       {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
+      <Panel title="This week">
+        <p>
+          {pace.behind ? "Behind pace." : "On pace."} This week, {pace.weeklyCap} can count, and {pace.poolCap} from one
+          kind of work.
+        </p>
+        <p className="text-mute">A session you attend counts as 1 outside that.</p>
+      </Panel>
       <PortraitForm hasPortrait={Boolean(character.portrait_url)} />
       <CharacterSheet
         portraitSrc={portraitSrc}
