@@ -859,6 +859,20 @@ button.weapon-row {
   text-align: center;
 }
 
+.help-banner button.help-banner-link {
+  display: inline;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid #1a1613;
+  background: transparent;
+  color: #1a1613;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-transform: none;
+}
+
 .hero-band {
   position: relative;
   margin: 0 -1rem 0.25rem;
@@ -1176,11 +1190,14 @@ button.weapon-row {
   background: var(--color-parch-3);
 }
 
-html[data-help="on"] .term-link,
-html[data-beginner="on"] .term-link {
-  border-bottom-style: dashed;
-  background: rgba(210, 176, 122, 0.35);
-  box-shadow: 0 0 0 3px rgba(210, 176, 122, 0.45);
+[data-help="on"] .term-link,
+[data-beginner="on"] .term-link {
+  display: inline-block;
+  border-bottom: 2px solid #d2b07a;
+  outline: 2px solid #d2b07a;
+  outline-offset: 2px;
+  background: rgba(210, 176, 122, 0.28);
+  border-radius: 2px;
 }
 
 .skill-group + .skill-group {
@@ -1324,6 +1341,78 @@ html[data-beginner="on"] .term-link {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   font-size: 1.6rem;
+  margin: 0;
+}
+
+.sheet-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.sheet-choices legend {
+  color: #211b15;
+  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+/* Ink #211b15 on #fbf9f3 is 16.2:1. The #6b4f27 border on that fill is 7.2:1. Condition #4a4036 is 9.6:1. */
+.sheet-panel-pop button.sheet-choice {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 2px solid #6b4f27;
+  background: #fbf9f3;
+  color: #211b15;
+  text-align: left;
+}
+
+.sheet-panel-pop button.sheet-choice .sheet-choice-condition {
+  color: #4a4036;
+  font-size: 0.95rem;
+}
+
+/* Parchment #f4f1e8 on red #b11217 is 6.3:1. */
+.sheet-panel-pop button.sheet-choice[aria-pressed="true"] {
+  border-color: #b11217;
+  background: #b11217;
+  color: #f4f1e8;
+}
+
+.sheet-panel-pop button.sheet-choice[aria-pressed="true"] .sheet-choice-condition {
+  color: #f4f1e8;
+}
+
+.codex-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  overflow: auto;
+  background: #1a1613;
+  color: var(--color-parchment);
+  padding: 1rem 1rem 6rem;
+}
+
+.codex-overlay-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #1a1613;
+  padding-bottom: 0.75rem;
+}
+
+.codex-overlay-bar h2 {
   margin: 0;
 }
 

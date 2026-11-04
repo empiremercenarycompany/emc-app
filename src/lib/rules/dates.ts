@@ -60,6 +60,21 @@ export function currentWeekStart(today: string | null, now = new Date()): string
   return formatDate(mondayOnOrBefore(day));
 }
 
+/** Sunday of the company week that contains `today`. */
+export function currentWeekEnd(today: string | null, now = new Date()): string {
+  return formatDate(addUtcDays(parseDate(currentWeekStart(today, now)), 6));
+}
+
+/** Monday of the week that contains a stored or typed date. */
+export function weekContaining(iso: string): string {
+  return formatDate(mondayOnOrBefore(parseDate(iso)));
+}
+
+/** True when the date falls in a company week after the one that contains `today`. */
+export function isFutureWeek(weekStart: string, today: string): boolean {
+  return weekContaining(weekStart) > currentWeekStart(today);
+}
+
 /** Saturday, Nov 7 — a calendar date, not a clock time. */
 export function formatMuster(iso: string): string {
   const day = parseDate(iso);

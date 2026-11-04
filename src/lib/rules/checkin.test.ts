@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currentWeekStart } from "./dates";
+import { currentWeekEnd, currentWeekStart, isFutureWeek } from "./dates";
 import { checkinScore, complianceRatio, preInductionHp, workoutMark, workoutsForMark } from "./checkin";
 import { deliverDiscord, formatCheckin, formatSaturdayTally, formatThursdayReminder } from "./discord";
 import { cappedAward } from "./awards";
@@ -20,6 +20,11 @@ describe("weekly check-in", () => {
     expect(checkinScore({ workouts: workoutsForMark(0), wis: true, int: true, cha: true })).toBe(0);
     expect(currentWeekStart("2026-10-31")).toBe("2026-10-26");
     expect(currentWeekStart("2026-11-01")).toBe("2026-10-26");
+    expect(currentWeekEnd("2026-11-04")).toBe("2026-11-08");
+    expect(isFutureWeek("2026-11-09", "2026-11-04")).toBe(true);
+    expect(isFutureWeek("2026-11-08", "2026-11-04")).toBe(false);
+    expect(isFutureWeek("2026-11-04", "2026-11-04")).toBe(false);
+    expect(isFutureWeek("2026-10-26", "2026-11-04")).toBe(false);
   });
 
   it("computes compliance from roster and weeks", () => {

@@ -1145,7 +1145,7 @@ begin
     raise exception 'provisional refund was locked, bank left %', v_con;
   end if;
   perform public.spend_attribute_points(v_id, 11, 9, 9, 8, 8, 8);
-  perform public.submit_weekly_checkin(public.company_today() + 10, 3, 0, '', true, true, true, '', false);
+  perform public.submit_weekly_checkin(public.company_today(), 3, 0, '', true, true, true, '', false);
   if exists (
     select 1 from public.build_placements
     where character_id = v_id and remaining > 0 and status <> 'provisional'

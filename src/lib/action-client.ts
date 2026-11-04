@@ -1,3 +1,4 @@
+import { playerError } from "@/lib/rules/player-error";
 import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { isLogApprover, isStaff, type AppRole, type Impact } from "@/lib/types";
@@ -16,7 +17,8 @@ export function asImpact(value: unknown): Impact {
 }
 
 export function dbError(error: { message: string } | null): string | null {
-  return error?.message ?? null;
+  if (!error?.message) return null;
+  return playerError(error.message);
 }
 
 /** Reject a player before a staff action reaches the database. */

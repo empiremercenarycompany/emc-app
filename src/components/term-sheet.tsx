@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
+import { useCodexOverlay } from "@/components/codex-provider";
 import { CODEX_SECTIONS, visibleTerm } from "@/lib/rules/codex";
 
 export function TermSheet({ id, onClose }: { id: string; onClose: () => void }) {
   const term = visibleTerm(id);
+  const codex = useCodexOverlay();
   const startY = useRef<number | null>(null);
 
   if (!term) return null;
@@ -50,9 +51,16 @@ export function TermSheet({ id, onClose }: { id: string; onClose: () => void }) 
             <p>{term.inRealLife}</p>
           </div>
         ) : null}
-        <Link className="button primary" href={`/codex#${term.id}`} onClick={onClose}>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => {
+            onClose();
+            codex.openCodex(term.id);
+          }}
+        >
           Open in the Codex
-        </Link>
+        </button>
         <button type="button" className="secondary" onClick={onClose}>
           Got it
         </button>

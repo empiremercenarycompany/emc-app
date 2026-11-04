@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { actionClient, dbError } from "@/lib/action-client";
+import { currentWeekStart, isFutureWeek } from "@/lib/rules/dates";
 import type { ActionResult } from "@/lib/types";
 
 function refresh() {
@@ -15,8 +16,18 @@ function refresh() {
 export async function submitCheckin(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };
+  const week = String(formData.get("week_start") ?? "").slice(0, 10);
+  const { data: today } = await supabase.rpc("company_today");
+  const companyDay = typeof today === "string" && /^\d{4}-\d{2}-\d{2}/.test(today) ? today.slice(0, 10) : currentWeekStart(null);
+  try {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(week) || isFutureWeek(week, companyDay)) {
+      return { error: "That week has not started." };
+    }
+  } catch {
+    return { error: "Choose a week." };
+  }
   const { error: rpcError } = await supabase.rpc("submit_weekly_checkin", {
-    p_week_start: String(formData.get("week_start") ?? ""),
+    p_week_start: week,
     p_workouts: Number(formData.get("workouts") ?? 0),
     p_bonus_count: Number(formData.get("bonus_count") ?? 0),
     p_bonus_activities: String(formData.get("bonus_activities") ?? ""),

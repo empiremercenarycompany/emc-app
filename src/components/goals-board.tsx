@@ -613,16 +613,24 @@ function ConstitutionSheet({ choice, onSaved }: { choice: string | null; onSaved
       }}
     >
       <input type="hidden" name="option_id" value={option} />
-      {CON_GOAL_OPTIONS.map((item) => (
-        <button
-          key={item.id}
-          type="button"
-          className={option === item.id ? "primary" : "secondary"}
-          onClick={() => setOption(item.id)}
-        >
-          {item.label} · {item.condition}
-        </button>
-      ))}
+      <fieldset className="sheet-choices">
+        <legend>Choose one</legend>
+        {CON_GOAL_OPTIONS.map((item) => {
+          const selected = option === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className="sheet-choice"
+              aria-pressed={selected}
+              onClick={() => setOption(item.id)}
+            >
+              <span className="sheet-choice-label">{item.label}</span>
+              <span className="sheet-choice-condition">{item.condition}</span>
+            </button>
+          );
+        })}
+      </fieldset>
       {error ? <p role="alert">{error}</p> : null}
       <button className="primary" type="submit" disabled={pending}>
         {pending ? "Saving" : "Save Constitution goal"}

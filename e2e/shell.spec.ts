@@ -182,6 +182,24 @@ test("home content clears the bottom nav", async ({ page }) => {
   expect(pad).toBeGreaterThan(navBox!.height);
 });
 
+test("help mode outlines a term and the codex stays on the page", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Help" }).click();
+  await expect(page.getByText("Help mode is on.")).toBeVisible();
+  const term = page.getByRole("button", { name: "muster" }).first();
+  await expect(term).toBeVisible();
+  const outline = await term.evaluate((element) => getComputedStyle(element).outlineStyle);
+  expect(outline).not.toBe("none");
+  await term.click();
+  await page.getByRole("button", { name: "Open in the Codex" }).click();
+  await expect(page).toHaveURL("/");
+  const codex = page.getByRole("dialog", { name: "Codex" });
+  await expect(codex).toBeVisible();
+  await codex.getByRole("button", { name: "Back" }).click();
+  await expect(codex).toHaveCount(0);
+  await expect(page).toHaveURL("/");
+});
+
 test("goals stays closed until a player opens a sheet", async ({ page }) => {
   await page.goto("/goals");
   await expect(page.getByRole("dialog")).toHaveCount(0);

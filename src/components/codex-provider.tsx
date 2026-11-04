@@ -1,13 +1,16 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { CodexOverlay } from "@/components/codex-overlay";
 import { TermSheet } from "@/components/term-sheet";
 
 type TermApi = { activeId: string | null; open: (id: string) => void; close: () => void };
 type HelpApi = { help: boolean; toggle: () => void };
+type CodexApi = { openCodex: (id?: string) => void };
 
 const TermContext = createContext<TermApi>({ activeId: null, open: () => {}, close: () => {} });
 const HelpContext = createContext<HelpApi>({ help: false, toggle: () => {} });
+const CodexContext = createContext<CodexApi>({ openCodex: () => {} });
 
 export function useTermSheet(): TermApi {
   return useContext(TermContext);
@@ -15,6 +18,10 @@ export function useTermSheet(): TermApi {
 
 export function useHelpMode(): HelpApi {
   return useContext(HelpContext);
+}
+
+export function useCodexOverlay(): CodexApi {
+  return useContext(CodexContext);
 }
 
 function helpKey(userId: string | null): string {
@@ -31,6 +38,7 @@ export function CodexProviders({
   children: ReactNode;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [codexId, setCodexId] = useState<string | null>(null);
   const [help, setHelp] = useState(false);
   const key = helpKey(userId);
 
@@ -71,8 +79,13 @@ export function CodexProviders({
           close: () => setActiveId(null),
         }}
       >
-        {children}
-        {activeId ? <TermSheet id={activeId} onClose={() => setActiveId(null)} /> : null}
+        <CodexContext.Provider value={{ openCodex: (id = "") => setCodexId(id) }}>
+          <div data-help={help ? "on" : "off"} data-beginner={beginner ? "on" : "off"}>
+            {children}
+          </div>
+          {codexId !== null ? <CodexOverlay focusId={codexId} onClose={() => setCodexId(null)} /> : null}
+          {activeId ? <TermSheet id={activeId} onClose={() => setActiveId(null)} /> : null}
+        </CodexContext.Provider>
       </TermContext.Provider>
     </HelpContext.Provider>
   );
