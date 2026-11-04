@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { actionClient, asImpact, dbError, requireRole } from "@/lib/action-client";
 import { currentWeekStart } from "@/lib/rules/dates";
 import { cmartComplete, cmartRequired, mentalCategory, type CmartId, CMART_CHECKS } from "@/lib/rules/cmart";
+import { duplicateGoalTitle } from "@/lib/rules/goal-title";
 import type { ActionResult } from "@/lib/types";
 
 function touch() {
@@ -105,16 +106,26 @@ export async function createGoal(formData: FormData): Promise<ActionResult> {
     return { error: "Long-term goals toward level 4 are for level 3." };
   }
   const category = String(formData.get("category") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return { error: "Write the goal." };
   const flags = Object.fromEntries(CMART_CHECKS.map((check) => [check.id, formData.get(check.id) === "on"])) as Partial<
     Record<CmartId, boolean>
   >;
   const { data: config } = await supabase.from("scoring_config").select("mental_goal_cmart").eq("id", 1).maybeSingle();
   const required = cmartRequired(config?.mental_goal_cmart);
-  const active = !mentalCategory(category) || !required || cmartComplete(flags);
+  const mental = mentalCategory(category);
+  if (mental && required && !cmartComplete(flags)) {
+    return { error: "All five checks have to be on before this goal is saved." };
+  }
+  const { data: existing } = await supabase.from("goals").select("id, title, category").eq("character_id", character.id);
+  if (duplicateGoalTitle(existing ?? [], category, title)) {
+    return { error: "You already have that goal for this stat." };
+  }
+  const active = !mental || !required || cmartComplete(flags);
   const row: Record<string, string | boolean | null> = {
     character_id: character.id,
     category,
-    title: String(formData.get("title") ?? "").trim(),
+    title,
     description: String(formData.get("description") ?? "").trim() || null,
     target_frequency: String(formData.get("target_frequency") ?? "").trim() || null,
     is_long_term: longTerm,
@@ -122,7 +133,6 @@ export async function createGoal(formData: FormData): Promise<ActionResult> {
     period_end: periodEnd || null,
   };
   if (parentId) row.parent_id = parentId;
-  const mental = mentalCategory(category);
   const markedDone = formData.get("marked_done") === "on";
   if (mental) {
     row.is_active = active;
@@ -131,6 +141,80 @@ export async function createGoal(formData: FormData): Promise<ActionResult> {
   }
   const { error: insertError } = await supabase.from("goals").insert(row);
   const message = dbError(insertError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+async function goalStillEditable(supabase: NonNullable<Awaited<ReturnType<typeof actionClient>>["supabase"]>, goalId: string, characterId: string) {
+  const { data: goal } = await supabase
+    .from("goals")
+    .select("id")
+    .eq("id", goalId)
+    .eq("character_id", characterId)
+    .maybeSingle();
+  if (!goal) return "That goal is not yours.";
+  const { data: logs } = await supabase.from("goal_logs").select("status, points_awarded").eq("goal_id", goalId);
+  if ((logs ?? []).some((log) => Number(log.points_awarded) > 0 || log.status === "awarded" || log.status === "bonus")) {
+    return "A trainer has already confirmed this goal.";
+  }
+  const { data: rewards, error: rewardError } = await supabase.from("goal_rewards").select("status").eq("goal_id", goalId);
+  if (!rewardError && (rewards ?? []).some((reward) => reward.status === "recorded")) {
+    return "A trainer has already confirmed this goal.";
+  }
+  return null;
+}
+
+export async function updateGoal(formData: FormData): Promise<ActionResult> {
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  const { data: character } = await supabase.from("characters").select("id").eq("user_id", user.id).maybeSingle();
+  if (!character) return { error: "Create a character first." };
+  const goalId = String(formData.get("goal_id") ?? "");
+  const locked = await goalStillEditable(supabase, goalId, character.id);
+  if (locked) return { error: locked };
+  const category = String(formData.get("category") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  if (!title) return { error: "Write the goal." };
+  const flags = Object.fromEntries(CMART_CHECKS.map((check) => [check.id, formData.get(check.id) === "on"])) as Partial<
+    Record<CmartId, boolean>
+  >;
+  const { data: config } = await supabase.from("scoring_config").select("mental_goal_cmart").eq("id", 1).maybeSingle();
+  const required = cmartRequired(config?.mental_goal_cmart);
+  const mental = mentalCategory(category);
+  const { data: existing } = await supabase.from("goals").select("id, title, category").eq("character_id", character.id);
+  if (duplicateGoalTitle(existing ?? [], category, title, goalId)) {
+    return { error: "You already have that goal for this stat." };
+  }
+  const patch: Record<string, string | boolean | null> = {
+    category,
+    title,
+    description: String(formData.get("description") ?? "").trim() || null,
+  };
+  if (mental) {
+    const complete = !required || cmartComplete(flags);
+    patch.is_active = complete;
+    patch.marked_done = formData.get("marked_done") === "on";
+    for (const check of CMART_CHECKS) patch[check.id] = flags[check.id] === true;
+  }
+  const { error: updateError } = await supabase.from("goals").update(patch).eq("id", goalId).eq("character_id", character.id);
+  const message = dbError(updateError);
+  if (message) return { error: message };
+  touch();
+  return { ok: true };
+}
+
+export async function deleteGoal(formData: FormData): Promise<ActionResult> {
+  const { supabase, user, error } = await actionClient();
+  if (!supabase || !user || error) return { error: error ?? "Sign in first." };
+  if (String(formData.get("confirm") ?? "") !== "yes") return { error: "Confirm the delete first." };
+  const { data: character } = await supabase.from("characters").select("id").eq("user_id", user.id).maybeSingle();
+  if (!character) return { error: "Create a character first." };
+  const goalId = String(formData.get("goal_id") ?? "");
+  const locked = await goalStillEditable(supabase, goalId, character.id);
+  if (locked) return { error: locked };
+  const { error: deleteError } = await supabase.from("goals").delete().eq("id", goalId).eq("character_id", character.id);
+  const message = dbError(deleteError);
   if (message) return { error: message };
   touch();
   return { ok: true };

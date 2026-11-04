@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import { CodexProviders } from "@/components/codex-provider";
 import { DisplayFace } from "@/components/display-face";
+import { FeedbackDock } from "@/components/feedback-dock";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
@@ -72,6 +73,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             avatarUrl={viewer.avatarUrl}
             roleLabel={roleLabel}
           />
+          <FeedbackDock />
           {children}
         </CodexProviders>
       </body>

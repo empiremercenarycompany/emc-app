@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { CODEX_SECTIONS, NEW_HERE, type CodexGroup, type CodexTerm } from "@/lib/rules/codex";
 
-export function CodexBrowser({ terms }: { terms: CodexTerm[] }) {
+export function CodexBrowser({ terms, idPrefix = "" }: { terms: CodexTerm[]; idPrefix?: string }) {
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<CodexGroup | "all">("all");
   const needle = query.trim().toLowerCase();
@@ -76,7 +76,7 @@ export function CodexBrowser({ terms }: { terms: CodexTerm[] }) {
               </article>
             ) : null}
             {rows.map((term) => (
-              <article key={term.id} id={term.id} className="paper">
+              <article key={term.id} id={`${idPrefix}${term.id}`} className="paper">
                 <h3 className="sheet-name">{term.term}</h3>
                 <p>{term.plain}</p>
                 {term.inTheGame ? (

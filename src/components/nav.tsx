@@ -3,7 +3,7 @@
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useHelpMode } from "@/components/codex-provider";
+import { useCodexOverlay, useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
 import { signOut } from "@/lib/actions/staff";
 import { isLogApprover, isStaff, type AppRole } from "@/lib/types";
@@ -73,6 +73,7 @@ export function SiteNav({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const help = useHelpMode();
+  const codex = useCodexOverlay();
   const initial = (displayName?.trim().charAt(0) || "R").toUpperCase();
 
   useEffect(() => {
@@ -123,7 +124,15 @@ export function SiteNav({
           </button>
         </div>
       </header>
-      {help.help ? <p className="help-banner">Help mode is on. Tap anything outlined.</p> : null}
+      {help.help ? (
+        <p className="help-banner">
+          Help mode is on. Bronze-outlined words open a plain meaning. Tap one, or{" "}
+          <button type="button" className="help-banner-link" onClick={() => codex.openCodex("")}>
+            open the Codex
+          </button>
+          .
+        </p>
+      ) : null}
       {open ? (
         <div id="company-menu" className="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
@@ -143,6 +152,16 @@ export function SiteNav({
                 </div>
               </section>
             ))}
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("emc-open-feedback"));
+              }}
+            >
+              Send feedback
+            </button>
             {signedIn ? (
               <form action={signOut}>
                 <button className="secondary" type="submit">

@@ -209,6 +209,9 @@ export default async function BarracksPage() {
       ) : null}
       {!viewer.character ? (
         <Panel title="Start here" wide>
+          {viewer.userId && viewer.firstVisit ? (
+            <p>Your character comes first. Fill Out Recruitment Papers, then the rest of the Company opens up.</p>
+          ) : null}
           <ol className="list-decimal pl-5">
             <li>{viewer.userId ? "Join the Company — Done" : "Join the Company"}</li>
             <li>Fill Out Recruitment Papers</li>
@@ -248,6 +251,9 @@ export default async function BarracksPage() {
           </ul>
           <Link className="button primary" href={checkin ? "/work" : "/check-in"}>
             {checkin ? "Record work" : "File your check-in"}
+          </Link>
+          <Link className="button secondary log-entry" href="/work">
+            What do you want to log?
           </Link>
           {!viewer.intake ? (
             <p className="text-center">

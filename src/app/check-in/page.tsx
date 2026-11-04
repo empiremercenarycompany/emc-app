@@ -5,7 +5,7 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { companyWeekNumber } from "@/lib/rules/calendar";
 import { CLEARANCE_LADDER, clearanceRank, PILLAR_INTERVAL, PILLAR_NAME } from "@/lib/rules/clearance";
-import { currentWeekStart, parseDate } from "@/lib/rules/dates";
+import { currentWeekEnd, currentWeekStart, parseDate } from "@/lib/rules/dates";
 import { isStaff } from "@/lib/types";
 
 export default async function CheckInPage() {
@@ -21,7 +21,9 @@ export default async function CheckInPage() {
       ? (
           await supabase
             .from("weekly_checkins")
-            .select("id, week_start, score, override_score, workouts")
+            .select(
+              "id, week_start, score, override_score, workouts, wis, int_mark, cha, note, bonus_count, bonus_activities, injury_sub",
+            )
             .eq("character_id", viewer.character.id)
             .order("week_start", { ascending: false })
             .limit(8)
@@ -50,7 +52,22 @@ export default async function CheckInPage() {
       {viewer.character ? (
         <Panel title="This week">
           <p className="text-mute">Squad {squadName ?? "No squad yet"}.</p>
-          <CheckInForm defaultWeek={currentWeekStart(viewer.today)} />
+          <CheckInForm
+            defaultWeek={currentWeekStart(viewer.today)}
+            maxWeek={currentWeekEnd(viewer.today)}
+            today={viewer.today ?? currentWeekStart(viewer.today)}
+            filedWeeks={(mine ?? []).map((row) => ({
+              week_start: row.week_start,
+              workouts: row.workouts,
+              wis: row.wis,
+              int_mark: row.int_mark,
+              cha: row.cha,
+              note: row.note,
+              bonus_count: row.bonus_count,
+              bonus_activities: row.bonus_activities,
+              injury_sub: row.injury_sub,
+            }))}
+          />
         </Panel>
       ) : null}
       <Panel title="Clearance">
