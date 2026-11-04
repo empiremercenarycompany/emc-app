@@ -1420,6 +1420,18 @@ button.weapon-row {
   color: #f4f1e8;
 }
 
+/* Secondary actions on the cream sheet. Ink #211b15 on #fbf9f3 is 16.2:1. */
+.sheet-panel-pop button.secondary,
+.sheet-panel-pop .button.secondary {
+  border: 2px solid #6b4f27;
+  background: #fbf9f3;
+  color: #211b15;
+}
+
+.sheet-panel-pop :focus-visible {
+  outline-color: #6b4f27;
+}
+
 .codex-overlay {
   position: fixed;
   inset: 0;

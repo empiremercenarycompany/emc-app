@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signInError } from "@/lib/rules/auth-error";
 import { createBrowser } from "@/lib/supabase/browser";
 import { MISSING_ENV } from "@/lib/supabase/env";
 
@@ -26,7 +27,7 @@ export function SignInForm() {
     setPending(false);
     if (error) {
       setSent(false);
-      setMessage(error.message);
+      setMessage(signInError(error.message));
       return;
     }
     setSent(true);
@@ -58,7 +59,7 @@ export function SignInForm() {
         Google
       </button>
       <p className="text-sm text-mute">Discord and Google stay off until the Company configures them.</p>
-      {message ? <p role="status">{message}</p> : null}
+      {message ? <p role={sent ? "status" : "alert"}>{message}</p> : null}
       {sent ? <p>{"Open the link in the same browser you're using now."}</p> : null}
     </form>
   );
