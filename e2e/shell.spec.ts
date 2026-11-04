@@ -76,7 +76,7 @@ test("weekly check-in explains the Friday cutoff", async ({ page }) => {
 
 test("work opens on one record form", async ({ page }) => {
   await page.goto("/work");
-  await expect(page.getByRole("heading", { name: "Record work" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What do you want to log?" })).toBeVisible();
   await expect(page.getByLabel("What you did")).toBeVisible();
   await expect(page.getByLabel("What kind of work?")).toBeVisible();
   await expect(page.getByText("Counts toward Strength or Dexterity.")).toBeVisible();
@@ -180,6 +180,29 @@ test("home content clears the bottom nav", async ({ page }) => {
   const navBox = await nav.boundingBox();
   expect(navBox).not.toBeNull();
   expect(pad).toBeGreaterThan(navBox!.height);
+});
+
+test("goals stays closed until a player opens a sheet", async ({ page }) => {
+  await page.goto("/goals");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Goals" })).toBeVisible();
+});
+
+test("feedback opens from the button and from the menu", async ({ page }) => {
+  await page.goto("/goals");
+  await page.getByRole("button", { name: "Feedback" }).click();
+  const dialog = page.getByRole("dialog", { name: "Send feedback" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Close" }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("dialog", { name: "Menu" }).getByRole("button", { name: "Send feedback" }).click();
+  await expect(page.getByRole("dialog", { name: "Send feedback" })).toBeVisible();
+  await page.getByLabel("Note").fill("The goals sheet closed.");
+  await page.getByRole("button", { name: "Send feedback" }).click();
+  await expect(page.getByRole("dialog", { name: "Send feedback" }).getByRole("alert")).toContainText(
+    "Supabase is not configured",
+  );
 });
 
 test("the manifest names the company", async ({ request }) => {

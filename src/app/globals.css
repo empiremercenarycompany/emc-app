@@ -709,6 +709,31 @@ button.weapon-row {
   color: var(--color-ink);
 }
 
+.ghost-click-shield {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: transparent;
+}
+
+.feedback-fab {
+  position: fixed;
+  right: 0.85rem;
+  bottom: 5.25rem;
+  z-index: 25;
+  min-height: 2.5rem;
+  border-color: var(--color-bronze-lt);
+  color: var(--color-bronze-lt);
+  background: var(--color-char);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.log-entry {
+  width: 100%;
+  border-color: var(--color-bronze-lt);
+  color: var(--color-bronze-lt);
+}
+
 .toast-banner {
   position: fixed;
   left: 50%;

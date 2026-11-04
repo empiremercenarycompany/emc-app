@@ -65,6 +65,23 @@ export default async function GoalsPage() {
             .eq("character_id", viewer.character.id)
         ).data
       : [];
+  const logRows =
+    supabase && viewer.character
+      ? (
+          await supabase
+            .from("goal_logs")
+            .select("goal_id, status, points_awarded")
+            .eq("character_id", viewer.character.id)
+        ).data
+      : [];
+  const locked = new Set<string>();
+  for (const log of (logRows ?? []) as { goal_id: string | null; status: string | null; points_awarded: number | null }[]) {
+    if (!log.goal_id) continue;
+    if (log.status === "awarded" || log.status === "bonus" || Number(log.points_awarded) > 0) locked.add(log.goal_id);
+  }
+  for (const reward of (rewards ?? []) as { goal_id: string; status: string }[]) {
+    if (reward.status === "recorded") locked.add(reward.goal_id);
+  }
   const buffRows = supabase
     ? (await supabase.from("goal_reward_buffs").select("id, name, enabled").eq("enabled", true).order("sort_order")).data
     : null;
@@ -124,6 +141,7 @@ export default async function GoalsPage() {
       goal.cmart_relevant ? "R" : "",
       goal.cmart_timed ? "T" : "",
     ].filter(Boolean),
+    editable: !locked.has(goal.id),
   }));
   const rewardViews: RewardView[] = ((rewards ?? []) as {
     id: string;

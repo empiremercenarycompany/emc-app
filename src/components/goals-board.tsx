@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import { ConfirmAction } from "@/components/confirm-action";
 import { GoalRewardForm } from "@/components/goal-reward-form";
 import { MentalGoalForm } from "@/components/mental-goal-form";
 import { ResultForm } from "@/components/result-form";
@@ -12,12 +13,16 @@ import {
   chooseConstitutionGoal,
   completeShortTermGoal,
   createGoal,
+  deleteGoal,
   logGoal,
   markConstitutionGoalWeek,
+  updateGoal,
 } from "@/lib/actions/activity";
 import { CON_GOAL_OPTIONS } from "@/lib/rules/constitution-goal";
 import { CMART_CHECKS } from "@/lib/rules/cmart";
 import { compareGoalSteps } from "@/lib/rules/goal-order";
+import { duplicateGoalTitle } from "@/lib/rules/goal-title";
+import { GHOST_CLICK_MS, sheetOpenBlocked } from "@/lib/rules/sheet-guard";
 import { GOAL_REWARD_READY } from "@/lib/rules/level-four";
 import type { ActionResult } from "@/lib/types";
 
@@ -35,6 +40,7 @@ export type GoalView = {
   markedDone: boolean;
   periodLabel: string | null;
   chips: string[];
+  editable: boolean;
 };
 
 export type RewardView = {
@@ -45,7 +51,7 @@ export type RewardView = {
   story: string | null;
 };
 
-type SheetId = "con" | "mental" | "long" | "social" | `step:${string}`;
+type SheetId = "con" | "mental" | "long" | "social" | `step:${string}` | `edit:${string}`;
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   useEffect(() => {
@@ -83,11 +89,13 @@ function DraftForm({
   children,
   onSaved,
   extras,
+  existing = [],
 }: {
   submit: string;
   children: ReactNode;
   onSaved: () => void;
   extras?: ReactNode;
+  existing?: { id?: string; category: string; title: string }[];
 }) {
   const [error, setError] = useState<string | null>(null);
   const savedRef = useRef(onSaved);
@@ -106,10 +114,17 @@ function DraftForm({
       action={formAction}
       className="flex flex-col gap-3"
       onSubmit={(event) => {
-        const title = String(new FormData(event.currentTarget).get("title") ?? "").trim();
+        const data = new FormData(event.currentTarget);
+        const title = String(data.get("title") ?? "").trim();
         if (!title) {
           event.preventDefault();
           setError("Write the goal.");
+          return;
+        }
+        const category = String(data.get("category") ?? "");
+        if (duplicateGoalTitle(existing, category, title)) {
+          event.preventDefault();
+          setError("You already have that goal for this stat.");
           return;
         }
         setError(null);
@@ -154,6 +169,10 @@ export function GoalsBoard({
 }) {
   const [sheet, setSheet] = useState<SheetId | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [eating, setEating] = useState(false);
+  const closedAt = useRef<number | null>(null);
+  const eatTimer = useRef<number | null>(null);
+  const titles = goals.map((goal) => ({ id: goal.id, category: goal.category, title: goal.title }));
   useEffect(() => {
     const raw = window.sessionStorage.getItem("emc-goal-toast");
     if (!raw) return;
@@ -186,7 +205,22 @@ export function GoalsBoard({
   const rewardFor = (goalId: string) => rewards.find((reward) => reward.goalId === goalId) ?? null;
   const chosen = CON_GOAL_OPTIONS.find((option) => option.id === conChoice) ?? null;
 
+  function openSheet(id: SheetId) {
+    if (sheetOpenBlocked(closedAt.current, Date.now())) return;
+    setSheet(id);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (eatTimer.current != null) window.clearTimeout(eatTimer.current);
+    };
+  }, []);
+
   function saved(message: string) {
+    closedAt.current = Date.now();
+    setEating(true);
+    if (eatTimer.current != null) window.clearTimeout(eatTimer.current);
+    eatTimer.current = window.setTimeout(() => setEating(false), GHOST_CLICK_MS);
     window.sessionStorage.setItem("emc-goal-toast", JSON.stringify({ message, at: Date.now() }));
     setSheet(null);
     setToast(message);
@@ -223,7 +257,7 @@ export function GoalsBoard({
           </ResultForm>
         ) : null}
         {hasCharacter ? (
-          <button type="button" className="secondary" onClick={() => setSheet("con")}>
+          <button type="button" className="secondary" onClick={() => openSheet("con")}>
             {conChoice ? "Change Constitution goal" : "Choose Constitution goal"}
           </button>
         ) : null}
@@ -239,7 +273,7 @@ export function GoalsBoard({
           </EmptyState>
         ) : null}
         {hasCharacter ? (
-          <button type="button" className="primary" onClick={() => setSheet("mental")}>
+          <button type="button" className="primary" onClick={() => openSheet("mental")}>
             Add a mental goal
           </button>
         ) : null}
@@ -279,7 +313,7 @@ export function GoalsBoard({
               </div>
             );
           })}
-          <button type="button" className="secondary" onClick={() => setSheet(`step:${goal.id}`)}>
+          <button type="button" className="secondary" onClick={() => openSheet(`step:${goal.id}`)}>
             Add a short-term step
           </button>
         </article>
@@ -309,7 +343,21 @@ export function GoalsBoard({
           {goal.description ? <p>{goal.description}</p> : null}
           {goal.markedDone ? <p>Done.</p> : null}
           {!goal.active && (goal.category === "intelligence" || goal.category === "wisdom") ? (
-            <p>Not counting yet. All five checks have to be on.</p>
+            <p>Draft, not counting yet.</p>
+          ) : null}
+          {goal.editable ? (
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="secondary" onClick={() => openSheet(`edit:${goal.id}`)}>
+                Edit
+              </button>
+              <ConfirmAction
+                action={deleteGoal}
+                arm="Delete"
+                confirm="Delete this goal"
+                done="Goal removed."
+                hidden={{ goal_id: goal.id }}
+              />
+            </div>
           ) : null}
           {goal.active ? (
             <ResultForm action={logGoal} submit="Done" primary>
@@ -318,17 +366,17 @@ export function GoalsBoard({
               <textarea name="notes" placeholder="Notes" />
             </ResultForm>
           ) : (
-            <p>Inactive.</p>
+            null
           )}
         </article>
       ))}
       {hasCharacter && level === 3 ? (
-        <button type="button" className="primary" onClick={() => setSheet("long")}>
+        <button type="button" className="primary" onClick={() => openSheet("long")}>
           Add a long-term goal
         </button>
       ) : null}
       {hasCharacter ? (
-        <button type="button" className="secondary" onClick={() => setSheet("social")}>
+        <button type="button" className="secondary" onClick={() => openSheet("social")}>
           Add a Charisma goal
         </button>
       ) : (
@@ -343,7 +391,11 @@ export function GoalsBoard({
       ) : null}
       {sheet === "mental" ? (
         <Sheet title="Mental goal" onClose={() => setSheet(null)}>
-          <MentalGoalForm required={cmartOn} onSaved={() => saved("Goal set.")} />
+          <MentalGoalForm
+            required={cmartOn}
+            onSaved={() => saved("Goal set.")}
+            existing={titles}
+          />
         </Sheet>
       ) : null}
       {sheet === "long" ? (
@@ -351,6 +403,7 @@ export function GoalsBoard({
           <DraftForm
             submit="Save long-term goal"
             onSaved={() => saved("Goal set.")}
+            existing={titles}
             extras={<input type="hidden" name="is_long_term" value="on" />}
           >
             <label>
@@ -379,6 +432,7 @@ export function GoalsBoard({
           <DraftForm
             submit="Add a short-term step"
             onSaved={() => saved("Goal set.")}
+            existing={titles}
             extras={
               <>
                 <input type="hidden" name="parent_id" value={sheet.slice(5)} />
@@ -401,9 +455,19 @@ export function GoalsBoard({
           </DraftForm>
         </Sheet>
       ) : null}
+      {sheet?.startsWith("edit:") ? (
+        <Sheet title="Edit goal" onClose={() => setSheet(null)}>
+          <EditGoalForm
+            goal={goals.find((goal) => goal.id === sheet.slice(5)) ?? null}
+            required={cmartOn}
+            existing={titles}
+            onSaved={() => saved("Changes saved.")}
+          />
+        </Sheet>
+      ) : null}
       {sheet === "social" ? (
         <Sheet title="Charisma" onClose={() => setSheet(null)}>
-          <DraftForm submit="Save goal" onSaved={() => saved("Goal set.")}>
+          <DraftForm submit="Save goal" existing={titles} onSaved={() => saved("Goal set.")}>
             <label>
               Goal
               <input name="title" />
@@ -437,7 +501,89 @@ export function GoalsBoard({
             document.body,
           )
         : null}
+      {eating
+        ? createPortal(
+            <div className="ghost-click-shield" aria-hidden="true" onClick={(event) => event.stopPropagation()} />,
+            document.body,
+          )
+        : null}
     </>
+  );
+}
+
+function EditGoalForm({
+  goal,
+  required,
+  onSaved,
+  existing,
+}: {
+  goal: GoalView | null;
+  required: boolean;
+  onSaved: () => void;
+  existing: { id?: string; category: string; title: string }[];
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const savedRef = useRef(onSaved);
+  savedRef.current = onSaved;
+  const [state, formAction, pending] = useActionState(
+    async (_previous: ActionResult | null, formData: FormData) => updateGoal(formData),
+    null as ActionResult | null,
+  );
+  useEffect(() => {
+    if (state && "ok" in state) savedRef.current();
+    if (state && "error" in state) setError(state.error);
+  }, [state]);
+  if (!goal) return <p>That goal is gone.</p>;
+  const mental = goal.category === "intelligence" || goal.category === "wisdom";
+  if (mental) {
+    return (
+      <MentalGoalForm
+        required={required}
+        onSaved={onSaved}
+        goalId={goal.id}
+        initialTitle={goal.title}
+        initialCategory={goal.category}
+        initialOn={goal.chips}
+        initialDone={goal.markedDone}
+        existing={existing}
+      />
+    );
+  }
+  return (
+    <form
+      noValidate
+      action={formAction}
+      className="flex flex-col gap-3"
+      onSubmit={(event) => {
+        const title = String(new FormData(event.currentTarget).get("title") ?? "");
+        if (!title.trim()) {
+          event.preventDefault();
+          setError("Write the goal.");
+          return;
+        }
+        if (duplicateGoalTitle(existing, goal.category, title, goal.id)) {
+          event.preventDefault();
+          setError("You already have that goal for this stat.");
+          return;
+        }
+        setError(null);
+      }}
+    >
+      <input type="hidden" name="goal_id" value={goal.id} />
+      <input type="hidden" name="category" value={goal.category} />
+      <label>
+        Goal
+        <input name="title" defaultValue={goal.title} />
+      </label>
+      <label>
+        What done looks like
+        <textarea name="description" defaultValue={goal.description ?? ""} />
+      </label>
+      {error ? <p role="alert">{error}</p> : null}
+      <button className="primary" type="submit" disabled={pending}>
+        {pending ? "Saving" : "Save changes"}
+      </button>
+    </form>
   );
 }
 

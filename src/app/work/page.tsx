@@ -49,7 +49,7 @@ export default async function WorkPage() {
           before recording work.
         </p>
       ) : null}
-      <Panel title="Record work">
+      <Panel title="What do you want to log?">
         <ResultForm action={logWorkout} submit="Record work" primary>
           <input type="hidden" name="is_custom" value="true" />
           <label>

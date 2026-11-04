@@ -143,6 +143,16 @@ export function SiteNav({
                 </div>
               </section>
             ))}
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                window.dispatchEvent(new Event("emc-open-feedback"));
+              }}
+            >
+              Send feedback
+            </button>
             {signedIn ? (
               <form action={signOut}>
                 <button className="secondary" type="submit">

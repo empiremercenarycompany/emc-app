@@ -9,11 +9,13 @@ export function ConfirmAction({
   arm,
   confirm,
   hidden,
+  done,
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
   arm: string;
   confirm: string;
   hidden: Record<string, string>;
+  done?: string;
 }) {
   const [armed, setArmed] = useState(false);
   if (!armed) {
@@ -26,7 +28,7 @@ export function ConfirmAction({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-mute">This step is the confirm. It does not run until you press the button.</p>
-      <ResultForm action={action} submit={confirm} secondary>
+      <ResultForm action={action} submit={confirm} secondary done={done}>
         {Object.entries(hidden).map(([name, value]) => (
           <input key={name} type="hidden" name={name} value={value} />
         ))}
