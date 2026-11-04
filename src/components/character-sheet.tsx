@@ -11,6 +11,7 @@ import { levelFourProgress, showsLevelFourProgress, showsMilestoneLevels } from 
 import { abilityModifier, formatModifier } from "@/lib/rules/modifiers";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { SHEET_SKILLS, armorClass, proficiencyBonus, walkingSpeed } from "@/lib/rules/sheet";
+import { Portrait } from "@/components/portrait";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
 const CRESTS: Record<AbilityName, { id: string; label: string; meaning: string; built: string }> = {
@@ -57,6 +58,7 @@ export function CharacterSheet({
   initiativeNote = null,
   conditionLabel = null,
   subclass = null,
+  portraitSrc = null,
 }: {
   name: string;
   classLabel: string;
@@ -85,6 +87,7 @@ export function CharacterSheet({
   initiativeNote?: string | null;
   conditionLabel?: string | null;
   subclass?: { name: string | null; features: string | null; spells: string | null } | null;
+  portraitSrc?: string | null;
 }) {
   const [tab, setTab] = useState(0);
   const [roll, setRoll] = useState<string | null>(null);
@@ -95,7 +98,6 @@ export function CharacterSheet({
   const bonus = proficiencyBonus(level);
   const trained = new Set<string>([...(skillId ? [skillId] : []), ...(skillIds ?? [])]);
   const recorded = new Set((recordedSkills ?? []).map((skill) => skill.toLowerCase()));
-  const mark = name.trim().charAt(0).toUpperCase() || "R";
   const toward =
     showsLevelFourProgress(level) && levelFourCompleted != null
       ? levelFourProgress(levelFourCompleted, levelFourRequired)
@@ -131,14 +133,8 @@ export function CharacterSheet({
   const overview = (
     <article className="paper sheet-doc">
       <div className="sheet-id">
-        <div className="level-ring" aria-hidden="true">
-          <svg viewBox="0 0 96 96">
-            <circle cx="48" cy="48" r="40" className="ring-track" />
-            <circle cx="48" cy="48" r="40" className="ring-value" />
-            <text x="48" y="56" textAnchor="middle">
-              {mark}
-            </text>
-          </svg>
+        <div className="portrait-frame">
+          <Portrait src={portraitSrc} />
         </div>
         <div>
           <h2 className="sheet-name">{name}</h2>

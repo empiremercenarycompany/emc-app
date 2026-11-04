@@ -17,6 +17,8 @@ import {
   CON_GOAL_SCORE_MIN_DEFAULT,
 } from "@/lib/rules/constitution-goal";
 import { showsLevelFourProgress, levelFourProgress, LEVEL_FOUR_STEPS_DEFAULT } from "@/lib/rules/level-four";
+import { Portrait } from "@/components/portrait";
+import { signedPortraitMap, signedPortraitUrl } from "@/lib/portraits";
 import { recruitName } from "@/lib/recruit-name";
 import { isStaff } from "@/lib/types";
 
@@ -176,10 +178,24 @@ export default async function BarracksPage() {
         })
       : null;
 
+  const ownPortrait = supabase && viewer.character ? await signedPortraitUrl(supabase, viewer.character.portrait_url) : null;
+  const squadPortraits =
+    supabase && viewer.character
+      ? await signedPortraitMap(
+          supabase,
+          (mates ?? []).map((mate) => ({ id: mate.id, path: mate.portrait_url })),
+        )
+      : new Map<string, string>();
+
   return (
     <Page mark={false}>
       <header className="hero-band span-all">
         <p className="eyebrow hero-kicker">{viewer.firstVisit ? "Welcome" : "Welcome back"}</p>
+        {viewer.character ? (
+          <div className="hero-portrait">
+            <Portrait src={ownPortrait} />
+          </div>
+        ) : null}
         <h1 className="recruit-name">{welcome}</h1>
         <p>
           {postedLine ? (
@@ -306,13 +322,7 @@ export default async function BarracksPage() {
             <ul className="squad-row">
               {(mates ?? []).map((mate) => (
                 <li key={mate.id} className="squad-avatar" title={mate.name}>
-                  {mate.portrait_url ? (
-                    // Portrait from the recruit's own file.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={mate.portrait_url} alt="" className="h-full w-full rounded-full object-cover" />
-                  ) : (
-                    (mate.name?.trim().charAt(0) || "R").toUpperCase()
-                  )}
+                  <Portrait src={squadPortraits.get(mate.id) ?? null} />
                   <span className="sr-only">{mate.name}</span>
                 </li>
               ))}

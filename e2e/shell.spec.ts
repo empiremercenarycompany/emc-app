@@ -86,6 +86,7 @@ test("work opens on one record form", async ({ page }) => {
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
+  await expect(page.locator("img[src='/portraits/fallback.svg']").first()).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
   await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
