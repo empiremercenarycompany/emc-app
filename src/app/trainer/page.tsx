@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { GoalRewardForm } from "@/components/goal-reward-form";
+import { approveGrewUp } from "@/lib/actions/grew-up";
 import { finalizeStats } from "@/lib/actions/muster";
+import { grewUpLabel } from "@/lib/rules/grew-up";
 import { GOAL_REWARD_BUFF_SEED, GOAL_REWARD_READY } from "@/lib/rules/level-four";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -44,6 +46,15 @@ export default async function TrainerPage() {
             .from("goal_rewards")
             .select("id, status, goal_id, character_id, goals(title), characters(name)")
             .eq("status", "ready")
+        ).data
+      : [];
+  const grewUp =
+    supabase && trainer
+      ? (
+          await supabase
+            .from("grew_up_requests")
+            .select("id, kind, option_id, note, requester_character_id, partner_character_id")
+            .eq("status", "pending")
         ).data
       : [];
   const buffRows = supabase ? (await supabase.from("goal_reward_buffs").select("id, name").eq("enabled", true).order("sort_order")).data : null;
@@ -119,6 +130,18 @@ export default async function TrainerPage() {
             </ResultForm>
           </>
         ) : null}
+      </Panel>
+      <Panel title="Grew up together">
+        {(grewUp ?? []).length === 0 ? <p className="text-mute">No request is waiting.</p> : null}
+        {(grewUp ?? []).map((row) => (
+          <ResultForm key={row.id} action={approveGrewUp} submit="Approve" primary>
+            <input type="hidden" name="request_id" value={row.id} />
+            <p>
+              {grewUpLabel(row.kind, row.option_id)}
+            </p>
+            <p className="text-mute">{row.note}</p>
+          </ResultForm>
+        ))}
       </Panel>
       <Panel title="Goal rewards">
         <p>When a recruit finishes a short-term step, record the buff and the story. Nothing is granted from this screen.</p>
