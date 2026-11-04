@@ -25,7 +25,7 @@
             </tr>
             <tr>
               <td>
-                <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#b11217;color:#f4f1e8;text-decoration:none;font-family:Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:14px 22px;">
+                <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/" style="display:inline-block;background:#b11217;color:#f4f1e8;text-decoration:none;font-family:Arial,sans-serif;font-size:16px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:14px 22px;">
                   Your sign-in link
                 </a>
               </td>

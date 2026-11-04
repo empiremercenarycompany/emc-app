@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { safeNextPath } from "./auth-next";
+import { confirmOtpType, safeNextPath } from "./auth-next";
 
 describe("sign-in return path", () => {
   it("keeps a same-site path", () => {
@@ -16,5 +16,16 @@ describe("sign-in return path", () => {
     expect(safeNextPath("evil.com")).toBe("/");
     expect(safeNextPath(null)).toBe("/");
     expect(safeNextPath("")).toBe("/");
+  });
+});
+
+describe("confirm link type", () => {
+  it("allows email, magic link, and signup only", () => {
+    expect(confirmOtpType("email")).toBe("email");
+    expect(confirmOtpType("magiclink")).toBe("magiclink");
+    expect(confirmOtpType("signup")).toBe("signup");
+    expect(confirmOtpType("recovery")).toBeNull();
+    expect(confirmOtpType("")).toBeNull();
+    expect(confirmOtpType(null)).toBeNull();
   });
 });
