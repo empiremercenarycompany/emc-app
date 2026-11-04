@@ -26,6 +26,8 @@ import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
+import { GrewUpForm } from "@/components/grew-up-form";
+import { grewUpLabel } from "@/lib/rules/grew-up";
 import { PortraitForm } from "@/components/portrait-form";
 import { signedPortraitUrl } from "@/lib/portraits";
 import { allowanceFor } from "@/lib/pacing-config";
@@ -345,6 +347,35 @@ export default async function CharacterPage({
       : null;
 
   const portraitSrc = supabase ? await signedPortraitUrl(supabase, character.portrait_url) : null;
+  const grewUp = supabase
+    ? (
+        await supabase
+          .from("grew_up_requests")
+          .select("id, kind, option_id, note, status, requester_character_id, partner_character_id")
+          .or(`requester_character_id.eq.${character.id},partner_character_id.eq.${character.id}`)
+          .in("status", ["pending", "approved"])
+          .limit(1)
+      ).data
+    : [];
+  const shared = (grewUp ?? [])[0] as
+    | {
+        id: string;
+        kind: string;
+        option_id: string;
+        note: string;
+        status: string;
+        requester_character_id: string;
+        partner_character_id: string | null;
+      }
+    | undefined;
+  const proficiencies = supabase
+    ? (
+        await supabase
+          .from("character_proficiencies")
+          .select("kind, option_id")
+          .eq("character_id", character.id)
+      ).data
+    : [];
 
   return (
     <Page title="Character" mark={false}>
@@ -355,6 +386,26 @@ export default async function CharacterPage({
           kind of work.
         </p>
         <p className="text-mute">A session you attend counts as 1 outside that.</p>
+      </Panel>
+      <Panel title="Grew up together">
+        <p className="text-mute">One shared starting proficiency. A DM approves it for both of you.</p>
+        {(proficiencies ?? []).map((row) => (
+          <p key={`${row.kind}-${row.option_id}`}>{grewUpLabel(row.kind, row.option_id)}</p>
+        ))}
+        <GrewUpForm
+          request={
+            shared
+              ? {
+                  id: shared.id,
+                  kind: shared.kind,
+                  optionId: shared.option_id,
+                  note: shared.note,
+                  status: shared.status,
+                  mine: true,
+                }
+              : null
+          }
+        />
       </Panel>
       <PortraitForm hasPortrait={Boolean(character.portrait_url)} />
       <CharacterSheet
