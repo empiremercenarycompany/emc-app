@@ -27,7 +27,6 @@ import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 import { GrewUpForm } from "@/components/grew-up-form";
-import { grewUpLabel } from "@/lib/rules/grew-up";
 import { PortraitForm } from "@/components/portrait-form";
 import { signedPortraitUrl } from "@/lib/portraits";
 import { allowanceFor } from "@/lib/pacing-config";
@@ -108,6 +107,7 @@ export default async function CharacterPage({
       <Page title="Character" mark={false}>
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
+        <GrewUpForm request={null} />
         <CharacterSheet
           name="Recruit"
           classLabel="Not yet inducted"
@@ -368,15 +368,6 @@ export default async function CharacterPage({
         partner_character_id: string | null;
       }
     | undefined;
-  const proficiencies = supabase
-    ? (
-        await supabase
-          .from("character_proficiencies")
-          .select("kind, option_id")
-          .eq("character_id", character.id)
-      ).data
-    : [];
-
   return (
     <Page title="Character" mark={false}>
       {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
@@ -387,11 +378,7 @@ export default async function CharacterPage({
         </p>
         <p className="text-mute">A session you attend counts as 1 outside that.</p>
       </Panel>
-      <Panel title="Grew up together">
-        <p className="text-mute">One shared starting proficiency. A DM approves it for both of you.</p>
-        {(proficiencies ?? []).map((row) => (
-          <p key={`${row.kind}-${row.option_id}`}>{grewUpLabel(row.kind, row.option_id)}</p>
-        ))}
+      <Panel>
         <GrewUpForm
           request={
             shared
