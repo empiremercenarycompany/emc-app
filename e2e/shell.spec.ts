@@ -218,6 +218,15 @@ test("help mode outlines a term and the codex stays on the page", async ({ page 
   await expect(page).toHaveURL("/");
 });
 
+test("a term sheet button stays readable on the cream sheet", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "muster" }).first().click();
+  const got = page.getByRole("button", { name: "Got it" });
+  await expect(got).toBeVisible();
+  const color = await got.evaluate((element) => getComputedStyle(element).color);
+  expect(color).toBe("rgb(33, 27, 21)");
+});
+
 test("goals stays closed until a player opens a sheet", async ({ page }) => {
   await page.goto("/goals");
   await expect(page.getByRole("dialog")).toHaveCount(0);
