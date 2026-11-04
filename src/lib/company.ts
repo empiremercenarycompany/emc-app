@@ -73,6 +73,9 @@ export async function loadViewer(): Promise<Viewer> {
     week = typeof weekResult.data === "number" ? weekResult.data : null;
   }
 
+  if (!profile.data?.last_seen_at) {
+    await supabase.rpc("claim_starting_goals", { p_user_id: user.id });
+  }
   await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
 
   const intakeRow = intakeResult.error ? null : intakeResult.data;

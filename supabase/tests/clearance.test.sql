@@ -14,8 +14,8 @@ begin
   if (select label from public.compliance_tiers where id = 'clearance-20') is distinct from 'Vouched For' then
     raise exception 'week 20 is not Vouched For';
   end if;
-  if (select label from public.compliance_tiers where id = 'clearance-36') is distinct from 'Honored' then
-    raise exception 'week 36 is not Honored';
+  if (select label from public.compliance_tiers where id = 'clearance-36') is distinct from 'Honoured' then
+    raise exception 'week 36 is not Honoured';
   end if;
   if (select label from public.compliance_tiers where id = 'clearance-52') is distinct from 'Esteemed of Bleakspire' then
     raise exception 'week 52 is not Esteemed of Bleakspire';

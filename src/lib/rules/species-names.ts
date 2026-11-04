@@ -1,12 +1,12 @@
 /**
- * Player-facing species names. Stored ids stay aasimar and tiefling.
- * Inferni is the working final name. John may still rename it.
- * Change INFERNI here and nowhere else.
+ * Player-facing species names. John, Nov 1, 2026.
+ * Stored ids stay aasimar and tiefling.
  * These two labels are homebrew. See docs/SPECIES.md.
+ * Orc and Ork are different in canon. Do not map one id onto the other.
  */
 export const SERAPH = "Seraph";
 
-/** Working final name. One place to rename later. */
+/** John, Nov 1, 2026. */
 export const INFERNI = "Inferni";
 
 const DISPLAY: Record<string, string> = {

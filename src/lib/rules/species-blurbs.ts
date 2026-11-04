@@ -8,6 +8,7 @@ export const SPECIES_BLURB: Record<string, string> = {
   goliath: "A tall people, built for height and heavy loads.",
   halfling: "A small people, quick to slip past trouble.",
   human: "People of every trade, ready to learn what the week asks.",
+  // Orc only. Ork is a different canon people and must not be stored under this id.
   orc: "A people known for drive and stamina.",
   tiefling: "A people marked by an unusual lineage.",
 };
@@ -26,6 +27,6 @@ export const SPECIES_FALLBACK = [
   { id: "orc", name: "Orc" },
   { id: "dragonborn", name: "Dragonborn" },
   { id: "goliath", name: "Goliath" },
-  { id: "aasimar", name: "Aasimar" },
-  { id: "tiefling", name: "Tiefling" },
+  { id: "aasimar", name: "Seraph" },
+  { id: "tiefling", name: "Inferni" },
 ] as const;
