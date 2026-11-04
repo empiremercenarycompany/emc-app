@@ -42,6 +42,33 @@ end $$;
 insert into public.goals (character_id, category, title)
 values ('55555555-5555-4555-8555-555555555552', 'wisdom', 'Talk to someone');
 
+alter table public.goals disable trigger goals_reject_duplicate_title;
+insert into public.goals (id, character_id, category, title)
+values
+  ('55555555-5555-4555-8555-555555555560', '55555555-5555-4555-8555-555555555552', 'intelligence', 'Reading'),
+  ('55555555-5555-4555-8555-555555555561', '55555555-5555-4555-8555-555555555552', 'intelligence', 'Reading');
+alter table public.goals enable trigger goals_reject_duplicate_title;
+
+update public.goals
+set title = title, category = category, description = 'kept'
+where id = '55555555-5555-4555-8555-555555555560';
+
+update public.goals
+set title = '  READING  '
+where id = '55555555-5555-4555-8555-555555555560';
+
+do $$
+begin
+  update public.goals
+  set title = 'Talk to someone', category = 'charisma'
+  where id = '55555555-5555-4555-8555-555555555560';
+  raise exception 'renamed onto an existing goal';
+exception
+  when others then
+    if sqlerrm ilike '%renamed onto an existing goal%' then raise; end if;
+    if sqlerrm not ilike '%already have that goal%' then raise; end if;
+end $$;
+
 do $$
 begin
   perform set_config('emc.progression_write', 'on', true);
