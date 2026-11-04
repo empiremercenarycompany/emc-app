@@ -26,6 +26,8 @@ import { TOOL_LABELS } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
+import { PortraitForm } from "@/components/portrait-form";
+import { signedPortraitUrl } from "@/lib/portraits";
 import { isLogApprover, isStaff, type CharacterRow } from "@/lib/types";
 
 const LABELS: Record<AbilityName, string> = {
@@ -158,9 +160,11 @@ export default async function CharacterPage({
       wisdom: recruit.wisdom,
       charisma: recruit.charisma,
     };
+    const recruitPortrait = recruitClient ? await signedPortraitUrl(recruitClient, recruit.portrait_url) : null;
     return (
       <Page title="Character" lede={recruit.name} mark={false}>
         <CharacterSheet
+          portraitSrc={recruitPortrait}
           name={recruit.name}
           classLabel={`${recruit.rank} · ${recruit.class ?? "Not yet inducted"}`}
           level={recruit.level}
@@ -328,10 +332,14 @@ export default async function CharacterPage({
           .not("completed_at", "is", null)
       : null;
 
+  const portraitSrc = supabase ? await signedPortraitUrl(supabase, character.portrait_url) : null;
+
   return (
     <Page title="Character" mark={false}>
       {params?.welcomed ? <Notice>Welcome to Bleakspire, recruit.</Notice> : null}
+      <PortraitForm hasPortrait={Boolean(character.portrait_url)} />
       <CharacterSheet
+        portraitSrc={portraitSrc}
         name={character.name}
         classLabel={`${character.rank} · ${character.class ?? "Not yet inducted"}`}
         level={character.level}

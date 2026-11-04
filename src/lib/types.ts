@@ -31,6 +31,7 @@ export type CharacterRow = {
   share_logs?: boolean;
   inducted_at: string | null;
   notes: string | null;
+  portrait_url?: string | null;
   constitution_goal_id?: string | null;
   subclass_name?: string | null;
   subclass_features?: string | null;
