@@ -7,6 +7,7 @@ import { MISSING_ENV } from "@/lib/supabase/env";
 export function SignInForm() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
   const configured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
@@ -23,7 +24,13 @@ export function SignInForm() {
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     setPending(false);
-    setMessage(error ? error.message : "Check your email for the sign-in link.");
+    if (error) {
+      setSent(false);
+      setMessage(error.message);
+      return;
+    }
+    setSent(true);
+    setMessage("Check your email for the sign-in link.");
   }
 
   return (
@@ -52,6 +59,7 @@ export function SignInForm() {
       </button>
       <p className="text-sm text-mute">Discord and Google stay off until the Company configures them.</p>
       {message ? <p role="status">{message}</p> : null}
+      {sent ? <p>{"Open the link in the same browser you're using now."}</p> : null}
     </form>
   );
 }

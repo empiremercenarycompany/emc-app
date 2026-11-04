@@ -42,6 +42,10 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByText(/No password is stored/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Discord" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
+  await page.goto("/sign-in?error=link");
+  await expect(
+    page.getByText("That link has to be opened in the same browser that asked for it. Request another below."),
+  ).toBeVisible();
 });
 
 test("table muster is closed to a player", async ({ page }) => {
