@@ -1432,6 +1432,38 @@ button.weapon-row {
   outline-color: #6b4f27;
 }
 
+.shieldmate-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.shieldmate-ask input {
+  width: 1.25rem;
+  flex: none;
+}
+
+.shieldmate-ask {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: fit-content;
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.shieldmate-ask input {
+  width: 1.25rem;
+  flex: none;
+}
+
 .codex-overlay {
   position: fixed;
   inset: 0;
