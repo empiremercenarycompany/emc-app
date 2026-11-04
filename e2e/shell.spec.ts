@@ -48,6 +48,23 @@ test("sign-in asks for an email link", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("confirm waits for Continue and the old callback still answers", async ({ page }) => {
+  await page.goto("/auth/confirm?token_hash=example-token&type=email&next=//evil.com");
+  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
+  await expect(page.getByText("That link did not sign you in. Request another.")).toHaveCount(0);
+  await expect(page.locator("input[name=next]")).toHaveValue("/");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("That link did not sign you in. Request another.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Request a new link" })).toHaveAttribute("href", "/sign-in");
+
+  await page.goto("/auth/confirm");
+  await expect(page.getByRole("button", { name: "Continue" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Request a new link" })).toBeVisible();
+
+  await page.goto("/auth/callback?next=//evil.com");
+  await expect(page).toHaveURL(/\/sign-in\?error=link$/);
+});
+
 test("table muster is closed to a player", async ({ page }) => {
   await page.goto("/muster");
   await expect(page).toHaveURL(/\/sign-in$/);

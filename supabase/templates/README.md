@@ -2,7 +2,7 @@
 
 These files are not applied. Nothing here is pushed to Supabase.
 
-They are the Confirm signup and Magic Link messages. Both keep `{{ .ConfirmationURL }}`, which Supabase fills with the sign-in link. The wording matches the app button: your sign-in link.
+They are the Confirm signup and Magic Link messages. The button opens `/auth/confirm` and does not spend the link until the player presses Continue. Paste them into the dashboard only after that page is deployed. The wording matches the app button: your sign-in link.
 
 ## Apply in the dashboard
 
