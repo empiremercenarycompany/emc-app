@@ -10,6 +10,7 @@ import { cohortAdventure, cohortBeginsLine, embeddedTitle, postedSessionLine } f
 import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus } from "@/lib/rules/calendar";
 import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from "@/lib/rules/dates";
 import { attendanceOpen, nextPostedSession } from "@/lib/rules/table-sessions";
+import { CATCHUP_PER_POOL_CAP, CATCHUP_START_WEEK, CATCHUP_WEEKLY_CAP, PER_POOL_WEEKLY_CAP, SESSION_FREE_POINTS, WEEKLY_CAP } from "@/lib/pacing-config";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
@@ -218,8 +219,9 @@ export default async function SchedulePage() {
       </Panel>
       <Panel title="Each week">
         <p>
-          Each week, {viewer.config?.weekly_point_cap ?? 4} logs can count, and {viewer.config?.pool_point_cap ?? 2} from
-          one kind of work.
+          Each week, {WEEKLY_CAP} can count, and {PER_POOL_WEEKLY_CAP} from one kind of work. From week {CATCHUP_START_WEEK},
+          someone behind pace can count {CATCHUP_WEEKLY_CAP}, and {CATCHUP_PER_POOL_CAP} from one kind. A session you
+          attend counts as {SESSION_FREE_POINTS} outside that.
         </p>
         <p className="text-mute">
           Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No

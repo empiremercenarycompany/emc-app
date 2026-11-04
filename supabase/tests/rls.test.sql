@@ -272,10 +272,13 @@ declare
   v_physical int;
 begin
   select id into v_id from public.characters where user_id = auth.uid();
+  select physical_points into v_physical from public.characters where id = v_id;
+  if v_physical <> 1 then
+    raise exception 'only one workout from a pool should count, bank is %', v_physical;
+  end if;
   perform public.spend_attribute_points(v_id, 11, 9, 8, 8, 8, 8);
   select physical_points into v_physical from public.characters where id = v_id;
-  -- 10 to 11 costs 1. Two approved workouts banked 2, then this spend.
-  if v_physical <> 1 then
+  if v_physical <> 0 then
     raise exception 'physical pool after spend is %', v_physical;
   end if;
   begin
@@ -1050,7 +1053,7 @@ begin
     raise exception 'attendance after muster is %', v_status;
   end if;
   select free_points into v_free from public.characters where id = v_character;
-  if v_free <> 2 then
+  if v_free <> 1 then
     raise exception 'attendance bank is %', v_free;
   end if;
   v_buff := public.award_buff(v_character, 'heroic_inspiration', null, 'At the table');
@@ -1279,6 +1282,13 @@ begin
 end $$;
 reset role;
 
+reset role;
+do $$
+begin
+  perform set_config('emc.progression_write', 'on', true);
+  update public.characters set mental_points = mental_points + 1
+  where user_id = '22222222-2222-4222-8222-222222222221';
+end $$;
 select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
 set role authenticated;
 do $$
