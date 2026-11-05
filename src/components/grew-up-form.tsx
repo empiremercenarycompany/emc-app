@@ -68,6 +68,8 @@ export function GrewUpForm({
         <input
           type="checkbox"
           checked={open}
+          aria-expanded={open}
+          aria-controls="shieldmate-fields"
           onChange={(event) => {
             if (event.target.checked) setOpen(true);
             else close();
@@ -76,6 +78,7 @@ export function GrewUpForm({
         <span>{ASK}</span>
       </label>
       {open ? (
+        <div id="shieldmate-fields">
         <ResultForm action={requestGrewUp} submit="Request the bonus" primary>
           <label>
             Their character or name
@@ -110,6 +113,7 @@ export function GrewUpForm({
             <textarea name="note" required maxLength={280} value={note} onChange={(event) => setNote(event.target.value)} />
           </label>
         </ResultForm>
+        </div>
       ) : null}
     </div>
   );

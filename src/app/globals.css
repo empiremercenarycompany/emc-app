@@ -1478,22 +1478,7 @@ ul .term-link {
   align-items: center;
   gap: 0.6rem;
   width: fit-content;
-  font-size: 0.95rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-.shieldmate-ask input {
-  width: 1.25rem;
-  flex: none;
-}
-
-.shieldmate-ask {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  width: fit-content;
+  min-height: 2.75rem;
   font-size: 0.95rem;
   font-weight: 400;
   letter-spacing: 0;

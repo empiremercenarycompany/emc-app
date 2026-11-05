@@ -121,12 +121,18 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
   const box = page.getByRole("checkbox", { name: "Signing up with a friend? Get the Shieldmate bonus" });
   await expect(box).toBeVisible();
   await expect(box).not.toBeChecked();
+  await expect(box).toHaveAttribute("aria-expanded", "false");
+  await expect(box).toHaveAttribute("aria-controls", "shieldmate-fields");
+  const rowHeight = await box.evaluate((element) => element.closest("label")?.getBoundingClientRect().height ?? 0);
+  expect(rowHeight).toBeGreaterThanOrEqual(44);
   await expect(page.getByLabel("Their character or name")).toHaveCount(0);
   await expect(page.getByLabel("Proficiency")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Request the bonus" })).toHaveCount(0);
   await box.check();
   const partner = page.getByLabel("Their character or name");
   await expect(partner).toBeVisible();
+  await expect(box).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#shieldmate-fields")).toBeVisible();
   await expect(page.getByLabel("Proficiency")).toBeVisible();
   await partner.fill("A friend");
   await box.uncheck();
@@ -163,6 +169,8 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByText(/^Today,/)).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Times" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to continue" })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Sign in to see the calendar" })).toHaveCount(1);
   await expect(page.getByText("9 AM–12 PM")).toBeVisible();
   await expect(page.getByText("2–5 PM")).toBeVisible();
   await expect(page.getByText("7–10 PM (18+)")).toBeVisible();

@@ -200,7 +200,7 @@ export default async function SchedulePage() {
         ) : viewer.userId ? (
           <p className="text-mute">The schedule is not set yet.</p>
         ) : (
-          <SignInPrompt />
+          <SignInPrompt label="Sign in to see the calendar" />
         )}
       </Panel>
       <Panel title="Each week">
