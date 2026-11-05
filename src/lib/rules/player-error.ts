@@ -2,8 +2,8 @@ import { feedbackFailure } from "@/lib/rules/feedback-error";
 
 const ALREADY_FILED = "This week is already filed. Your answers are on the form.";
 const ALREADY_SAVED = "That is already saved.";
-const NOT_OPEN = "That is not open yet. Tell your trainer in person.";
-const COULD_NOT = "That could not be saved. Try again, or tell your trainer.";
+const NOT_OPEN = "That is not open yet. Tell your coach in person.";
+const COULD_NOT = "That could not be saved. Try again, or tell your coach.";
 
 /**
  * Player-facing text for a database error. Company sentences pass through.

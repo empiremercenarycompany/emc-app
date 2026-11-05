@@ -10,7 +10,7 @@ import {
 } from "@/lib/rules/portrait";
 import type { ActionResult } from "@/lib/types";
 
-const CLOSED = "Portraits aren't open yet. Tell your trainer in person.";
+const CLOSED = "Portraits aren't open yet. Tell your coach in person.";
 
 function closed(message: string): boolean {
   return /bucket|not found|character-portraits|row-level security|schema cache|does not exist/i.test(message);

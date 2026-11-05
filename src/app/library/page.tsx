@@ -55,7 +55,7 @@ export default async function LibraryPage() {
             </Link>
           }
         >
-          <p>Your trainer posts them before a session.</p>
+          <p>Your coach posts them before a session.</p>
         </EmptyState>
       ) : null}
       {editor ? (

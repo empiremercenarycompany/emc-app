@@ -9,7 +9,7 @@ describe("sign-in errors", () => {
     );
     expect(signInError("Unable to validate email address: invalid format")).toBe("That email does not look right.");
     expect(signInError("Error sending magic link")).toBe("The sign-in link could not be sent. Try again in a moment.");
-    expect(signInError("Signups not allowed for otp")).toBe("Sign-in links are not open yet. Tell your trainer in person.");
+    expect(signInError("Signups not allowed for otp")).toBe("Sign-in links are not open yet. Tell your coach in person.");
     expect(signInError("Check your email for the sign-in link.")).toBe("Check your email for the sign-in link.");
   });
 });

@@ -1,6 +1,6 @@
 const WAIT = "Wait a moment, then ask for another link.";
 const EMAIL = "That email does not look right.";
-const CLOSED = "Sign-in links are not open yet. Tell your trainer in person.";
+const CLOSED = "Sign-in links are not open yet. Tell your coach in person.";
 const FAILED = "The sign-in link could not be sent. Try again in a moment.";
 
 /** Player-facing text for a sign-in failure. Status codes and mail errors stay off the screen. */

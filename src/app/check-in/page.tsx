@@ -39,7 +39,7 @@ export default async function CheckInPage() {
   return (
     <Page hero mark={false} title="Check-in" lede="Four quick questions">
       <p className="span-all text-center">
-        Due Friday at 11:59 PM. Honest answers help your trainer help you. This does not lock your character.
+        Due Friday at 11:59 PM. Honest answers help your coach support your goals. This does not lock your character.
       </p>
       {setup ? <Notice>{setup}</Notice> : null}
       {viewer.beginner ? (

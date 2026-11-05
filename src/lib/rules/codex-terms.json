@@ -321,7 +321,7 @@
       "term": "Check-in",
       "group": "emc",
       "plain": "Your weekly report. Four quick questions about workouts and your goals, due Friday at 11:59 PM.",
-      "inRealLife": "Honest answers help your trainer help you.",
+      "inRealLife": "Honest answers help your coach support your goals.",
       "emcNote": "Due time and four objectives are from the live app.",
       "related": [
         "workout"
@@ -409,7 +409,7 @@
       "term": "RPE",
       "group": "gym",
       "plain": "Rate of Perceived Exertion. A 1 to 10 score for how hard something felt. 1 is very easy and 10 is all you have got.",
-      "inRealLife": "Use it to tell your trainer how a set felt.",
+      "inRealLife": "Use it to tell your coach how a set felt.",
       "status": "ready"
     },
     {
