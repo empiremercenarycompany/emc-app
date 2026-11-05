@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/empty-state";
 import { GroupGoalForm } from "@/components/group-goal-form";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
@@ -53,7 +54,11 @@ export default async function SquadPage() {
           </Panel>
         );
       })}
-      {(squads ?? []).length === 0 ? <p className="text-mute">No squads yet.</p> : null}
+      {(squads ?? []).length === 0 ? (
+        <EmptyState title="No squads yet.">
+          <p>Your trainer assigns a squad.</p>
+        </EmptyState>
+      ) : null}
       {canLead ? (
         <Panel title="Lead">
           <ResultForm action={createSquad} submit="Create squad">

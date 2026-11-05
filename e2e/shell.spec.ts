@@ -239,8 +239,8 @@ test("home content clears the bottom nav", async ({ page }) => {
 
 test("help mode outlines a term and the codex stays on the page", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Help" }).click();
-  await expect(page.getByText("Help mode is on.")).toBeVisible();
+  await page.getByRole("button", { name: "Explain words" }).click();
+  await expect(page.getByText("Explain words is on.")).toBeVisible();
   const term = page.getByRole("button", { name: "muster" }).first();
   await expect(term).toBeVisible();
   const outline = await term.evaluate((element) => getComputedStyle(element).outlineStyle);
@@ -292,6 +292,16 @@ test("pages name themselves and offer a skip link", async ({ page }) => {
   await expect(page).toHaveTitle("Missions · EMC");
   await expect(page.locator("a.skip")).toHaveAttribute("href", "#main");
   await expect(page.locator("main#main")).toBeVisible();
+});
+
+test("empty boards name a next step, and the app can be installed", async ({ page }) => {
+  await page.goto("/missions");
+  await expect(page.getByRole("link", { name: "See the schedule" })).toBeVisible();
+  await page.goto("/profile");
+  await expect(page.getByRole("button", { name: "Larger text" })).toBeVisible();
+  await expect(page.getByText("On iPhone: Share, then Add to Home Screen.")).toBeVisible();
+  await page.goto("/offline");
+  await expect(page.getByRole("heading", { name: "Offline" })).toBeVisible();
 });
 
 test("the manifest names the company", async ({ request }) => {

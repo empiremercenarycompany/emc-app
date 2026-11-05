@@ -53,6 +53,10 @@ html {
   background: var(--color-char);
 }
 
+html[data-font="large"] body {
+  font-size: 20px;
+}
+
 body {
   margin: 0;
   min-height: 100vh;

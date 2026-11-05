@@ -1,6 +1,6 @@
 /* EMC shell cache. Offline log sync is not implemented. */
-const CACHE = "emc-shell-v3";
-const SHELL = ["/", "/sign-in", "/about", "/dice", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/brand/emc_mark.png"];
+const CACHE = "emc-shell-v4";
+const SHELL = ["/", "/offline", "/sign-in", "/about", "/dice", "/library", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/brand/emc_mark.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -43,7 +43,7 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request).catch(async () => {
         const cache = await caches.open(CACHE);
-        return (await cache.match(request)) || (await cache.match("/")) || Response.error();
+        return (await cache.match(request)) || (await cache.match("/offline")) || (await cache.match("/")) || Response.error();
       }),
     );
     return;

@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 import { MissionEditor } from "@/components/mission-editor";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
@@ -49,7 +51,18 @@ export default async function MissionsPage() {
     <Page title="Missions" lede="Contracts, barracks challenges, and table check-in.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt /> : null}
-      {(missions ?? []).length === 0 ? <p className="text-mute">No active missions.</p> : null}
+      {(missions ?? []).length === 0 ? (
+        <EmptyState
+          title="No active missions."
+          action={
+            <Link className="button" href="/schedule">
+              See the schedule
+            </Link>
+          }
+        >
+          <p>A posted contract shows up here.</p>
+        </EmptyState>
+      ) : null}
       {(missions ?? []).map((mission) => (
         <Panel key={mission.id} title={mission.title}>
           <p className="text-mute">{mission.type}</p>

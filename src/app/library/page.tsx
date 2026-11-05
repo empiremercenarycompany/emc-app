@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { Choice } from "@/components/choice";
+import { EmptyState } from "@/components/empty-state";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
@@ -45,7 +47,16 @@ export default async function LibraryPage() {
           </Panel>
         ))}
       {(drills ?? []).filter((drill) => drill.published || editor || viewer.role === "dm").length === 0 ? (
-        <p className="text-mute">No drills yet. Your trainer posts them before a session.</p>
+        <EmptyState
+          title="No drills yet."
+          action={
+            <Link className="button" href="/work">
+              Record work
+            </Link>
+          }
+        >
+          <p>Your trainer posts them before a session.</p>
+        </EmptyState>
       ) : null}
       {editor ? (
         <Panel title="New drill">
