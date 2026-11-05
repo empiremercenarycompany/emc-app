@@ -113,11 +113,24 @@ test("work stays closed until you sign in", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Record work" })).toHaveCount(0);
 });
 
-test("the shieldmate bonus stays off the public sheet", async ({ page }) => {
+test("shieldmate choices stay hidden until asked", async ({ page }) => {
   await page.goto("/character");
-  await expect(page.getByRole("checkbox", { name: /Shieldmate/ })).toHaveCount(0);
-  await expect(page.getByText(/Shieldmate bonus/)).toHaveCount(0);
+  const box = page.getByRole("checkbox", { name: "Signing up with a friend? Get the Shieldmate bonus" });
+  await expect(box).toBeVisible();
+  await expect(box).not.toBeChecked();
   await expect(page.getByLabel("Their character or name")).toHaveCount(0);
+  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Request the bonus" })).toHaveCount(0);
+  await box.check();
+  const partner = page.getByLabel("Their character or name");
+  await expect(partner).toBeVisible();
+  await expect(page.getByLabel("Proficiency")).toBeVisible();
+  await partner.fill("A friend");
+  await box.uncheck();
+  await expect(page.getByLabel("Their character or name")).toHaveCount(0);
+  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
+  await box.check();
+  await expect(page.getByLabel("Their character or name")).toHaveValue("");
 });
 
 test("the sheet asks you to sign in", async ({ page }) => {

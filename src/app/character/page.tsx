@@ -126,6 +126,7 @@ export default async function CharacterPage({
             </>
           }
         />
+        <GrewUpForm request={null} />
         <Link className="button primary" href="/sign-in">
           Join the Company
         </Link>
@@ -377,22 +378,6 @@ export default async function CharacterPage({
         </p>
         <p className="text-mute">A session you attend counts as 1 outside that.</p>
       </Panel>
-      <Panel>
-        <GrewUpForm
-          request={
-            shared
-              ? {
-                  id: shared.id,
-                  kind: shared.kind,
-                  optionId: shared.option_id,
-                  note: shared.note,
-                  status: shared.status,
-                  mine: true,
-                }
-              : null
-          }
-        />
-      </Panel>
       <PortraitForm hasPortrait={Boolean(character.portrait_url)} />
       <CharacterSheet
         portraitSrc={portraitSrc}
@@ -604,6 +589,20 @@ export default async function CharacterPage({
               </article>
             ))}
           </>
+        }
+      />
+      <GrewUpForm
+        request={
+          shared
+            ? {
+                id: shared.id,
+                kind: shared.kind,
+                optionId: shared.option_id,
+                note: shared.note,
+                status: shared.status,
+                mine: true,
+              }
+            : null
         }
       />
     </Page>
