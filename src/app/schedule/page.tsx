@@ -177,7 +177,7 @@ export default async function SchedulePage() {
         {yours ? <p>Your time is {slotText(yours)}.</p> : null}
         {viewer.userId && !yours ? (
           <p>
-            <Link href="/intake">Pick a time</Link> so your trainer knows when you can come.
+            <Link href="/intake">Pick a time</Link> so your coach knows when you can come.
           </p>
         ) : null}
       </Panel>

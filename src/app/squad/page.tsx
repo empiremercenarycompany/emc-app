@@ -56,7 +56,7 @@ export default async function SquadPage() {
       })}
       {(squads ?? []).length === 0 ? (
         <EmptyState title="No squads yet.">
-          <p>Your trainer assigns a squad.</p>
+          <p>Your coach assigns a squad.</p>
         </EmptyState>
       ) : null}
       {canLead ? (

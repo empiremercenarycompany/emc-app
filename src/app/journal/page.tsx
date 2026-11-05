@@ -129,7 +129,7 @@ export default async function JournalPage() {
       </Panel>
       {!viewer.userId ? <SignInPrompt /> : null}
       {viewer.character && menuPools.length === 0 ? (
-        <p className="text-mute">No lists yet. Your trainer posts exercises before you build a workout.</p>
+        <p className="text-mute">No lists yet. Your coach posts exercises before you build a workout.</p>
       ) : null}
       {viewer.character && menuPools.length > 0 ? (
         <JournalBuilder

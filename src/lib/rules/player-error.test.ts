@@ -13,7 +13,7 @@ describe("player-facing database errors", () => {
     expect(playerError("That week has not started")).toBe("That week has not started");
     expect(playerError("Check-in is closed for that week")).toBe("Check-in is closed for that week");
     expect(playerError('null value in column "title" violates not-null constraint')).toBe(
-      "That could not be saved. Try again, or tell your trainer.",
+      "That could not be saved. Try again, or tell your coach.",
     );
   });
 });

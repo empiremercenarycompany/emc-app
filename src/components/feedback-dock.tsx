@@ -62,7 +62,7 @@ function FeedbackSheet({ page, onClose }: { page: string; onClose: () => void })
           </button>
         </div>
         {sent ? (
-          <p role="status">Sent. A trainer can read it.</p>
+          <p role="status">Sent. A coach can read it.</p>
         ) : (
           <form action={formAction} className="flex flex-col gap-3">
             <input type="hidden" name="page" value={page} />

@@ -220,7 +220,7 @@ export default async function BarracksPage() {
       ) : null}
       {viewer.beginner ? (
         <div className="span-all">
-          <Notice>New here? Dotted words open a plain meaning. Check in once a week, record the work you did, and your trainer handles the numbers.</Notice>
+          <Notice>New here? Dotted words open a plain meaning. Check in once a week, record the work you did, and your coach handles the numbers.</Notice>
         </div>
       ) : null}
       {viewer.userId && viewer.firstVisit ? (
