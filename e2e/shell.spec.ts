@@ -125,9 +125,11 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
   await expect(box).toHaveAttribute("aria-controls", "shieldmate-fields");
   const rowHeight = await box.evaluate((element) => element.closest("label")?.getBoundingClientRect().height ?? 0);
   expect(rowHeight).toBeGreaterThanOrEqual(44);
-  await expect(page.getByLabel("Their character or name")).toHaveCount(0);
-  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Request the bonus" })).toHaveCount(0);
+  await expect(page.locator("#shieldmate-fields")).toBeAttached();
+  await expect(page.locator("#shieldmate-fields")).toBeHidden();
+  await expect(page.getByLabel("Their character or name")).toBeHidden();
+  await expect(page.getByLabel("Proficiency")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Request the bonus" })).toBeHidden();
   await box.check();
   const partner = page.getByLabel("Their character or name");
   await expect(partner).toBeVisible();
@@ -136,8 +138,9 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
   await expect(page.getByLabel("Proficiency")).toBeVisible();
   await partner.fill("A friend");
   await box.uncheck();
-  await expect(page.getByLabel("Their character or name")).toHaveCount(0);
-  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
+  await expect(page.locator("#shieldmate-fields")).toBeHidden();
+  await expect(page.getByLabel("Their character or name")).toBeHidden();
+  await expect(page.getByLabel("Proficiency")).toBeHidden();
   await box.check();
   await expect(page.getByLabel("Their character or name")).toHaveValue("");
 });
@@ -208,7 +211,7 @@ test("the dice roller keeps a d20", async ({ page }) => {
 test("an NPC note can be submitted for review", async ({ page }) => {
   await page.goto("/character");
   await page.getByRole("tab", { name: "Story" }).click();
-  await page.getByLabel("Name").fill("Mara");
+  await page.getByLabel("Name", { exact: true }).fill("Mara");
   await page.getByLabel("Relationship to me").fill("Sister");
   await expect(page.getByTestId("npc-counter")).toHaveText("6 / 500");
   await page.getByRole("button", { name: "Submit for review" }).click();
@@ -310,6 +313,15 @@ test("empty boards name a next step, and the app can be installed", async ({ pag
   await expect(page.getByText("On iPhone: Share, then Add to Home Screen.")).toBeVisible();
   await page.goto("/offline");
   await expect(page.getByRole("heading", { name: "Offline" })).toBeVisible();
+});
+
+test("larger text holds on a full load of another page", async ({ page }) => {
+  await page.goto("/profile");
+  await page.getByRole("button", { name: "Larger text" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-font", "large");
+  await page.goto("/missions", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-font", "large");
+  await expect.poll(async () => page.locator("body").evaluate((el) => getComputedStyle(el).fontSize)).toBe("20px");
 });
 
 test("the manifest names the company", async ({ request }) => {
