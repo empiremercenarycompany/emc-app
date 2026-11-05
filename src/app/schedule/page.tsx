@@ -12,7 +12,7 @@ import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus
 import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from "@/lib/rules/dates";
 import { attendanceOpen, nextPostedSession, nextSessionCopy } from "@/lib/rules/table-sessions";
 import { CATCHUP_PER_POOL_CAP, CATCHUP_START_WEEK, CATCHUP_WEEKLY_CAP, PER_POOL_WEEKLY_CAP, SESSION_FREE_POINTS, WEEKLY_CAP } from "@/lib/pacing-config";
-import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
@@ -24,7 +24,7 @@ const KIND_LABEL: Record<CalendarBlock["kind"], string> = {
 };
 
 function slotText(slot: { label: string; adultsOnly: boolean }): string {
-  return slot.adultsOnly ? `${slot.label} (18+)` : slot.label;
+  return displaySlot(slot.label, slot.adultsOnly);
 }
 
 function blockMark(block: CalendarBlock, focus: SessionFocus | null): string | null {

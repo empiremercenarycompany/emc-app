@@ -43,6 +43,7 @@
   --color-ink: #211b15;
   --color-ink-2: #4a4036;
   --color-mute: #c4bfb2;
+  --text-sm: 0.9375rem;
   --font-sans: var(--font-barlow), Barlow, sans-serif;
   --font-condensed: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
   --font-display: "Corleone Due", Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
@@ -64,7 +65,7 @@ body {
   background-attachment: fixed;
   color: var(--color-parchment);
   font-family: var(--font-sans);
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 400;
   line-height: 1.5;
 }
@@ -108,7 +109,25 @@ h2 {
 }
 
 label {
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
+}
+
+.skip {
+  position: absolute;
+  left: -999px;
+}
+
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 50;
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  padding: 0.6rem 1rem;
+}
+
+.tab-link {
+  font-size: 15px;
 }
 
 .signoff {
@@ -191,7 +210,7 @@ select,
 textarea {
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid var(--color-steel);
+  border: 1px solid var(--color-bronze);
   background: var(--color-iron);
   color: var(--color-parchment);
   padding: 0.55rem 0.75rem;
@@ -204,9 +223,9 @@ textarea {
 
 input[type="checkbox"],
 input[type="radio"] {
-  width: 1.25rem;
-  height: 1.25rem;
-  min-height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
   padding: 0;
   accent-color: var(--color-red);
 }
@@ -230,8 +249,8 @@ input[type="radio"] {
 }
 
 .choice-mark {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
   flex: none;
   border: 1px solid var(--color-steel);
   background: var(--color-iron);
@@ -725,11 +744,18 @@ button.weapon-row {
   right: 0.85rem;
   bottom: 5.25rem;
   z-index: 25;
-  min-height: 2.5rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border-color: var(--color-bronze-lt);
   color: var(--color-bronze-lt);
   background: var(--color-char);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 767px) {
+  .feedback-fab {
+    display: none;
+  }
 }
 
 .log-entry {
@@ -790,7 +816,7 @@ button.weapon-row {
 
 .eyebrow {
   font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -809,6 +835,7 @@ button.weapon-row {
 
 .brand-lockup {
   display: inline-flex;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.6rem;
   color: var(--color-bronze-lt);
@@ -1206,12 +1233,18 @@ button.weapon-row {
   border-bottom: 2px dotted var(--color-bronze-dk);
   background: transparent;
   color: inherit;
-  padding: 0;
+  padding-block: 0.4rem;
   min-height: 0;
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
   cursor: pointer;
+}
+
+ul .term-link {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
 }
 
 .term-link.condition-chip {

@@ -17,6 +17,8 @@ export function FeedbackDock() {
     return () => window.removeEventListener("emc-open-feedback", onOpen);
   }, []);
 
+  if (pathname === "/sign-in") return null;
+
   return (
     <>
       {open ? null : (

@@ -46,6 +46,7 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
         { href: "/squad", label: "Squad" },
         { href: "/library", label: "Library" },
         { href: "/about", label: "About" },
+        { href: "/codex#faq", label: "Help & FAQ" },
       ],
     },
     {
@@ -61,20 +62,17 @@ export function SiteNav({
   signedIn,
   role,
   displayName,
-  avatarUrl,
   roleLabel,
 }: {
   signedIn: boolean;
   role: AppRole | null;
   displayName: string | null;
-  avatarUrl: string | null;
   roleLabel: string | null;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const help = useHelpMode();
   const codex = useCodexOverlay();
-  const initial = (displayName?.trim().charAt(0) || "R").toUpperCase();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -114,13 +112,7 @@ export function SiteNav({
             aria-controls="company-menu"
             onClick={() => setOpen(true)}
           >
-            {avatarUrl ? (
-              // The portrait is the recruit's own mark.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
-            ) : (
-              <span aria-hidden="true">{initial}</span>
-            )}
+            <LineIcon name="menu" />
           </button>
         </div>
       </header>
@@ -188,7 +180,7 @@ export function SiteNav({
                 key={item.href}
                 href={item.href}
                 prefetch
-                className={`flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center text-sm ${active ? "text-parchment" : "text-mute"}`}
+                className={`tab-link flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center ${active ? "text-parchment" : "text-mute"}`}
               >
                 <TabBody icon={item.icon} label={item.label} active={active} />
               </Link>
@@ -212,7 +204,7 @@ function TabBody({
   const { pending } = useLinkStatus();
   return (
     <>
-      <span className={active ? "text-bronze" : "text-steel"}>
+      <span className={active ? "text-bronze" : "text-mute"}>
         {pending ? <span className="spinner" aria-hidden="true" /> : <LineIcon name={icon} />}
       </span>
       {label}

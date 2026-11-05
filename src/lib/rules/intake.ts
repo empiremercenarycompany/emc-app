@@ -13,10 +13,26 @@ export const GYM_LEVELS = [
 export const GOAL_CHIPS = ["Sleep 7 hours", "Read 20 min", "Call a friend"] as const;
 
 export const TIMESLOT_FALLBACK = [
-  { id: "morning", label: "9–12", adultsOnly: false },
-  { id: "afternoon", label: "2–5", adultsOnly: false },
+  { id: "morning", label: "9 AM–12 PM", adultsOnly: false },
+  { id: "afternoon", label: "2–5 PM", adultsOnly: false },
   { id: "evening", label: "7–10 PM", adultsOnly: true },
 ] as const;
+
+const KNOWN_SLOTS: Record<string, string> = {
+  "9–12": "9 AM–12 PM",
+  "9-12": "9 AM–12 PM",
+  "2–5": "2–5 PM",
+  "2-5": "2–5 PM",
+  "7–10 PM": "7–10 PM",
+  "7-10 PM": "7–10 PM",
+};
+
+/** Spoken clock time. Does not add a teen-squad line; that wording is not set. */
+export function displaySlot(label: string, adultsOnly: boolean): string {
+  const stripped = label.replace(/\s*\(18\+\)\s*$/, "").trim();
+  const base = KNOWN_SLOTS[stripped] ?? stripped;
+  return adultsOnly && !base.includes("(18+)") ? `${base} (18+)` : base;
+}
 
 export type IntakeDraft = {
   dnd: string;
