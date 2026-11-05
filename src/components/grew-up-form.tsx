@@ -77,8 +77,7 @@ export function GrewUpForm({
         />
         <span>{ASK}</span>
       </label>
-      {open ? (
-        <div id="shieldmate-fields">
+      <div id="shieldmate-fields" hidden={!open}>
         <ResultForm action={requestGrewUp} submit="Request the bonus" primary>
           <label>
             Their character or name
@@ -113,8 +112,7 @@ export function GrewUpForm({
             <textarea name="note" required maxLength={280} value={note} onChange={(event) => setNote(event.target.value)} />
           </label>
         </ResultForm>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 }

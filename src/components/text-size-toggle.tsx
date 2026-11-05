@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const KEY = "emc-text";
+import { TEXT_SIZE_KEY } from "@/lib/text-size";
 
 export function TextSizeToggle() {
   const [large, setLarge] = useState(false);
 
   useEffect(() => {
-    const on = window.localStorage.getItem(KEY) === "large";
+    const on = window.localStorage.getItem(TEXT_SIZE_KEY) === "large";
     setLarge(on);
     document.documentElement.dataset.font = on ? "large" : "barlow";
   }, []);
@@ -17,7 +16,7 @@ export function TextSizeToggle() {
     const next = !large;
     setLarge(next);
     document.documentElement.dataset.font = next ? "large" : "barlow";
-    window.localStorage.setItem(KEY, next ? "large" : "barlow");
+    window.localStorage.setItem(TEXT_SIZE_KEY, next ? "large" : "barlow");
   }
 
   return (

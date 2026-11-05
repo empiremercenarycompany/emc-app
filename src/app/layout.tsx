@@ -5,6 +5,7 @@ import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
+import { TEXT_SIZE_KEY } from "@/lib/text-size";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
 import { recruitName } from "@/lib/recruit-name";
 import "./globals.css";
@@ -58,6 +59,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
   return (
     <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem(${JSON.stringify(TEXT_SIZE_KEY)})==="large")document.documentElement.dataset.font="large"}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body>
         <a className="skip" href="#main">
           Skip to content
