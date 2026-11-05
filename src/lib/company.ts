@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { cache } from "react";
 import { beginnerHints } from "@/lib/rules/intake";
 import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +33,14 @@ const EMPTY: Viewer = {
   intake: null,
 };
 
-export async function loadViewer(): Promise<Viewer> {
+/**
+ * One viewer load per request. The layout and the page were each waiting on
+ * auth, the profile reads, and a last-seen write, which stacked up on the
+ * hop from Continue to home.
+ */
+export const loadViewer = cache(loadViewerOnce);
+
+async function loadViewerOnce(): Promise<Viewer> {
   const supabase = await createClient();
   if (!supabase) return EMPTY;
 
@@ -73,7 +82,12 @@ export async function loadViewer(): Promise<Viewer> {
     week = typeof weekResult.data === "number" ? weekResult.data : null;
   }
 
-  await supabase.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", user.id);
+  const seenUserId = user.id;
+  after(async () => {
+    const client = await createClient();
+    if (!client) return;
+    await client.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", seenUserId);
+  });
 
   const intakeRow = intakeResult.error ? null : intakeResult.data;
   const intake = intakeRow
