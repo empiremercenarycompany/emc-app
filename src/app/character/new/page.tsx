@@ -1,4 +1,5 @@
 import { CharacterForm } from "@/components/character-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { SPECIES_FALLBACK } from "@/lib/rules/species-blurbs";
@@ -17,8 +18,9 @@ export default async function NewCharacterPage() {
   return (
     <Page title="Recruitment Papers" lede="Report for duty. The Company fills the skills, the tool, and the feat from your background.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <p className="text-mute">Sign in before the papers are filed.</p> : null}
-      <CharacterForm species={(species ?? []).length > 0 ? (species ?? []) : [...SPECIES_FALLBACK]} />
+      {!viewer.userId ? <SignInPrompt /> : (
+        <CharacterForm species={(species ?? []).length > 0 ? (species ?? []) : [...SPECIES_FALLBACK]} />
+      )}
     </Page>
   );
 }

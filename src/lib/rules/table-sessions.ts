@@ -4,6 +4,14 @@ export type TableSessionRow = {
   off_week?: boolean | null;
 };
 
+/** Shown when no table row is posted. Never substitute today's date. */
+export const NEXT_SESSION_UNPOSTED = "Next session: Not posted yet. Sessions are every other Saturday.";
+
+export function nextSessionCopy(postedLine: string | null): string {
+  const line = postedLine?.trim();
+  return line ? `Next session: ${line}` : NEXT_SESSION_UNPOSTED;
+}
+
 /** Earliest posted table row on or after today. Guild-wide rows count, plus the viewer's own squad. */
 export function nextPostedSession<T extends TableSessionRow>(rows: T[], today: string, squadId: string | null): T | null {
   const day = today.slice(0, 10);

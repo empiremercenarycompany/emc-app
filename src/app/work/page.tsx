@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page, Panel } from "@/components/ui";
 import { WorkKindFields } from "@/components/work-kind";
 import { logWorkout } from "@/lib/actions/activity";
@@ -41,14 +42,13 @@ export default async function WorkPage() {
       {viewer.beginner ? (
         <Notice>Write what you did in plain words. The kind of work decides which ability it can raise.</Notice>
       ) : null}
-      {!viewer.character ? (
+      {!viewer.userId ? <SignInPrompt /> : null}
+      {viewer.userId && !viewer.character ? (
         <p>
-          <Link href={viewer.userId ? "/character/new" : "/sign-in"}>
-            {viewer.userId ? "Fill Out Recruitment Papers" : "Sign in"}
-          </Link>{" "}
-          before recording work.
+          <Link href="/character/new">Fill Out Recruitment Papers</Link> before recording work.
         </p>
       ) : null}
+      {viewer.userId ? (
       <Panel title="What do you want to log?">
         <ResultForm action={logWorkout} submit="Record work" primary>
           <input type="hidden" name="is_custom" value="true" />
@@ -63,6 +63,7 @@ export default async function WorkPage() {
           </label>
         </ResultForm>
       </Panel>
+      ) : null}
       {viewer.character ? (
         <>
           <details className="border border-steel p-4">

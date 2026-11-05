@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { IntakeForm } from "@/components/intake-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -20,11 +20,8 @@ export default async function IntakePage() {
   return (
     <Page title="About you" lede="This is you, not your character. Four short answers.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Sign in</Link> before you answer.
-        </p>
-      ) : null}
+      {!viewer.userId ? <SignInPrompt /> : null}
+      {viewer.userId ? (
       <IntakeForm
         slots={slots}
         initial={
@@ -39,6 +36,7 @@ export default async function IntakePage() {
             : undefined
         }
       />
+      ) : null}
     </Page>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cohortAdventure, cohortBeginsLine, postedSessionLine } from "./adventures";
-import { attendanceOpen, earliestTableSession } from "./table-sessions";
+import { attendanceOpen, earliestTableSession, nextSessionCopy } from "./table-sessions";
 
 describe("posted table sessions", () => {
   const rows = [
@@ -19,6 +19,15 @@ describe("posted table sessions", () => {
   it("includes the viewer's squad and skips other squads and off weeks", () => {
     expect(earliestTableSession(rows, "2026-11-08", "squad-a")).toBe("2026-11-14");
     expect(earliestTableSession(rows, "2026-11-08", null)).toBeNull();
+  });
+
+  it("does not invent today's date when nothing is posted", () => {
+    expect(nextSessionCopy(null)).toBe("Next session: Not posted yet. Sessions are every other Saturday.");
+    expect(nextSessionCopy("  ")).toBe("Next session: Not posted yet. Sessions are every other Saturday.");
+    expect(nextSessionCopy("Adventure 2 · Episode · Saturday, Nov 7")).toBe(
+      "Next session: Adventure 2 · Episode · Saturday, Nov 7",
+    );
+    expect(nextSessionCopy(null).startsWith("Today")).toBe(false);
   });
 
   it("opens table attendance only on that session's date", () => {

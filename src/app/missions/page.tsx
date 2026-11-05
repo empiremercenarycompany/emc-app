@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { MissionEditor } from "@/components/mission-editor";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { checkIn } from "@/lib/actions/activity";
@@ -48,7 +48,7 @@ export default async function MissionsPage() {
   return (
     <Page title="Missions" lede="Contracts, barracks challenges, and table check-in.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
+      {!viewer.userId ? <SignInPrompt /> : null}
       {(missions ?? []).length === 0 ? <p className="text-mute">No active missions.</p> : null}
       {(missions ?? []).map((mission) => (
         <Panel key={mission.id} title={mission.title}>

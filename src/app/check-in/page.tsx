@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CheckInForm } from "@/components/check-in-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page, Panel } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
@@ -44,12 +45,8 @@ export default async function CheckInPage() {
       {viewer.beginner ? (
         <Notice>Tap the card that matches your week. You do not need to know the dice.</Notice>
       ) : null}
-      {!viewer.userId ? (
-        <p>
-          <Link href="/sign-in">Join the Company</Link> before you check in.
-        </p>
-      ) : null}
-      {viewer.character ? (
+      {!viewer.userId ? <SignInPrompt /> : null}
+      {viewer.userId && viewer.character ? (
         <Panel title="This week">
           <p className="text-mute">Squad {squadName ?? "No squad yet"}.</p>
           <CheckInForm

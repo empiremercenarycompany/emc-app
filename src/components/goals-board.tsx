@@ -8,6 +8,7 @@ import { GoalRewardForm } from "@/components/goal-reward-form";
 import { MentalGoalForm } from "@/components/mental-goal-form";
 import { ResultForm } from "@/components/result-form";
 import { EmptyState } from "@/components/empty-state";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Term } from "@/components/term";
 import {
   chooseConstitutionGoal,
@@ -379,10 +380,10 @@ export function GoalsBoard({
         <button type="button" className="secondary" onClick={() => openSheet("social")}>
           Add a Charisma goal
         </button>
+      ) : signedIn ? (
+        <Link href="/character/new">Fill Out Recruitment Papers first.</Link>
       ) : (
-        <Link href={signedIn ? "/character/new" : "/sign-in"}>
-          {signedIn ? "Fill Out Recruitment Papers first." : "Join the Company first."}
-        </Link>
+        <SignInPrompt />
       )}
       {sheet === "con" ? (
         <Sheet title="Constitution" onClose={() => setSheet(null)}>

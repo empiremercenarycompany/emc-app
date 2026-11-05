@@ -40,8 +40,9 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
   await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
   await expect(page.getByText(/No password is stored/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "Discord" })).toBeDisabled();
-  await expect(page.getByRole("button", { name: "Google" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Discord" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Google" })).toHaveCount(0);
+  await expect(page.getByText(/stay off until the Company configures them/)).toHaveCount(0);
   await page.goto("/sign-in?error=link");
   await expect(
     page.getByText("That link has to be opened in the same browser that asked for it. Request another below."),
@@ -81,6 +82,19 @@ test("the buff menu names the temporary awards", async ({ page }) => {
   await expect(page.getByText("Advantage on one check")).toBeVisible();
 });
 
+test("logged-out pages offer a sign-in button", async ({ page }) => {
+  for (const path of ["/missions", "/squad", "/library", "/journal", "/goals", "/check-in", "/profile"]) {
+    await page.goto(path);
+    await expect(page.getByRole("link", { name: "Sign in to continue" })).toBeVisible();
+  }
+  await page.goto("/journal");
+  await expect(page.getByRole("button", { name: "Save exercise" })).toHaveCount(0);
+  await page.goto("/check-in");
+  await expect(page.getByRole("button", { name: "File your check-in" })).toHaveCount(0);
+  await page.goto("/character/new");
+  await expect(page.getByRole("button", { name: "Sign the Papers" })).toHaveCount(0);
+});
+
 test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
   await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
@@ -91,13 +105,12 @@ test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await expect(page.getByText(/Pillar of Bleakspire II/)).toBeVisible();
 });
 
-test("work opens on one record form", async ({ page }) => {
+test("work stays closed until you sign in", async ({ page }) => {
   await page.goto("/work");
-  await expect(page.getByRole("heading", { name: "What do you want to log?" })).toBeVisible();
-  await expect(page.getByLabel("What you did")).toBeVisible();
-  await expect(page.getByLabel("What kind of work?")).toBeVisible();
-  await expect(page.getByText("Counts toward Strength or Dexterity.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Record work" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Sign in to continue" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What do you want to log?" })).toHaveCount(0);
+  await expect(page.getByLabel("What you did")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Record work" })).toHaveCount(0);
 });
 
 test("shieldmate choices stay hidden until asked", async ({ page }) => {
@@ -106,13 +119,16 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
   await expect(box).toBeVisible();
   await expect(box).not.toBeChecked();
   await expect(page.getByLabel("Their character or name")).toHaveCount(0);
+  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Request the bonus" })).toHaveCount(0);
   await box.check();
   const partner = page.getByLabel("Their character or name");
   await expect(partner).toBeVisible();
+  await expect(page.getByLabel("Proficiency")).toBeVisible();
   await partner.fill("A friend");
   await box.uncheck();
   await expect(page.getByLabel("Their character or name")).toHaveCount(0);
+  await expect(page.getByLabel("Proficiency")).toHaveCount(0);
   await box.check();
   await expect(page.getByLabel("Their character or name")).toHaveValue("");
 });
@@ -140,7 +156,8 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Schedule", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Calendar", exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Next session" })).toBeVisible();
-  await expect(page.getByText(/Today, [A-Za-z]+, [A-Za-z]+ \d{1,2}/)).toBeVisible();
+  await expect(page.getByText("Next session: Not posted yet. Sessions are every other Saturday.")).toBeVisible();
+  await expect(page.getByText(/^Today,/)).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Times" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
   await expect(page.getByText("9–12")).toBeVisible();

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page, Panel } from "@/components/ui";
 import { markAttendance } from "@/lib/actions/activity";
 import { advanceMilestone, saveCalendarEvent } from "@/lib/actions/campaign";
@@ -9,7 +10,7 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { cohortAdventure, cohortBeginsLine, embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
 import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus } from "@/lib/rules/calendar";
 import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from "@/lib/rules/dates";
-import { attendanceOpen, nextPostedSession } from "@/lib/rules/table-sessions";
+import { attendanceOpen, nextPostedSession, nextSessionCopy } from "@/lib/rules/table-sessions";
 import { CATCHUP_PER_POOL_CAP, CATCHUP_START_WEEK, CATCHUP_WEEKLY_CAP, PER_POOL_WEEKLY_CAP, SESSION_FREE_POINTS, WEEKLY_CAP } from "@/lib/pacing-config";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import type { CohortSession } from "@/lib/rules/progression";
@@ -147,31 +148,18 @@ export default async function SchedulePage() {
     <Page title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Next session">
-        <p>Today, {formatMuster(today.slice(0, 10))}</p>
-        {posted ? (
-          <p>
-            Next session:{" "}
-            {postedSessionLine({
-              title: posted.title,
-              adventureTitle: posted.adventureTitle,
-              sessionDate: posted.session_date,
-            })}
-          </p>
-        ) : cohort ? (
-          <p>{cohortBeginsLine(cohort.title, cohort.start)}</p>
-        ) : focus ? (
-          <p>
-            Next session: {formatMuster(focus.block.start)}
-          </p>
-        ) : (
-          <p>Next muster will be posted here.</p>
-        )}
-        {!viewer.userId ? (
-          <p>
-            <Link href="/sign-in">Sign in</Link> to see the next session.
-          </p>
-        ) : null}
-        {!posted && focus && focus.block.markers.length > 0 ? <p className="text-mute">{focus.block.markers.join(" · ")}</p> : null}
+        <p>
+          {nextSessionCopy(
+            posted
+              ? postedSessionLine({
+                  title: posted.title,
+                  adventureTitle: posted.adventureTitle,
+                  sessionDate: posted.session_date,
+                })
+              : null,
+          )}
+        </p>
+        {!viewer.userId ? <SignInPrompt /> : null}
         <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
       </Panel>
       <Panel title="Times">
@@ -212,9 +200,7 @@ export default async function SchedulePage() {
         ) : viewer.userId ? (
           <p className="text-mute">The schedule is not set yet.</p>
         ) : (
-          <p>
-            <Link href="/sign-in">Sign in</Link> to read the company calendar.
-          </p>
+          <SignInPrompt />
         )}
       </Panel>
       <Panel title="Each week">
