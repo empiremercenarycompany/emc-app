@@ -56,7 +56,7 @@ export default async function SquadPage() {
       })}
       {(squads ?? []).length === 0 ? (
         <EmptyState title="No squads yet.">
-          <p>The EMC team assigns your squad.</p>
+          <p>Your squad is set by the session time you choose.</p>
         </EmptyState>
       ) : null}
       {canLead ? (
