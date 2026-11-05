@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveDisplayName } from "@/lib/actions/character";
 import { saveIntake } from "@/lib/actions/intake";
@@ -38,11 +39,7 @@ export default async function ProfilePage() {
   return (
     <Page title="Profile" lede="Who the Company sees when you walk in.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? (
-        <Link className="button primary" href="/sign-in">
-          Sign in
-        </Link>
-      ) : (
+      {!viewer.userId ? <SignInPrompt /> : (
         <>
           <Panel>
             <div className="identity">

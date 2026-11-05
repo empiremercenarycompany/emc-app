@@ -107,7 +107,6 @@ export default async function CharacterPage({
       <Page title="Character" mark={false}>
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
-        <GrewUpForm request={null} />
         <CharacterSheet
           name="Recruit"
           classLabel="Not yet inducted"

@@ -52,13 +52,6 @@ export function SignInForm() {
         {pending ? "Opening the gates..." : "Send my sign-in link"}
       </button>
       <p className="text-sm text-mute">Already with the Company? The same link brings you back.</p>
-      <button type="button" disabled>
-        Discord
-      </button>
-      <button type="button" disabled>
-        Google
-      </button>
-      <p className="text-sm text-mute">Discord and Google stay off until the Company configures them.</p>
       {message ? <p role={sent ? "status" : "alert"}>{message}</p> : null}
       {sent ? <p>{"Open the link in the same browser you're using now."}</p> : null}
     </form>

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { GroupGoalForm } from "@/components/group-goal-form";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { assignSquad, createSquad, postChallenge } from "@/lib/actions/staff";
@@ -35,7 +35,7 @@ export default async function SquadPage() {
   return (
     <Page title="Squad" lede={`Company cap is ${cap}.`}>
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
+      {!viewer.userId ? <SignInPrompt /> : null}
       {(squads ?? []).map((squad) => {
         const members = (people ?? []).filter((person) => person.squad_id === squad.id);
         return (

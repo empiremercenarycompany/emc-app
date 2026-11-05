@@ -531,6 +531,10 @@ button.primary,
   color: var(--color-parchment);
 }
 
+a.sign-in-prompt {
+  width: 100%;
+}
+
 nav button.secondary {
   border: 0;
   background: transparent;

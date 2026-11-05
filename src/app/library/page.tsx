@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Choice } from "@/components/choice";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveDrill, setPublished } from "@/lib/actions/library";
@@ -27,7 +27,7 @@ export default async function LibraryPage() {
   return (
     <Page title="Library" lede="Company workouts. Each one has a gym version, a lighter version, and a home version.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
+      {!viewer.userId ? <SignInPrompt /> : null}
       {(drills ?? [])
         .filter((drill) => drill.published || editor || viewer.role === "dm")
         .map((drill) => (

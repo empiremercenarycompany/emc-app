@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Choice } from "@/components/choice";
+import { SignInPrompt } from "@/components/sign-in-prompt";
 import { ResultForm } from "@/components/result-form";
 import { JournalBuilder, type MenuExercise } from "@/components/journal-builder";
 import { Notice, Page, Panel } from "@/components/ui";
@@ -126,7 +127,7 @@ export default async function JournalPage() {
         <Link href="/goals">Open goals</Link>
         <p className="text-mute">Sets, reps, and weight are recorded on the workout below.</p>
       </Panel>
-      {!viewer.userId ? <Link href="/sign-in">Sign in</Link> : null}
+      {!viewer.userId ? <SignInPrompt /> : null}
       {viewer.character && menuPools.length === 0 ? (
         <p className="text-mute">No lists yet. Your trainer posts exercises before you build a workout.</p>
       ) : null}
