@@ -119,7 +119,7 @@ export default async function CharacterPage({
           npcs={<NpcForm characterId={null} />}
           progress={
             <>
-              <p>Not final yet: see your DM or trainer to lock these in.</p>
+              <p>Not final yet: see your DM or coach to lock these in.</p>
               <p>Ready to move. A confirmed change can go back until the next session starts.</p>
               <p>Locked. When the next session starts, a confirmed change stays.</p>
               <p className="text-mute">What you have not placed stays ready, however old it is.</p>
@@ -458,7 +458,7 @@ export default async function CharacterPage({
         </p>
         <p className="text-mute">What you have not placed stays ready. A DM or trainer confirms a change in person. It stays when the next session starts.</p>
         <div>
-          <p className="font-bold">Not final yet: see your DM or trainer to lock these in</p>
+          <p className="font-bold">Not final yet: see your DM or coach to lock these in</p>
           {provisional.length === 0 ? <p className="text-mute">Nothing is waiting.</p> : null}
           {provisional.map((row: { ability: string; pool: string; amount: number }) => (
             <p key={`provisional-${row.ability}-${row.pool}`}>

@@ -150,7 +150,7 @@ test("the sheet asks you to sign in", async ({ page }) => {
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
   await expect(page.locator("img[src='/portraits/fallback.svg']").first()).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
-  await expect(page.getByText("Not final yet: see your DM or trainer to lock these in")).toBeVisible();
+  await expect(page.getByText("Not final yet: see your DM or coach to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
   await expect(page.getByText("Locked")).toBeVisible();
   await expect(page.getByText(/Build \d+ of 27/)).toHaveCount(0);
