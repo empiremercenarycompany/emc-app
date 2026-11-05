@@ -99,7 +99,7 @@ export function SiteNav({
             type="button"
             className="icon-round"
             aria-pressed={help.help}
-            aria-label={help.help ? "Help mode is on" : "Help"}
+            aria-label={help.help ? "Explain words is on" : "Explain words"}
             onClick={help.toggle}
           >
             ?
@@ -118,7 +118,7 @@ export function SiteNav({
       </header>
       {help.help ? (
         <p className="help-banner">
-          Help mode is on. Bronze-outlined words open a plain meaning. Tap one, or{" "}
+          Explain words is on. Bronze-outlined words open a plain meaning. Tap one, or{" "}
           <button type="button" className="help-banner-link" onClick={() => codex.openCodex("")}>
             open the Codex
           </button>

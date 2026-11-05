@@ -223,6 +223,28 @@ export default async function BarracksPage() {
           <Notice>New here? Dotted words open a plain meaning. Check in once a week, record the work you did, and your trainer handles the numbers.</Notice>
         </div>
       ) : null}
+      {viewer.userId && viewer.firstVisit ? (
+        <>
+          <Panel title="Set a goal" wide>
+            <p>Goals are the work of the Company.</p>
+            <Link className="button" href="/goals">
+              Open goals
+            </Link>
+          </Panel>
+          <Panel title="Record work" wide>
+            <p>Record what you did. Staff confirm it before it is ready to assign.</p>
+            <Link className="button" href="/work">
+              Record work
+            </Link>
+          </Panel>
+          <Panel title="Weekly check-in" wide>
+            <p>Four quick questions. Due Friday at 11:59 PM.</p>
+            <Link className="button" href="/check-in">
+              File your check-in
+            </Link>
+          </Panel>
+        </>
+      ) : null}
       {!viewer.character ? (
         <Panel title="Start here" wide>
           {viewer.userId && viewer.firstVisit ? (
@@ -317,7 +339,14 @@ export default async function BarracksPage() {
         <Panel>
           <h2>Your squad</h2>
           {(mates ?? []).length === 0 ? (
-            <EmptyState title="No squad yet">
+            <EmptyState
+              title="No squad yet"
+              action={
+                <Link className="button" href="/squad">
+                  Open squad
+                </Link>
+              }
+            >
               <p>Portraits land here when a squad is assigned.</p>
             </EmptyState>
           ) : (
@@ -372,7 +401,14 @@ export default async function BarracksPage() {
             </Link>
           </>
         ) : (
-          <EmptyState title="No challenge is posted">
+          <EmptyState
+            title="No challenge is posted"
+            action={
+              <Link className="button" href="/missions">
+                Open missions
+              </Link>
+            }
+          >
             <p>Active missions stay on the Missions board.</p>
           </EmptyState>
         )}
