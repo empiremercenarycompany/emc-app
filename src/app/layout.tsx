@@ -59,6 +59,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
       <body>
+        <a className="skip" href="#main">
+          Skip to content
+        </a>
         <RegisterSw />
         <DisplayFace />
         <CodexProviders beginner={viewer.beginner} userId={viewer.userId}>
@@ -70,11 +73,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               displayName: viewer.displayName,
               email: viewer.email,
             })}
-            avatarUrl={viewer.avatarUrl}
             roleLabel={roleLabel}
           />
-          <FeedbackDock />
           {children}
+          <FeedbackDock />
         </CodexProviders>
       </body>
     </html>

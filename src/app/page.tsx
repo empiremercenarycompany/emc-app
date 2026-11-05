@@ -9,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cohortAdventure, cohortBeginsLine, embeddedTitle, postedSessionLine } from "@/lib/rules/adventures";
 import { COMPANY_ZONE, calendarDate, currentWeekStart, formatDate } from "@/lib/rules/dates";
 import { nextPostedSession } from "@/lib/rules/table-sessions";
-import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import {
   constitutionGoalCurrent,
   constitutionGoalOption,
@@ -93,8 +93,8 @@ export default async function BarracksPage() {
   const slotRows = supabase ? (await supabase.from("session_timeslots").select("label, adults_only").order("start_time")).data : null;
   const times =
     slotRows && slotRows.length > 0
-      ? slotRows.map((slot) => (slot.adults_only ? `${slot.label} (18+)` : slot.label)).join(", ")
-      : TIMESLOT_FALLBACK.map((slot) => (slot.adultsOnly ? `${slot.label} (18+)` : slot.label)).join(", ");
+      ? slotRows.map((slot) => displaySlot(String(slot.label), Boolean(slot.adults_only))).join(" · ")
+      : TIMESLOT_FALLBACK.map((slot) => displaySlot(slot.label, slot.adultsOnly)).join(" · ");
   const welcome = recruitName({
     characterName: viewer.character?.name,
     displayName: viewer.displayName,
@@ -233,15 +233,6 @@ export default async function BarracksPage() {
             <li>Fill Out Recruitment Papers</li>
             <li>Record work</li>
           </ol>
-          {viewer.userId ? (
-            <Link className="button primary" href="/character/new">
-              Fill Out Recruitment Papers
-            </Link>
-          ) : (
-            <Link className="button primary" href="/sign-in">
-              Join the Company
-            </Link>
-          )}
         </Panel>
       ) : (
         <Panel wide>
@@ -282,6 +273,17 @@ export default async function BarracksPage() {
           </p>
         </Panel>
       )}
+      {!viewer.character ? (
+        viewer.userId ? (
+          <Link className="button primary span-all" href="/character/new">
+            Fill Out Recruitment Papers
+          </Link>
+        ) : (
+          <Link className="button primary span-all" href="/sign-in">
+            Join the Company
+          </Link>
+        )
+      ) : null}
       <Panel title="Goals" wide>
         <p>Goals are the work of the Company. Each one feeds a score, and the story follows what you keep.</p>
         <ul>

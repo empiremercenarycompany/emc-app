@@ -23,7 +23,7 @@ export function Page({
   children: ReactNode;
 }) {
   return (
-    <main className="page-pad page-wrap px-4 pt-4">
+    <main id="main" className="page-pad page-wrap px-4 pt-4">
       {badge ? <CompanyBadge /> : mark ? <LogoSlot /> : null}
       {hero ? (
         <header className="hero-band">

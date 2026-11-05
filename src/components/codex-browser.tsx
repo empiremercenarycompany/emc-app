@@ -68,7 +68,7 @@ export function CodexBrowser({ terms, idPrefix = "" }: { terms: CodexTerm[]; idP
         const rows = shown.filter((term) => term.group === section.id);
         if (group !== "all" && group !== section.id) return null;
         return (
-          <section key={section.id} className="flex flex-col gap-3">
+          <section key={section.id} id={section.id} className="flex flex-col gap-3">
             <h2>{section.label}</h2>
             {section.id === "faq" && rows.length === 0 ? (
               <article className="paper">

@@ -39,6 +39,9 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
   await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
+  await expect(page.getByText("Signed up on empiremercenarycompany.com? Use the same email.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "empiremercenarycompany.com" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Feedback" })).toHaveCount(0);
   await expect(page.getByText(/No password is stored/)).toBeVisible();
   await expect(page.getByRole("button", { name: "Discord" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Google" })).toHaveCount(0);
@@ -160,10 +163,9 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByText(/^Today,/)).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Times" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
-  await expect(page.getByText("9–12")).toBeVisible();
-  await expect(page.getByText("2–5")).toBeVisible();
-  await expect(page.getByText("7–10 PM")).toBeVisible();
-  await expect(page.getByText("(18+)")).toBeVisible();
+  await expect(page.getByText("9 AM–12 PM")).toBeVisible();
+  await expect(page.getByText("2–5 PM")).toBeVisible();
+  await expect(page.getByText("7–10 PM (18+)")).toBeVisible();
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
@@ -217,6 +219,7 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await expect(overlay.getByRole("link", { name: "Table Muster" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Trainer" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);
+  await expect(overlay.getByRole("link", { name: "Help & FAQ" })).toHaveAttribute("href", "/codex#faq");
   const background = await overlay.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(background).toBe("rgb(26, 22, 19)");
   await page.goto("/menu");
@@ -282,6 +285,13 @@ test("feedback opens from the button and from the menu", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Send feedback" }).getByRole("alert")).toContainText(
     "Supabase is not configured",
   );
+});
+
+test("pages name themselves and offer a skip link", async ({ page }) => {
+  await page.goto("/missions");
+  await expect(page).toHaveTitle("Missions · EMC");
+  await expect(page.locator("a.skip")).toHaveAttribute("href", "#main");
+  await expect(page.locator("main#main")).toBeVisible();
 });
 
 test("the manifest names the company", async ({ request }) => {
