@@ -38,6 +38,7 @@ export function CharacterSheet({
   hp,
   skillId,
   skillIds = null,
+  alsoTrained = null,
   acOverride = null,
   speedOverride = null,
   saves = null,
@@ -67,6 +68,7 @@ export function CharacterSheet({
   hp: number;
   skillId: string | null;
   skillIds?: string[] | null;
+  alsoTrained?: string[] | null;
   acOverride?: number | null;
   speedOverride?: number | null;
   saves?: string[] | null;
@@ -229,6 +231,9 @@ export function CharacterSheet({
           </section>
         );
       })}
+      {(alsoTrained ?? []).length > 0 ? (
+        <p className="sheet-note">Also trained: {(alsoTrained ?? []).join(", ")}</p>
+      ) : null}
     </article>
   );
 

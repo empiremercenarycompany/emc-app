@@ -22,8 +22,7 @@ import {
   CON_GOAL_SCORE_MIN_DEFAULT,
 } from "@/lib/rules/constitution-goal";
 import { currentWeekStart } from "@/lib/rules/dates";
-import { TOOL_LABELS } from "@/lib/rules/backgrounds";
-import { skillLabel } from "@/lib/rules/skill-names";
+import { alsoTrainedLabels, characterSkillIds, proficiencyRecord } from "@/lib/rules/proficiency-grants";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 import { GrewUpForm } from "@/components/grew-up-form";
@@ -59,6 +58,18 @@ const SOURCE: Record<string, string> = {
 
 function abilityLabel(name: string) {
   return LABELS[name as AbilityName] ?? name;
+}
+
+function ProficiencyRecord({ row }: { row: CharacterRow }) {
+  const lines = proficiencyRecord(row);
+  return (
+    <>
+      {lines.skills ? <p>{lines.skills}</p> : null}
+      {lines.tools ? <p>{lines.tools}</p> : null}
+      {lines.languages ? <p>{lines.languages}</p> : null}
+      {lines.weapons ? <p>{lines.weapons}</p> : null}
+    </>
+  );
 }
 
 export default async function CharacterPage({
@@ -181,7 +192,8 @@ export default async function CharacterPage({
             })
           }
           skillId={recruit.profession_skill}
-          skillIds={recruit.background_skills ?? null}
+          skillIds={characterSkillIds(recruit)}
+          alsoTrained={alsoTrainedLabels(recruit)}
           acOverride={recruit.sheet?.ac ?? null}
           speedOverride={recruit.sheet?.speed ?? null}
           saves={recruit.sheet?.saves ?? null}
@@ -191,10 +203,13 @@ export default async function CharacterPage({
           recordedSpells={recruit.sheet?.spells ?? null}
           recordedFeats={recruit.sheet?.feats ?? null}
           features={
-            <p>
-              {recruit.rank} · level {recruit.level}
-              {recruit.species ? ` · ${speciesLabel(recruit.species)}` : ""}
-            </p>
+            <>
+              <p>
+                {recruit.rank} · level {recruit.level}
+                {recruit.species ? ` · ${speciesLabel(recruit.species)}` : ""}
+              </p>
+              <ProficiencyRecord row={recruit} />
+            </>
           }
           inventory={<p className="text-mute">Staff view. The recruit keeps their own list.</p>}
           npcs={<p className="text-mute">Open the recruit&apos;s story from the table.</p>}
@@ -391,7 +406,8 @@ export default async function CharacterPage({
           originWord: character.origin_word,
         })}
         skillId={character.profession_skill}
-        skillIds={character.background_skills ?? null}
+        skillIds={characterSkillIds(character)}
+        alsoTrained={alsoTrainedLabels(character)}
         acOverride={character.sheet?.ac ?? null}
         speedOverride={character.sheet?.speed ?? null}
         saves={character.sheet?.saves ?? null}
@@ -430,14 +446,9 @@ export default async function CharacterPage({
             </p>
             <p>
               {character.profession}
-              {character.profession_tool
-                ? ` · ${TOOL_LABELS[character.profession_tool] ?? character.profession_tool}`
-                : ""}
               {character.origin_feat ? ` · ${character.origin_feat}` : ""}
             </p>
-            {(character.background_skills ?? []).length > 0 ? (
-              <p>{(character.background_skills ?? []).map((skill) => skillLabel(skill)).join(", ")}</p>
-            ) : null}
+            <ProficiencyRecord row={character} />
             <p className="text-mute">
               {character.inducted_at
                 ? "Combat numbers follow induction."

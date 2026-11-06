@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { actionClient, asImpact, dbError } from "@/lib/action-client";
 import { backgroundById, papersMissing, recruitScores } from "@/lib/rules/backgrounds";
+import { resolveCreationGrants } from "@/lib/rules/proficiency-grants";
 import type { AbilityName } from "@/lib/rules/starting-array";
 import type { ActionResult } from "@/lib/types";
 
@@ -18,22 +19,35 @@ export async function createCharacter(formData: FormData): Promise<ActionResult>
   const plus2 = String(formData.get("plus2") ?? "") as AbilityName;
   const plus1 = String(formData.get("plus1") ?? "") as AbilityName;
   const background = backgroundById(backgroundId);
+  const toolId = String(formData.get("tool_id") ?? "");
+  const featPicks = formData.getAll("feat_pick").map((value) => String(value));
+  const speciesPick = String(formData.get("species_pick") ?? "");
   const scores =
     background && (mode === "plus1" || mode === "plus2")
       ? recruitScores(mode, background.abilities, plus2, plus1)
       : null;
   const missing = papersMissing({ name, species, backgroundId, scores });
   if (missing.length > 0) return { error: missing[0] };
+  const grants = resolveCreationGrants({
+    backgroundId,
+    speciesId: species,
+    toolId,
+    featPicks,
+    speciesPick,
+  });
+  if (!grants.ok) return { error: grants.missing[0] };
 
   const { error: rpcError } = await supabase.rpc("file_recruitment_papers", {
     p_name: name,
     p_species: species,
     p_background_id: backgroundId,
-    p_tool_id: String(formData.get("tool_id") ?? ""),
+    p_tool_id: toolId,
     p_bonus_mode: mode,
     p_plus2: plus2,
     p_plus1: plus1,
     p_pronouns: String(formData.get("pronouns") ?? ""),
+    p_feat_picks: featPicks,
+    p_species_pick: speciesPick,
   });
   const message = dbError(rpcError);
   if (message) return { error: message };
