@@ -37,6 +37,7 @@ done
 echo "RLS tests"
 run_sql -f supabase/tests/rls.test.sql
 run_sql -f supabase/tests/backgrounds.test.sql
+run_sql -f supabase/tests/proficiency_grants.test.sql
 run_sql -f supabase/tests/intake.test.sql
 run_sql -f supabase/tests/staff_edit.test.sql
 run_sql -f supabase/tests/clearance.test.sql

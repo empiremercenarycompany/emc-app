@@ -15,6 +15,15 @@ import {
   toolChoiceLabel,
 } from "@/lib/rules/backgrounds";
 import { skillLabel } from "@/lib/rules/skill-names";
+import {
+  automaticGrantLabels,
+  creationChoices,
+  grantLabel,
+  grantPicksMissing,
+  resolveCreationGrants,
+  type ProficiencyChoice,
+  type ProficiencyOption,
+} from "@/lib/rules/proficiency-grants";
 import { speciesBlurb } from "@/lib/rules/species-blurbs";
 import { speciesLabel } from "@/lib/rules/species-names";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
@@ -39,17 +48,27 @@ const ABILITY_PLAIN: Record<AbilityName, string> = {
 
 type Step = 0 | 1 | 2 | 3 | 4;
 
-export function CharacterForm({ species }: { species: { id: string; name: string }[] }) {
-  const [step, setStep] = useState<Step>(0);
+export function CharacterForm({
+  species,
+  initialStep = 0,
+  initialBackgroundId = "farmer",
+}: {
+  species: { id: string; name: string }[];
+  initialStep?: Step;
+  initialBackgroundId?: string;
+}) {
+  const [step, setStep] = useState<Step>(initialStep);
   const [name, setName] = useState("");
   const [pronouns, setPronouns] = useState("");
-  const [backgroundId, setBackgroundId] = useState("farmer");
+  const [backgroundId, setBackgroundId] = useState(initialBackgroundId);
   const background = backgroundById(backgroundId) ?? BACKGROUNDS[0];
   const [toolId, setToolId] = useState(background.tools[0]);
   const [speciesId, setSpeciesId] = useState(species.find((row) => row.id === "human")?.id ?? species[0]?.id ?? "");
   const [mode, setMode] = useState<"plus1" | "plus2">("plus1");
   const [plus2, setPlus2] = useState<AbilityName>(background.abilities[0]);
   const [plus1, setPlus1] = useState<AbilityName>(background.abilities[1]);
+  const [featPicks, setFeatPicks] = useState<string[]>([]);
+  const [speciesPick, setSpeciesPick] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
 
   function chooseBackground(id: string) {
@@ -59,6 +78,13 @@ export function CharacterForm({ species }: { species: { id: string; name: string
     setToolId(next.tools[0]);
     setPlus2(next.abilities[0]);
     setPlus1(next.abilities[1]);
+    setFeatPicks([]);
+    setSpeciesPick("");
+  }
+
+  function chooseTool(id: string) {
+    setToolId(id);
+    setFeatPicks((current) => current.map((pick) => (pick === `tool:${id}` ? "" : pick)));
   }
 
   const scores = useMemo(
@@ -66,17 +92,38 @@ export function CharacterForm({ species }: { species: { id: string; name: string
     [mode, background, plus2, plus1],
   );
   const choice = background.tools.length > 1;
-  const missing = papersMissing({
-    name,
-    species: speciesId,
+  const toolForGrant = choice ? toolId : background.tools[0];
+  const formChoices = creationChoices({
     backgroundId: background.id,
-    scores,
+    speciesId,
+    toolId: toolForGrant,
+    featPicks,
   });
+  const featGrant = formChoices.find((row) => row.key === "feat") ?? null;
+  const speciesGrant = formChoices.find((row) => row.key === "species") ?? null;
+  const grantInput = {
+    backgroundId: background.id,
+    speciesId,
+    toolId: toolForGrant,
+    featPicks,
+    speciesPick,
+  };
+  const missing = [
+    ...papersMissing({
+      name,
+      species: speciesId,
+      backgroundId: background.id,
+      scores,
+    }),
+    ...grantPicksMissing(grantInput),
+  ];
   const ready = missing.length === 0;
 
   function stepProblem(current: Step): string | null {
     if (current === 0 && !name.trim()) return "Add your name.";
+    if (current === 1) return grantPicksMissing(grantInput, "feat")[0] ?? null;
     if (current === 2 && !speciesId) return "Choose your people.";
+    if (current === 2) return grantPicksMissing(grantInput, "species")[0] ?? null;
     if (current === 3 && !scores) return "Pick two different abilities.";
     return null;
   }
@@ -103,7 +150,16 @@ export function CharacterForm({ species }: { species: { id: string; name: string
     }
     if (step === 2) {
       const human = species.find((row) => row.id === "human") ?? species[0];
-      if (human) setSpeciesId(human.id);
+      if (human) {
+        setSpeciesId(human.id);
+        const next = creationChoices({
+          backgroundId: background.id,
+          speciesId: human.id,
+          toolId: toolForGrant,
+          featPicks,
+        }).find((row) => row.key === "species");
+        setSpeciesPick(next?.options[0]?.token ?? "");
+      }
       setProblem(null);
       return;
     }
@@ -134,6 +190,10 @@ export function CharacterForm({ species }: { species: { id: string; name: string
       <input type="hidden" name="bonus_mode" value={mode} />
       <input type="hidden" name="plus2" value={plus2} />
       <input type="hidden" name="plus1" value={plus1} />
+      <input type="hidden" name="species_pick" value={speciesPick} />
+      {featPicks.map((pick, index) => (
+        <input key={`feat-pick-${index}`} type="hidden" name="feat_pick" value={pick} />
+      ))}
 
       {step === 0 ? (
         <section className="flex flex-col gap-3">
@@ -190,7 +250,7 @@ export function CharacterForm({ species }: { species: { id: string; name: string
               <select
                 aria-label={toolChoiceLabel(background.toolChoice ?? "artisan")}
                 value={toolId}
-                onChange={(event) => setToolId(event.target.value)}
+                onChange={(event) => chooseTool(event.target.value)}
               >
                 {background.tools.map((id) => (
                   <option key={id} value={id}>
@@ -207,6 +267,25 @@ export function CharacterForm({ species }: { species: { id: string; name: string
           <p>
             Feat <span className="chip">{background.feat}</span> <Term id="feat" />
           </p>
+          {featGrant ? (
+            <ProficiencySelects
+              choice={featGrant}
+              values={featPicks}
+              onChange={(index, token) => {
+                setFeatPicks((current) => {
+                  const next = Array.from({ length: featGrant.count }, (_, item) => current[item] ?? "");
+                  next[index] = token;
+                  return next;
+                });
+                if (token && token === speciesPick) setSpeciesPick("");
+              }}
+            />
+          ) : null}
+          {automaticGrantLabels(background.feat).map((label) => (
+            <p key={label}>
+              Weapon <span className="chip">{label}</span>
+            </p>
+          ))}
         </section>
       ) : null}
 
@@ -224,7 +303,11 @@ export function CharacterForm({ species }: { species: { id: string; name: string
                   type="button"
                   className={selected ? "species-card primary" : "species-card secondary"}
                   aria-pressed={selected}
-                  onClick={() => setSpeciesId(row.id)}
+                  onClick={() => {
+                    if (row.id === speciesId) return;
+                    setSpeciesId(row.id);
+                    setSpeciesPick("");
+                  }}
                 >
                   <SpeciesMark letter={label.charAt(0)} />
                   <span>{label}</span>
@@ -233,6 +316,13 @@ export function CharacterForm({ species }: { species: { id: string; name: string
               );
             })}
           </div>
+          {speciesGrant ? (
+            <ProficiencySelects
+              choice={speciesGrant}
+              values={[speciesPick]}
+              onChange={(_index, token) => setSpeciesPick(token)}
+            />
+          ) : null}
         </section>
       ) : null}
 
@@ -293,9 +383,13 @@ export function CharacterForm({ species }: { species: { id: string; name: string
           <p>
             {background.name}. {BACKGROUND_BLURB[background.id]}
           </p>
-          <p>{background.skills.map((skill) => skillLabel(skill)).join(", ")}</p>
-          <p>{TOOL_LABELS[choice ? toolId : background.tools[0]] ?? toolId}</p>
           <p>{background.feat}</p>
+          <ReviewGrants
+            backgroundSkills={background.skills}
+            toolId={toolForGrant}
+            feat={background.feat}
+            grants={resolveCreationGrants(grantInput)}
+          />
           <p>{speciesLabel(speciesId, species.find((row) => row.id === speciesId)?.name)}</p>
           <ul className="ability-row" data-testid="score-preview">
             {ABILITIES.map((ability) => (
@@ -343,6 +437,109 @@ function SpeciesMark({ letter }: { letter: string }) {
         {letter}
       </text>
     </svg>
+  );
+}
+
+const PICK_ORDINALS = ["First", "Second", "Third"];
+
+function ProficiencySelects({
+  choice,
+  values,
+  onChange,
+}: {
+  choice: ProficiencyChoice;
+  values: string[];
+  onChange: (index: number, token: string) => void;
+}) {
+  const taken = new Set(values.filter(Boolean));
+  const groups = [...new Set(choice.options.map((option) => option.group))];
+  return (
+    <div
+      className="flex flex-col gap-3"
+      data-testid={choice.key === "feat" ? "feat-proficiency-picks" : "species-proficiency-pick"}
+    >
+      <p id={`${choice.key}-proficiency-label`}>{choice.prompt}</p>
+      {choice.options.length === 0 ? (
+        <p role="alert">Leave a skill open. Those are already on your papers.</p>
+      ) : (
+        Array.from({ length: choice.count }, (_, index) => {
+          const value = values[index] ?? "";
+          const label = choice.count === 1 ? "Skill" : (PICK_ORDINALS[index] ?? `Choice ${index + 1}`);
+          return (
+            <label key={`${choice.key}-${index}`}>
+              {label}
+              <select
+                aria-label={choice.count === 1 ? choice.prompt : `${label}. ${choice.prompt}`}
+                value={value}
+                onChange={(event) => onChange(index, event.target.value)}
+              >
+                <option value="">Choose</option>
+                {groups.length < 2
+                  ? choice.options.map((option) => (
+                      <PickOption key={option.token} option={option} value={value} taken={taken} />
+                    ))
+                  : groups.map((group) => (
+                      <optgroup key={group} label={group}>
+                        {choice.options
+                          .filter((option) => option.group === group)
+                          .map((option) => (
+                            <PickOption key={option.token} option={option} value={value} taken={taken} />
+                          ))}
+                      </optgroup>
+                    ))}
+              </select>
+            </label>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+function PickOption({
+  option,
+  value,
+  taken,
+}: {
+  option: ProficiencyOption;
+  value: string;
+  taken: Set<string>;
+}) {
+  return (
+    <option value={option.token} disabled={option.token !== value && taken.has(option.token)}>
+      {option.label}
+    </option>
+  );
+}
+
+function ReviewGrants({
+  backgroundSkills,
+  toolId,
+  feat,
+  grants,
+}: {
+  backgroundSkills: readonly string[];
+  toolId: string;
+  feat: string;
+  grants: ReturnType<typeof resolveCreationGrants>;
+}) {
+  const skills = [
+    ...backgroundSkills.map((id) => skillLabel(id)),
+    ...(grants.ok ? grants.skills.map((id) => skillLabel(id)) : []),
+  ];
+  const tools = [
+    grantLabel(`tool:${toolId}`),
+    ...(grants.ok ? grants.tools.map((id) => grantLabel(`tool:${id}`)) : []),
+  ];
+  const languages = grants.ok ? grants.languages.map((id) => grantLabel(`language:${id}`)) : [];
+  const weapons = grants.ok ? grants.weapons.map((id) => grantLabel(`weapon:${id}`)) : automaticGrantLabels(feat);
+  return (
+    <>
+      {skills.length > 0 ? <p>{skills.join(", ")}</p> : null}
+      {tools.length > 0 ? <p>{tools.join(", ")}</p> : null}
+      {languages.length > 0 ? <p>{languages.join(", ")}</p> : null}
+      {weapons.length > 0 ? <p>{weapons.join(", ")}</p> : null}
+    </>
   );
 }
 

@@ -14,6 +14,10 @@ export type CharacterRow = {
   background_id?: string | null;
   background_skills?: string[] | null;
   origin_feat?: string | null;
+  granted_skills?: string[] | null;
+  granted_tools?: string[] | null;
+  granted_languages?: string[] | null;
+  granted_weapons?: string[] | null;
   class: string | null;
   level: number;
   rank: string;
