@@ -171,6 +171,16 @@ export type Viewer = {
   } | null;
 };
 
+/** Matches public.is_dm(): the dm role only. */
+export function isDm(role: AppRole | null): boolean {
+  return role === "dm";
+}
+
+/** Table screen and the new glossary tables. Curators are not included. */
+export function isDmOrAdmin(role: AppRole | null): boolean {
+  return role === "dm" || role === "admin";
+}
+
 export function isStaff(role: AppRole | null): boolean {
   return role === "dm" || role === "admin" || role === "curator";
 }
