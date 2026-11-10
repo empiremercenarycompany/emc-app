@@ -13,6 +13,9 @@ const KIND_LABEL: Record<GrewUpKind, string> = {
   gaming: "Gaming set",
 };
 
+const REVEAL =
+  "Shieldmates. Join with a friend and you each get $20 off your first two months, and you'll be in the same squad. Pick one thing you two grew up doing together, like a game, an instrument, a trade or a language, and you both start proficient in it. Choose the same session time, and your friend has 14 days to sign up.";
+
 const ASK = "Signing up with a friend? Get the Shieldmate bonus";
 
 export function GrewUpForm({
@@ -78,6 +81,7 @@ export function GrewUpForm({
         <span>{ASK}</span>
       </label>
       <div id="shieldmate-fields" hidden={!open}>
+        <p>{REVEAL}</p>
         <ResultForm action={requestGrewUp} submit="Request the bonus" primary>
           <label>
             Their character or name
