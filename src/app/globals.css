@@ -1706,3 +1706,189 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
     grid-column: 1 / -1;
   }
 }
+
+/* DM table. Laptop grid, phone accordion. Brand colors only. */
+
+.dm-shell {
+  width: min(100%, 35rem);
+  margin-inline: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.dm-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.dm-panel {
+  min-width: 0;
+  background: var(--color-char-2);
+  border: 1px solid rgba(210, 176, 122, 0.28);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.dm-panel > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--color-bronze-lt);
+}
+
+.dm-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.dm-panel:not([open]) .dm-chev {
+  display: inline-block;
+  transform: rotate(-90deg);
+}
+
+.dm-body {
+  padding: 0.65rem 0.75rem 0.75rem;
+}
+
+.dm-card {
+  background: var(--color-iron);
+  border: 1px solid rgba(210, 176, 122, 0.28);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+}
+
+.dm-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dm-name {
+  margin: 0;
+  font-family: var(--font-sans), Barlow, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dm-sub,
+.dm-empty {
+  color: var(--color-mute);
+  margin: 0.15rem 0 0;
+}
+
+.dm-k {
+  display: inline;
+  color: var(--color-mute);
+  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dm-example {
+  color: var(--color-bronze-lt);
+  font-family: var(--font-sans), Barlow, sans-serif;
+  font-size: 0.75rem;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.dm-flag {
+  color: var(--color-bronze-lt);
+  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dm-chip {
+  display: inline-block;
+  margin: 0.35rem 0.35rem 0 0;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(210, 176, 122, 0.28);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.dm-names {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.1rem;
+}
+
+.dm-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dm-filters button {
+  align-self: flex-start;
+}
+
+@media (min-width: 768px) {
+  .dm-shell {
+    width: min(100% - 2rem, 72rem);
+  }
+
+  .dm-filters {
+    flex-direction: row;
+    align-items: end;
+  }
+
+  .dm-filters label {
+    flex: 1;
+  }
+
+  .dm-grid {
+    display: grid;
+    grid-template-columns: minmax(14rem, 18rem) minmax(0, 1.4fr) minmax(16rem, 20rem);
+    grid-template-areas:
+      "pick pick pick"
+      "players skill notes"
+      "players npcs notes";
+    align-items: stretch;
+  }
+
+  .dm-pick { grid-area: pick; }
+  .dm-players { grid-area: players; }
+  .dm-skill { grid-area: skill; }
+  .dm-npcs { grid-area: npcs; }
+  .dm-notes { grid-area: notes; }
+
+  .dm-grid .dm-panel:not([open]) > .dm-body,
+  .dm-grid .dm-panel[open] > .dm-body {
+    display: block;
+  }
+
+  .dm-grid .dm-panel > summary {
+    pointer-events: none;
+  }
+
+  .dm-grid .dm-chev {
+    display: none;
+  }
+
+  .dm-body {
+    max-height: 28rem;
+    overflow: auto;
+  }
+
+  .dm-players > .dm-body,
+  .dm-notes > .dm-body {
+    max-height: 40rem;
+  }
+}

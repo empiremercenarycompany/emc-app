@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useCodexOverlay, useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
 import { signOut } from "@/lib/actions/staff";
-import { isLogApprover, isStaff, type AppRole } from "@/lib/types";
+import { isDm, isLogApprover, isStaff, type AppRole } from "@/lib/types";
 
 const PRIMARY = [
   { href: "/", label: "Barracks", icon: "barracks" },
@@ -20,6 +20,7 @@ type Item = { href: string; label: string };
 
 function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
   const staff: Item[] = [];
+  if (isDm(role)) staff.push({ href: "/dm", label: "Table" });
   if (isStaff(role)) staff.push({ href: "/muster", label: "Table Muster" });
   if (isLogApprover(role)) staff.push({ href: "/trainer", label: "Trainer" });
   if (isStaff(role)) staff.push({ href: "/notes", label: "Notes" });

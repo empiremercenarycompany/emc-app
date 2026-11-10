@@ -16,4 +16,14 @@ describe("staff routes", () => {
     expect(roleMayOpen("approver", "/muster")).toBe(false);
     expect(roleMayOpen("approver", "/notes")).toBe(false);
   });
+
+  it("keeps the table screen to the dm role", () => {
+    expect(roleMayOpen("dm", "/dm")).toBe(true);
+    expect(roleMayOpen("dm", "/dm/extra")).toBe(true);
+    for (const role of ["player", "admin", "curator", "approver"] as const) {
+      expect(roleMayOpen(role, "/dm")).toBe(false);
+    }
+    expect(roleMayOpen(null, "/dm")).toBe(false);
+    expect(roleMayOpen("player", "/character")).toBe(true);
+  });
 });
