@@ -48,9 +48,10 @@ begin
     select 1 from pg_policy
     where polrelid = 'public.glossary_entry_bodies'::regclass
       and not polpermissive
-      and pg_get_expr(polqual, polrelid) ilike '%dm_or_open_child%'
+      and pg_get_expr(polqual, polrelid) ilike '%is_admin%'
+      and pg_get_expr(polqual, polrelid) not ilike '%dm_only%'
   ) then
-    raise exception 'body rows have no restrictive dm_only policy';
+    raise exception 'body rows are not limited to a DM or an admin';
   end if;
 end $$;
 
@@ -227,13 +228,21 @@ do $$
 declare
   v_n int;
 begin
-  select count(*) into v_n from public.glossary_entry_bodies;
-  if v_n <> 0 then
-    raise exception 'admin saw % bodies', v_n;
+  select count(*) into v_n from public.glossary_entry_bodies where markdown_body ~* '\[\s*dm-only\s*\]';
+  if v_n <> 1 then
+    raise exception 'admin could not read the closed section';
   end if;
   select count(*) into v_n from public.glossary_dossiers where secrets = 'closed example secret';
-  if v_n <> 0 then
-    raise exception 'admin saw a closed secret';
+  if v_n <> 1 then
+    raise exception 'admin could not read the example secret';
+  end if;
+  select count(*) into v_n from public.glossary_entries where slug = 'published-example';
+  if v_n <> 1 then
+    raise exception 'admin could not read the open example';
+  end if;
+  select count(*) into v_n from public.vault_import_runs;
+  if v_n <> 1 then
+    raise exception 'admin could not read the import run';
   end if;
 end $$;
 reset role;
@@ -247,6 +256,14 @@ begin
   select count(*) into v_n from public.glossary_entries;
   if v_n <> 0 then
     raise exception 'curator saw % glossary rows', v_n;
+  end if;
+  select count(*) into v_n from public.glossary_entry_bodies;
+  if v_n <> 0 then
+    raise exception 'curator saw % bodies', v_n;
+  end if;
+  select count(*) into v_n from public.glossary_dossiers where secrets = 'closed example secret';
+  if v_n <> 0 then
+    raise exception 'curator saw a closed secret';
   end if;
 end $$;
 reset role;
@@ -269,7 +286,8 @@ exception
 end $$;
 reset role;
 
--- A later permissive policy must still hide closed rows and [DM-ONLY] text.
+-- A later permissive policy must still hide every row from a player and a curator.
+-- dm_only false is not a player grant.
 create policy glossary_entries_probe on public.glossary_entries
   as permissive for select to authenticated using (true);
 create policy glossary_dossiers_probe on public.glossary_dossiers
@@ -298,59 +316,40 @@ declare
   v_n int;
   v_text text;
 begin
-  select count(*) into v_n from public.glossary_entries where dm_only;
+  select count(*) into v_n from public.glossary_entries;
   if v_n <> 0 then
-    raise exception 'player saw % closed entries through a wide policy', v_n;
+    raise exception 'player saw % glossary rows through a wide policy', v_n;
   end if;
   select count(*) into v_n from public.glossary_entries where slug = 'published-example';
-  if v_n <> 1 then
-    raise exception 'player missed the open example, saw %', v_n;
+  if v_n <> 0 then
+    raise exception 'player saw an open example';
   end if;
   select string_agg(coalesce(summary, ''), E'\n') into v_text from public.glossary_entries;
   if v_text ~* '\[\s*dm-only\s*\]' then
     raise exception 'summary leaked a closed section';
   end if;
 
-  select count(*) into v_n from public.glossary_dossiers where secrets = 'closed example secret';
+  select count(*) into v_n from public.glossary_dossiers;
   if v_n <> 0 then
-    raise exception 'player saw a closed secret through a wide policy';
-  end if;
-  select count(*) into v_n from public.glossary_dossiers where 'example line' = any (banter);
-  if v_n <> 0 then
-    raise exception 'player saw closed banter';
+    raise exception 'player saw % dossiers through a wide policy', v_n;
   end if;
 
-  select string_agg(coalesce(markdown_body, ''), E'\n') into v_text from public.glossary_entry_bodies;
-  if v_text ~* '\[\s*dm-only\s*\]' or v_text ilike '%hidden line%' then
-    raise exception 'body leaked a closed section';
-  end if;
-  select count(*) into v_n from public.glossary_entry_bodies where markdown_body = 'No closed section.';
-  if v_n <> 1 then
-    raise exception 'player missed the open body';
-  end if;
-
-  select count(*) into v_n
-  from public.glossary_body_probe
-  where dm_only or markdown_body ~* '\[\s*dm-only\s*\]' or markdown_body ilike '%hidden line%';
+  select count(*) into v_n from public.glossary_entry_bodies;
   if v_n <> 0 then
-    raise exception 'security invoker view leaked % closed bodies', v_n;
+    raise exception 'player saw % bodies through a wide policy', v_n;
   end if;
   select count(*) into v_n from public.glossary_body_probe;
-  if v_n <> 1 then
-    raise exception 'security invoker view returned % bodies', v_n;
+  if v_n <> 0 then
+    raise exception 'security invoker view returned % bodies to a player', v_n;
   end if;
 
-  select count(*) into v_n from public.glossary_links where to_slug = 'example-npc';
+  select count(*) into v_n from public.glossary_links;
   if v_n <> 0 then
-    raise exception 'player saw a closed link';
+    raise exception 'player saw % links through a wide policy', v_n;
   end if;
-  select count(*) into v_n from public.npc_proficiencies where option_id = 'stealth';
+  select count(*) into v_n from public.npc_proficiencies;
   if v_n <> 0 then
-    raise exception 'player saw a closed proficiency';
-  end if;
-  select count(*) into v_n from public.npc_proficiencies where option_id = 'perception';
-  if v_n <> 1 then
-    raise exception 'player missed the open proficiency';
+    raise exception 'player saw % proficiencies through a wide policy', v_n;
   end if;
   select count(*) into v_n from public.vault_import_runs;
   if v_n <> 0 then
@@ -360,6 +359,23 @@ end $$;
 
 reset role;
 
+select set_config('request.jwt.claim.sub', '88888888-8888-4888-8888-888888888884', false);
+set role authenticated;
+do $$
+declare
+  v_n int;
+begin
+  select count(*) into v_n from public.glossary_entries where slug = 'published-example';
+  if v_n <> 0 then
+    raise exception 'curator saw an open example through a wide policy';
+  end if;
+  select count(*) into v_n from public.glossary_entry_bodies;
+  if v_n <> 0 then
+    raise exception 'curator saw % bodies through a wide policy', v_n;
+  end if;
+end $$;
+reset role;
+
 select set_config('request.jwt.claim.sub', '88888888-8888-4888-8888-888888888883', false);
 set role authenticated;
 do $$
@@ -367,12 +383,16 @@ declare
   v_n int;
 begin
   select count(*) into v_n from public.glossary_entry_bodies where markdown_body ilike '%hidden line%';
-  if v_n <> 0 then
-    raise exception 'admin read a closed section through a wide policy';
+  if v_n <> 1 then
+    raise exception 'admin could not read a closed section through a wide policy';
   end if;
   select count(*) into v_n from public.glossary_dossiers where secrets = 'closed example secret';
-  if v_n <> 0 then
-    raise exception 'admin read a closed secret through a wide policy';
+  if v_n <> 1 then
+    raise exception 'admin could not read a closed secret through a wide policy';
+  end if;
+  select count(*) into v_n from public.glossary_body_probe;
+  if v_n <> 2 then
+    raise exception 'admin saw % bodies through the security invoker view', v_n;
   end if;
 end $$;
 reset role;

@@ -111,13 +111,35 @@ describe("dm table rows", () => {
     expect(npc.voice).toBe("soft");
   });
 
-  it("labels a session and ignores a session id that is not in the list", () => {
+  it("labels a session and opens the next one on or after today", () => {
     const sessions = parseSessions([
       { id: "s1", title: "First table", session_date: "2026-11-07", squads: { name: "North" } },
     ]);
-    expect(sessions).toEqual([{ id: "s1", label: "First table · 2026-11-07 · North" }]);
-    expect(chosenSessionId(sessions, "other")).toBe("s1");
-    expect(chosenSessionId(sessions, "s1")).toBe("s1");
+    expect(sessions).toEqual([
+      { id: "s1", label: "First table · 2026-11-07 · North", sessionDate: "2026-11-07" },
+    ]);
+    expect(chosenSessionId(sessions, "other", "2026-11-10")).toBe("s1");
+    expect(chosenSessionId(sessions, "s1", "2026-11-10")).toBe("s1");
+    const dated = [
+      { id: "past", sessionDate: "2026-11-01" },
+      { id: "later", sessionDate: "2026-11-20" },
+      { id: "today", sessionDate: "2026-11-10" },
+      { id: "undated", sessionDate: null },
+    ];
+    expect(chosenSessionId(dated, undefined, "2026-11-10")).toBe("today");
+    expect(chosenSessionId(dated, "past", "2026-11-10")).toBe("past");
+    expect(chosenSessionId(dated, "missing", "2026-11-15")).toBe("later");
+    expect(chosenSessionId(dated, undefined, "2026-12-01")).toBe("later");
+    expect(
+      chosenSessionId(
+        [
+          { id: "older", sessionDate: "2026-09-01" },
+          { id: "old", sessionDate: "2026-10-01" },
+        ],
+        undefined,
+        "2026-11-10",
+      ),
+    ).toBe("old");
     expect(parseNotes([{ id: "n1", body: "Bring the map.", created_at: "2026-11-07T12:00:00Z" }])).toEqual([
       { id: "n1", body: "Bring the map.", createdAt: "2026-11-07T12:00:00Z" },
     ]);

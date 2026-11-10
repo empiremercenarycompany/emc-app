@@ -10,7 +10,8 @@ export async function saveDmSessionNote(formData: FormData): Promise<ActionResul
   const { supabase, user, error } = await actionClient();
   if (!supabase || !user || error) return { error: error ?? "Sign in first." };
   const { data: profile } = await supabase.from("profiles").select("app_role").eq("id", user.id).maybeSingle();
-  if (profile?.app_role !== "dm") return { error: "DM role required." };
+  const role = profile?.app_role;
+  if (role !== "dm" && role !== "admin") return { error: "DM or admin role required." };
   const sessionId = String(formData.get("session_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
   if (!UUID.test(sessionId)) return { error: "Choose a session." };

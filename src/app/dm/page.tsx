@@ -34,11 +34,11 @@ export default async function DmPage({
     );
   }
   const params = searchParams ? await searchParams : {};
-  const table = await loadDmTable(supabase, viewer.guildId, params.session, params.skill);
+  const table = await loadDmTable(supabase, viewer.guildId, params.session, params.skill, viewer.today);
   return (
     <main id="main" className="page-pad dm-shell">
       <h1 className="mt-4 text-4xl">Table</h1>
-      <p className="mt-2">For the DM. Players do not see this page.</p>
+      <p className="mt-2">For the DM and admins. Players do not see this page.</p>
       <DmBoard action={saveDmSessionNote} {...table} />
     </main>
   );

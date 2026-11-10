@@ -60,6 +60,7 @@ export async function loadDmTable(
   guildId: string,
   sessionParam: string | undefined,
   skillParam: string | undefined,
+  today: string | null,
 ): Promise<DmTable> {
   const [sessionsResult, labelsResult, entriesResult] = await Promise.all([
     supabase
@@ -78,7 +79,7 @@ export async function loadDmTable(
 
   const sessionsFailed = Boolean(sessionsResult.error);
   const sessions = sessionsFailed ? [] : parseSessions(rowsOf(sessionsResult.data));
-  const sessionId = chosenSessionId(sessions, sessionParam) ?? "";
+  const sessionId = chosenSessionId(sessions, sessionParam, today) ?? "";
   const catalog = skillCatalog(labelsResult.error ? [] : parseLabels(rowsOf(labelsResult.data)));
   const picker = skillsForPicker(catalog);
   const skillId = skillParam ? resolveSkillId(skillParam, catalog) ?? "" : "";
@@ -168,7 +169,7 @@ export async function loadDmTable(
   }));
 
   return {
-    sessions,
+    sessions: sessions.map((session) => ({ id: session.id, label: session.label })),
     sessionsFailed,
     sessionId,
     skills: picker.map((skill) => ({ id: skill.id, label: skillOptionLabel(skill) })),

@@ -1,9 +1,9 @@
 -- DM dashboard tables. Not a player glossary.
 -- dm_only is required and defaults to true so a missed flag stays closed.
--- Permissive policies allow only is_dm() in the same company.
--- Restrictive policies still hide dm_only rows from every other role if a later
--- permissive policy is added. A player-facing view has to set
--- (security_invoker = true, security_barrier = true). A view without
+-- Permissive and restrictive policies allow is_dm() or is_admin() in the same company.
+-- Players, curators, and every other role cannot select these rows, including
+-- when dm_only is false. A player-facing view is a later explicit change and
+-- has to set (security_invoker = true, security_barrier = true). A view without
 -- security_invoker runs as its owner and skips row security.
 -- Do not copy a [DM-ONLY] section into a player-visible column.
 
@@ -42,7 +42,7 @@ create table public.glossary_entries (
 comment on table public.glossary_entries is
   'Shared front for a vault note. dm_only defaults true. Players have no select policy.';
 comment on column public.glossary_entries.dm_only is
-  'Required. Defaults true (fail closed). Non-DM roles cannot select a true row.';
+  'Required. Defaults true (fail closed). Only a DM or an admin can read the row. A false flag does not show it to players.';
 comment on column public.glossary_entries.summary is
   'Short description. Blank stays blank. An open row cannot contain a [DM-ONLY] marker.';
 comment on column public.glossary_entries.example is
@@ -79,7 +79,7 @@ comment on column public.glossary_dossiers.secrets is
 comment on column public.glossary_dossiers.banter is
   'Short lines. Empty array when none are written.';
 comment on column public.glossary_dossiers.dm_only is
-  'Required. Defaults true (fail closed). Non-DM roles cannot select a true row.';
+  'Required. Defaults true (fail closed). Only a DM or an admin can read the row. A false flag does not show it to players.';
 
 create table public.glossary_entry_bodies (
   entry_id uuid primary key references public.glossary_entries (id) on delete cascade,
@@ -93,9 +93,9 @@ create table public.glossary_entry_bodies (
 );
 
 comment on table public.glossary_entry_bodies is
-  'Wiki body. markdown_body may contain [DM-ONLY] sections. dm_only defaults true, and the check rejects an open row that still contains the marker. Non-DM roles cannot select a dm_only row, including through a later permissive policy. A future player view must set (security_invoker = true, security_barrier = true) and must not copy a [DM-ONLY] section into a player-visible column. A view without security_invoker runs as its owner and skips row security.';
+  'Wiki body. markdown_body may contain [DM-ONLY] sections. dm_only defaults true, and the check rejects an open row that still contains the marker. Only a DM or an admin can select a row, including one with dm_only false, until a later explicit player view. That view must set (security_invoker = true, security_barrier = true) and must not copy a [DM-ONLY] section into a player-visible column. A view without security_invoker runs as its owner and skips row security.';
 comment on column public.glossary_entry_bodies.dm_only is
-  'Required. Defaults true (fail closed). Non-DM roles cannot select a true row.';
+  'Required. Defaults true (fail closed). Only a DM or an admin can read the row. A false flag does not show it to players.';
 comment on column public.glossary_entry_bodies.markdown_body is
   'Full note text. May contain [DM-ONLY] sections. Those sections stay on a closed row.';
 
@@ -114,7 +114,7 @@ create table public.glossary_links (
 comment on table public.glossary_links is
   'Wiki link between notes. dm_only defaults true. A closed source or target stays hidden from non-DM roles.';
 comment on column public.glossary_links.dm_only is
-  'Required. Defaults true (fail closed). Non-DM roles cannot select a true row.';
+  'Required. Defaults true (fail closed). Only a DM or an admin can read the row. A false flag does not show it to players.';
 
 create table public.npc_proficiencies (
   id uuid primary key default gen_random_uuid(),
@@ -131,7 +131,7 @@ create table public.npc_proficiencies (
 comment on table public.npc_proficiencies is
   'NPC skill, tool, weapon, or language ids. Same shape as character proficiencies. dm_only defaults true.';
 comment on column public.npc_proficiencies.dm_only is
-  'Required. Defaults true (fail closed). Non-DM roles cannot select a true row, or a row whose entry is closed.';
+  'Required. Defaults true (fail closed). Only a DM or an admin can read the row. A false flag does not show it to players.';
 
 create table public.vault_import_runs (
   id uuid primary key default gen_random_uuid(),
@@ -158,32 +158,6 @@ create index glossary_links_to on public.glossary_links (to_id);
 create index npc_proficiencies_entry on public.npc_proficiencies (entry_id);
 create index vault_import_runs_guild on public.vault_import_runs (guild_id, started_at desc);
 
-create or replace function public.dm_or_open_child(
-  p_dm_only boolean,
-  p_entry_id uuid,
-  p_text text
-) returns boolean
-language sql
-stable
-set search_path = public
-as $$
-  select public.is_dm()
-    or (
-      not coalesce(p_dm_only, true)
-      and not public.text_has_dm_only_marker(p_text)
-      and exists (
-        select 1
-        from public.glossary_entries as entry
-        where entry.id = p_entry_id
-          and not entry.dm_only
-          and not public.text_has_dm_only_marker(entry.summary)
-      )
-    );
-$$;
-
-comment on function public.dm_or_open_child(boolean, uuid, text) is
-  'Restrictive check for a child row. A DM passes. Anyone else passes only when this row and its entry are open and the text has no [DM-ONLY] marker.';
-
 alter table public.glossary_entries enable row level security;
 alter table public.glossary_dossiers enable row level security;
 alter table public.glossary_entry_bodies enable row level security;
@@ -195,22 +169,22 @@ create policy glossary_entries_dm on public.glossary_entries
   as permissive
   for all
   to authenticated
-  using (public.is_dm() and public.is_member(guild_id))
-  with check (public.is_dm() and public.is_member(guild_id));
+  using ((public.is_dm() or public.is_admin()) and public.is_member(guild_id))
+  with check ((public.is_dm() or public.is_admin()) and public.is_member(guild_id));
 
 create policy glossary_entries_closed on public.glossary_entries
   as restrictive
   for all
   to authenticated
-  using (public.is_dm() or (not dm_only and not public.text_has_dm_only_marker(summary)))
-  with check (public.is_dm() or (not dm_only and not public.text_has_dm_only_marker(summary)));
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 create policy glossary_dossiers_dm on public.glossary_dossiers
   as permissive
   for all
   to authenticated
   using (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -219,7 +193,7 @@ create policy glossary_dossiers_dm on public.glossary_dossiers
     )
   )
   with check (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -232,27 +206,15 @@ create policy glossary_dossiers_closed on public.glossary_dossiers
   as restrictive
   for all
   to authenticated
-  using (
-    public.dm_or_open_child(
-      dm_only,
-      entry_id,
-      concat_ws(E'\n', personality, voice, looks, encounters, secrets, array_to_string(banter, E'\n'))
-    )
-  )
-  with check (
-    public.dm_or_open_child(
-      dm_only,
-      entry_id,
-      concat_ws(E'\n', personality, voice, looks, encounters, secrets, array_to_string(banter, E'\n'))
-    )
-  );
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 create policy glossary_entry_bodies_dm on public.glossary_entry_bodies
   as permissive
   for all
   to authenticated
   using (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -261,7 +223,7 @@ create policy glossary_entry_bodies_dm on public.glossary_entry_bodies
     )
   )
   with check (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -274,15 +236,15 @@ create policy glossary_entry_bodies_closed on public.glossary_entry_bodies
   as restrictive
   for all
   to authenticated
-  using (public.dm_or_open_child(dm_only, entry_id, markdown_body))
-  with check (public.dm_or_open_child(dm_only, entry_id, markdown_body));
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 create policy glossary_links_dm on public.glossary_links
   as permissive
   for all
   to authenticated
   using (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -291,7 +253,7 @@ create policy glossary_links_dm on public.glossary_links
     )
   )
   with check (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -304,21 +266,15 @@ create policy glossary_links_closed on public.glossary_links
   as restrictive
   for all
   to authenticated
-  using (
-    public.dm_or_open_child(dm_only, from_id, to_slug)
-    and (to_id is null or public.dm_or_open_child(false, to_id, ''))
-  )
-  with check (
-    public.dm_or_open_child(dm_only, from_id, to_slug)
-    and (to_id is null or public.dm_or_open_child(false, to_id, ''))
-  );
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 create policy npc_proficiencies_dm on public.npc_proficiencies
   as permissive
   for all
   to authenticated
   using (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -327,7 +283,7 @@ create policy npc_proficiencies_dm on public.npc_proficiencies
     )
   )
   with check (
-    public.is_dm()
+    (public.is_dm() or public.is_admin())
     and exists (
       select 1
       from public.glossary_entries as entry
@@ -340,27 +296,25 @@ create policy npc_proficiencies_closed on public.npc_proficiencies
   as restrictive
   for all
   to authenticated
-  using (public.dm_or_open_child(dm_only, entry_id, option_id))
-  with check (public.dm_or_open_child(dm_only, entry_id, option_id));
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 create policy vault_import_runs_dm on public.vault_import_runs
   as permissive
   for all
   to authenticated
-  using (public.is_dm() and public.is_member(guild_id))
-  with check (public.is_dm() and public.is_member(guild_id));
+  using ((public.is_dm() or public.is_admin()) and public.is_member(guild_id))
+  with check ((public.is_dm() or public.is_admin()) and public.is_member(guild_id));
 
 create policy vault_import_runs_closed on public.vault_import_runs
   as restrictive
   for all
   to authenticated
-  using (public.is_dm())
-  with check (public.is_dm());
+  using ((public.is_dm() or public.is_admin()))
+  with check ((public.is_dm() or public.is_admin()));
 
 revoke all on function public.text_has_dm_only_marker(text) from public, anon;
-revoke all on function public.dm_or_open_child(boolean, uuid, text) from public, anon;
 grant execute on function public.text_has_dm_only_marker(text) to authenticated;
-grant execute on function public.dm_or_open_child(boolean, uuid, text) to authenticated;
 
 revoke all on public.glossary_entries from public, anon, authenticated;
 revoke all on public.glossary_dossiers from public, anon, authenticated;

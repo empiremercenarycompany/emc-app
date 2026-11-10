@@ -20,6 +20,9 @@ describe("dm dashboard migration", () => {
     }
     expect(sql.match(/dm_only boolean not null default true/g)?.length).toBe(5);
     expect(sql.match(/as restrictive/g)?.length).toBe(6);
+    expect(sql).toContain("public.is_admin()");
+    expect(sql).not.toContain("dm_or_open_child");
+    expect(sql).not.toContain("not dm_only and not");
     expect(sql).toContain("security_invoker");
     expect(sql).toContain("security_barrier");
     expect(sql.toLowerCase()).toContain("[dm-only]");

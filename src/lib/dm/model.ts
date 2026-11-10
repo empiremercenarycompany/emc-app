@@ -29,7 +29,7 @@ export type NpcDraft = {
   proficiencies: { kind: string; optionId: string }[];
 };
 
-export type SessionChoice = { id: string; label: string };
+export type SessionChoice = { id: string; label: string; sessionDate: string | null };
 
 export type NoteDraft = { id: string; body: string; createdAt: string };
 
@@ -57,9 +57,32 @@ export function classLabel(value: unknown): string {
   return text || "Not yet inducted";
 }
 
-export function chosenSessionId(sessions: readonly { id: string }[], param: string | undefined): string | null {
+/** Next session is the earliest date on or after today. Otherwise the latest earlier date. */
+export function chosenSessionId(
+  sessions: readonly { id: string; sessionDate?: string | null }[],
+  param: string | undefined,
+  today: string | null,
+): string | null {
   if (param && sessions.some((session) => session.id === param)) return param;
-  return sessions[0]?.id ?? null;
+  const dated = sessions.flatMap((session) => {
+    const sessionDate = (session.sessionDate ?? "").slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(sessionDate) ? [{ id: session.id, sessionDate }] : [];
+  });
+  const day = (today ?? "").slice(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    const upcoming = dated
+      .filter((session) => session.sessionDate >= day)
+      .sort((a, b) => a.sessionDate.localeCompare(b.sessionDate) || a.id.localeCompare(b.id));
+    if (upcoming.length > 0) return upcoming[0].id;
+    const past = dated
+      .filter((session) => session.sessionDate < day)
+      .sort((a, b) => b.sessionDate.localeCompare(a.sessionDate) || a.id.localeCompare(b.id));
+    if (past.length > 0) return past[0].id;
+  }
+  const latest = [...dated].sort(
+    (a, b) => b.sessionDate.localeCompare(a.sessionDate) || a.id.localeCompare(b.id),
+  );
+  return latest[0]?.id ?? sessions[0]?.id ?? null;
 }
 
 export function parseSessions(rows: unknown[]): SessionChoice[] {
@@ -75,7 +98,11 @@ export function parseSessions(rows: unknown[]): SessionChoice[] {
     const parts = [title];
     if (/^\d{4}-\d{2}-\d{2}$/.test(date)) parts.push(date);
     if (squad) parts.push(squad);
-    sessions.push({ id, label: parts.join(" · ") });
+    sessions.push({
+      id,
+      label: parts.join(" · "),
+      sessionDate: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null,
+    });
   }
   return sessions;
 }
