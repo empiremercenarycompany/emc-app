@@ -30,11 +30,15 @@ describe("Shieldmate copy", () => {
     }
   });
 
-  it("states the same-squad rule on the in-app Shieldmate ask", () => {
+  it("keeps the one-line checkbox and hides the same-squad reveal until it is checked", () => {
     const text = read("src/components/grew-up-form.tsx");
+    expect(text).toContain('const ASK = "Signing up with a friend? Get the Shieldmate bonus"');
     expect(text).toContain(REVEAL);
-    expect(text).toContain('const ASK = "Joining with a friend?"');
-    expect(text).not.toContain("Get the Shieldmate bonus");
+    const fieldsAt = text.indexOf('id="shieldmate-fields"');
+    expect(fieldsAt).toBeGreaterThan(-1);
+    expect(text.slice(0, fieldsAt)).not.toContain("{REVEAL}");
+    expect(text.slice(fieldsAt)).toContain("{REVEAL}");
+    expect(text).toContain("hidden={!open}");
   });
 
   it("keeps the public squad line and the banned words out of this copy", () => {
