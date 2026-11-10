@@ -118,7 +118,12 @@ test("work stays closed until you sign in", async ({ page }) => {
 
 test("shieldmate choices stay hidden until asked", async ({ page }) => {
   await page.goto("/character");
-  const box = page.getByRole("checkbox", { name: "Signing up with a friend? Get the Shieldmate bonus" });
+  await expect(
+    page.getByText(
+      "Shieldmates. Join with a friend and you each get $20 off your first two months, and you'll be in the same squad. Pick one thing you two grew up doing together, like a game, an instrument, a trade or a language, and you both start proficient in it. Choose the same session time, and your friend has 14 days to sign up.",
+    ),
+  ).toBeVisible();
+  const box = page.getByRole("checkbox", { name: "Joining with a friend?" });
   await expect(box).toBeVisible();
   await expect(box).not.toBeChecked();
   await expect(box).toHaveAttribute("aria-expanded", "false");
