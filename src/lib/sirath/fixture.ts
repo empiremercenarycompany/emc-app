@@ -7,9 +7,9 @@ export function sirathDevChrome(): boolean {
   return process.env.NODE_ENV !== "production" && !process.env.VERCEL_ENV;
 }
 
-/** Fake book for local runs, including `next start` on this machine. Never on Vercel. */
+/** Fake book for a local run, including `next start` on this machine. Never on Vercel or in CI. */
 export function sirathFixtureAllowed(): boolean {
-  return !process.env.VERCEL_ENV;
+  return !process.env.VERCEL_ENV && !process.env.CI;
 }
 
 export function fixtureView(characterId: string | null | undefined): SirathView | null {
