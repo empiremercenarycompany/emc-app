@@ -18,8 +18,8 @@ export default function AboutPage() {
         <p>Homebrew rows use their own source and attribution columns. This app does not copy rules text.</p>
       </Panel>
       <Panel title="Type">
-        <p>Body text is Barlow. Buttons and labels are Barlow Condensed. Both are under the SIL Open Font License.</p>
-        <p className="text-mute">Screen titles use Corleone, then Barlow Condensed 800.</p>
+        <p>Body text is Nunito Sans. Buttons and labels are Nunito Sans. It is under the SIL Open Font License.</p>
+        <p className="text-mute">Screen titles use Corleone, then Nunito Sans.</p>
       </Panel>
     </Page>
   );

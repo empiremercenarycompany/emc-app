@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/sirath",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/sirath/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/dm/sirath",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
         source: "/sw.js",
         headers: [
           { key: "Cache-Control", value: "no-cache" },

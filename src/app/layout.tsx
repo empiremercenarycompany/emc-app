@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Nunito_Sans } from "next/font/google";
 import { CodexProviders } from "@/components/codex-provider";
 import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
@@ -7,20 +7,15 @@ import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { TEXT_SIZE_KEY } from "@/lib/text-size";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
+import { loadSirathBadge } from "@/lib/sirath/load";
 import { recruitName } from "@/lib/recruit-name";
 import "./globals.css";
+import "@/components/sirath/sirath.css";
 
-const barlow = Barlow({
+const nunito = Nunito_Sans({
   subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-barlow",
-  display: "swap",
-});
-
-const condensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-barlow-condensed",
+  weight: ["300", "400", "600", "700"],
+  variable: "--font-nunito",
   display: "swap",
 });
 
@@ -57,8 +52,9 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await loadViewer();
   const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
+  const sirathNew = await loadSirathBadge(viewer.character?.id ?? null);
   return (
-    <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
+    <html lang="en" data-font="body" className={nunito.variable}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -82,6 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               email: viewer.email,
             })}
             roleLabel={roleLabel}
+            sirathNew={sirathNew}
           />
           {children}
           <FeedbackDock />

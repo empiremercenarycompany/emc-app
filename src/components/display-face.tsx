@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-/** When a real Corleone face loads, headings drop to weight 400. Otherwise they stay 800 for Barlow Condensed. */
+/** When a real Corleone face loads, headings drop to weight 400. Otherwise they stay 800 for Nunito Sans. */
 export function DisplayFace() {
   useEffect(() => {
     let cancel = false;

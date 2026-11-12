@@ -3,21 +3,21 @@ import path from "node:path";
 
 /**
  * One switch.
- * barlow: body is Barlow, and headings are Barlow Condensed.
+ * nunito: body and UI are Nunito Sans.
  * corleone: the same, except big titles use Corleone when the gitignored woff2 is present.
- * The files are never committed. A missing file keeps Barlow Condensed 800.
+ * The files are never committed. A missing file keeps Nunito Sans.
  */
-export const FONT_PAIR = "barlow" as "barlow" | "corleone";
+export const FONT_PAIR = "nunito" as "nunito" | "corleone";
 
 export const FONT_PAIRS = {
-  barlow: {
-    body: "Barlow",
-    ui: "Barlow Condensed",
-    heading: "Barlow Condensed",
+  nunito: {
+    body: "Nunito Sans",
+    ui: "Nunito Sans",
+    heading: "Nunito Sans",
   },
   corleone: {
-    body: "Barlow",
-    ui: "Barlow Condensed",
+    body: "Nunito Sans",
+    ui: "Nunito Sans",
     heading: "Corleone Due",
   },
 } as const;
@@ -43,8 +43,8 @@ export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));
 }
 
-/** All-caps titles. A missing woff2 keeps Barlow Condensed 800 through the CSS stack. */
-export function headingFace(): "Barlow Condensed" | "Corleone Due" {
+/** All-caps titles. A missing woff2 keeps Nunito Sans through the CSS stack. */
+export function headingFace(): "Nunito Sans" | "Corleone Due" {
   if (localFileReady(CORLEONE_DUE_FILE)) return "Corleone Due";
-  return "Barlow Condensed";
+  return "Nunito Sans";
 }

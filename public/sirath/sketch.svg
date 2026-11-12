@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="A sketch of a table, not a likeness">
+  <rect width="800" height="600" fill="#d7c49a"/>
+  <rect x="40" y="70" width="720" height="460" fill="#efe2c4" stroke="#2c2418" stroke-width="3"/>
+  <path d="M80 120h420v300H80z" fill="#f4efe2" stroke="#2c2418" stroke-width="2"/>
+  <path d="M110 180h180v120H110z M310 200h150v80H310z M140 330h300" fill="none" stroke="#5a4a32" stroke-width="2"/>
+  <circle cx="620" cy="160" r="36" fill="none" stroke="#2c2418" stroke-width="3"/>
+  <path d="M600 200c20 40 40 40 40 80" fill="none" stroke="#2c2418" stroke-width="3"/>
+  <rect x="560" y="300" width="140" height="90" fill="none" stroke="#2c2418" stroke-width="3"/>
+  <path d="M70 500h660" stroke="#2c2418" stroke-width="8"/>
+</svg>

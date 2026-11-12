@@ -21,20 +21,20 @@ function pngSize(relativePath: string): { w: number; h: number } {
 }
 
 describe("brand fonts", () => {
-  it("uses Barlow and falls back when Corleone is not on disk", () => {
-    expect(FONT_PAIR === "barlow" || FONT_PAIR === "corleone").toBe(true);
-    expect(FONT_PAIRS.barlow.body).toBe("Barlow");
-    expect(FONT_PAIRS.barlow.ui).toBe("Barlow Condensed");
-    expect(FONT_PAIRS.barlow.heading).toBe("Barlow Condensed");
-    expect(FONT_PAIRS[FONT_PAIR].body).toBe("Barlow");
-    expect(headingFace()).toBe(existsSync(path.join(process.cwd(), CORLEONE_DUE_FILE)) ? "Corleone Due" : "Barlow Condensed");
+  it("uses Nunito Sans and falls back when Corleone is not on disk", () => {
+    expect(FONT_PAIR === "nunito" || FONT_PAIR === "corleone").toBe(true);
+    expect(FONT_PAIRS.nunito.body).toBe("Nunito Sans");
+    expect(FONT_PAIRS.nunito.ui).toBe("Nunito Sans");
+    expect(FONT_PAIRS.nunito.heading).toBe("Nunito Sans");
+    expect(FONT_PAIRS[FONT_PAIR].body).toBe("Nunito Sans");
+    expect(headingFace()).toBe(existsSync(path.join(process.cwd(), CORLEONE_DUE_FILE)) ? "Corleone Due" : "Nunito Sans");
     expect(CORLEONE_FAMILY).toBe("Corleone");
     expect(CORLEONE_DUE_FAMILY).toBe("Corleone Due");
     expect(CORLEONE_FILE).toBe("public/fonts/corleone/Corleone-Regular.woff2");
     expect(CORLEONE_DUE_FILE).toBe("public/fonts/corleone/Corleone-Due-Regular.woff2");
     const cssEarly = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
     expect(cssEarly).toContain(
-      '--font-display: "Corleone Due", Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif',
+      '--font-display: "Corleone Due", Corleone, var(--font-nunito), "Nunito Sans", sans-serif',
     );
     expect(cssEarly).toContain('url("/fonts/corleone/Corleone-Regular.woff2") format("woff2")');
     expect(cssEarly).toContain('url("/fonts/corleone/Corleone-Due-Regular.woff2") format("woff2")');

@@ -9,14 +9,14 @@ export function TextSizeToggle() {
   useEffect(() => {
     const on = window.localStorage.getItem(TEXT_SIZE_KEY) === "large";
     setLarge(on);
-    document.documentElement.dataset.font = on ? "large" : "barlow";
+    document.documentElement.dataset.font = on ? "large" : "body";
   }, []);
 
   function toggle() {
     const next = !large;
     setLarge(next);
-    document.documentElement.dataset.font = next ? "large" : "barlow";
-    window.localStorage.setItem(TEXT_SIZE_KEY, next ? "large" : "barlow");
+    document.documentElement.dataset.font = next ? "large" : "body";
+    window.localStorage.setItem(TEXT_SIZE_KEY, next ? "large" : "body");
   }
 
   return (

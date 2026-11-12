@@ -32,11 +32,11 @@ test("recruitment papers keep the display face and field type", async ({ page })
   });
   expect(type.names[0]).toBe("Corleone Due");
   expect(type.names).toContain("Corleone");
-  expect(type.names.join(" ")).toMatch(/Barlow/i);
+  expect(type.names.join(" ")).toMatch(/Nunito Sans/i);
   expect(type.weight).toBe(fontFile.status() === 200 ? "400" : "800");
   expect(type.transform).toBe("uppercase");
   expect(type.corleone).toBe(fontFile.status() === 200);
-  expect(type.loaded.some((face) => /barlow/i.test(face.name) && face.ok)).toBe(true);
+  expect(type.loaded.some((face) => /nunito/i.test(face.name) && face.ok)).toBe(true);
 
   const prompt = page.getByRole("link", { name: "Sign in to continue" });
   const buttonType = await prompt.evaluate((el) => {
@@ -44,7 +44,7 @@ test("recruitment papers keep the display face and field type", async ({ page })
     return { family: style.fontFamily, weight: style.fontWeight, transform: style.textTransform };
   });
   expect(buttonType.family).not.toContain("Corleone");
-  expect(buttonType.family).toMatch(/Barlow/i);
+  expect(buttonType.family).toMatch(/Nunito Sans/i);
   expect(buttonType.weight).toBe("700");
   expect(buttonType.transform).toBe("uppercase");
 
@@ -57,6 +57,5 @@ test("recruitment papers keep the display face and field type", async ({ page })
   expect(inputType.size).toBe("16px");
   expect(inputType.transform).toBe("none");
   expect(inputType.weight).toBe("400");
-  expect(inputType.family).toMatch(/Barlow/i);
-  expect(inputType.family).not.toContain("Condensed");
+  expect(inputType.family).toMatch(/Nunito Sans/i);
 });

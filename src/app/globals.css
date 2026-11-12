@@ -9,7 +9,7 @@
   Secondary text uses the contrast-safe mute.
   All-caps display uses Corleone Due. Corleone Regular is the mixed-case face
   and the second step in the stack. Both files are weight 400. Headings ask
-  for 800 only until a real Corleone face loads, so Barlow Condensed 800
+  for 800 only until a real Corleone face loads, so Nunito Sans 700
   stays bold when the files are missing, and a loaded face is never faux-bold.
 */
 @font-face {
@@ -44,9 +44,9 @@
   --color-ink-2: #4a4036;
   --color-mute: #c4bfb2;
   --text-sm: 0.9375rem;
-  --font-sans: var(--font-barlow), Barlow, sans-serif;
-  --font-condensed: var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
-  --font-display: "Corleone Due", Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif;
+  --font-sans: var(--font-nunito), "Nunito Sans", sans-serif;
+  --font-condensed: var(--font-nunito), "Nunito Sans", sans-serif;
+  --font-display: "Corleone Due", Corleone, var(--font-nunito), "Nunito Sans", sans-serif;
 }
 
 html {
@@ -75,7 +75,7 @@ body {
 }
 
 .text-mute {
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -101,7 +101,7 @@ nav,
 summary,
 .signoff,
 .stat {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -218,7 +218,7 @@ textarea {
   background: var(--color-iron);
   color: var(--color-parchment);
   padding: 0.55rem 0.75rem;
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-size: 16px;
   font-weight: 400;
   letter-spacing: 0;
@@ -275,7 +275,7 @@ input[type="radio"] {
 }
 
 .choice-label {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -338,7 +338,7 @@ input[type="radio"] {
   border: 1px solid var(--color-bronze);
   object-fit: cover;
   color: var(--color-parchment);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
 }
 
@@ -406,12 +406,12 @@ button.ability-pill {
   text-align: left;
   text-transform: none;
   letter-spacing: 0;
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-weight: 400;
 }
 
 .species-card.primary {
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -468,7 +468,7 @@ button.ability-pill {
   background: var(--color-iron);
   color: var(--color-parchment);
   padding: 0.5rem 0.65rem;
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-size: 0.95rem;
   font-weight: 400;
   letter-spacing: 0;
@@ -535,7 +535,7 @@ button.secondary,
   background: transparent;
   color: var(--color-parchment);
   padding: 0.55rem 1rem;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -690,7 +690,7 @@ button.weapon-row {
   border-radius: 0;
   background: transparent;
   color: var(--color-ink);
-  font-family: var(--font-barlow), "Barlow", sans-serif;
+  font-family: var(--font-nunito), "Nunito Sans", sans-serif;
   font-size: 1.05rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -819,7 +819,7 @@ button.weapon-row {
 }
 
 .eyebrow {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.9375rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -844,7 +844,7 @@ button.weapon-row {
   gap: 0.6rem;
   color: var(--color-bronze-lt);
   text-decoration: none;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -872,7 +872,7 @@ button.weapon-row {
   border: 1.5px solid var(--color-bronze-lt);
   background: transparent;
   color: var(--color-bronze-lt);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 1.15rem;
   font-weight: 700;
   padding: 0;
@@ -968,7 +968,7 @@ button.weapon-row {
   border-radius: 10px;
   border: 1px solid rgba(210, 176, 122, 0.22);
   background: var(--color-char-3);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1002,7 +1002,7 @@ button.weapon-row {
   display: grid;
   place-items: center;
   background: linear-gradient(160deg, #4a3a2a, #2a211a);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
 }
 
@@ -1129,7 +1129,7 @@ button.weapon-row {
 
 .sheet-rank {
   margin: 0.15rem 0 0;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1204,7 +1204,7 @@ button.weapon-row {
 }
 
 .crest-score {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1224,7 +1224,7 @@ button.weapon-row {
   color: var(--color-parchment);
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1291,7 +1291,7 @@ ul .term-link {
 }
 
 .skill-head span {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1327,14 +1327,14 @@ ul .term-link {
   color: var(--color-parchment);
   border-radius: 999px;
   padding: 0.05rem 0.4rem;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.8125rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .skill-mod {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
 }
 
@@ -1359,7 +1359,7 @@ ul .term-link {
 }
 
 .empty-title {
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1425,7 +1425,7 @@ ul .term-link {
 
 .sheet-choices legend {
   color: #211b15;
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1774,7 +1774,7 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
 
 .dm-name {
   margin: 0;
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
@@ -1789,7 +1789,7 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
 .dm-k {
   display: inline;
   color: var(--color-mute);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -1798,7 +1798,7 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
 
 .dm-example {
   color: var(--color-bronze-lt);
-  font-family: var(--font-sans), Barlow, sans-serif;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
   font-size: 0.75rem;
   font-style: italic;
   font-weight: 400;
@@ -1808,7 +1808,7 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
 
 .dm-flag {
   color: var(--color-bronze-lt);
-  font-family: var(--font-condensed), "Barlow Condensed", sans-serif;
+  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.04em;

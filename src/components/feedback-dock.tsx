@@ -17,7 +17,7 @@ export function FeedbackDock() {
     return () => window.removeEventListener("emc-open-feedback", onOpen);
   }, []);
 
-  if (pathname === "/sign-in") return null;
+  if (pathname === "/sign-in" || pathname.startsWith("/sirath") || pathname.startsWith("/dm/sirath")) return null;
 
   return (
     <>

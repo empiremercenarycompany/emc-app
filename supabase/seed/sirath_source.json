@@ -1,0 +1,1847 @@
+{
+ "schema_version": "0.2-prototype",
+ "rules": {
+  "skills": [
+   "history",
+   "medicine",
+   "culture",
+   "alchemy",
+   "nature",
+   "survival"
+  ],
+  "passive_formula": "10 + skill modifier (2024 rules)",
+  "culture_bonus": {
+   "own_culture": 4,
+   "knows_language": 2,
+   "stacks": true,
+   "decided": "John, 2026-11-12: bonuses stack (+4 own culture, +2 knows language, up to +6)"
+  },
+  "culture_language": {
+   "halflings": "Halfling"
+  }
+ },
+ "tbd_skill_gaps": [
+  {
+   "entry_id": "sea-serpent",
+   "skill": "nature",
+   "note": "[TBD] What kind of creature it is, and how it lives. No canon biology yet."
+  },
+  {
+   "entry_id": "greenmantle",
+   "skill": "culture",
+   "note": "[TBD] Wood-elf customs and propriety. No player-safe canon written for this house."
+  },
+  {
+   "entry_id": "greenmantle",
+   "skill": "survival",
+   "note": "[TBD] What grows or can be hunted in the valleys. No canon yet."
+  },
+  {
+   "entry_id": "hollows",
+   "skill": "nature",
+   "note": "[TBD] What grows in the shell gardens. No canon yet (R-106 keeps them separate from the enclave's gardens)."
+  },
+  {
+   "entry_id": "harbour",
+   "skill": "nature",
+   "note": "[TBD] What is fished from the inlet. No canon yet."
+  },
+  {
+   "entry_id": "hills-hearth",
+   "skill": "culture",
+   "note": "[TBD] Drow customs. No player-safe canon. f-hh-2 stays History (it is a story told in town)."
+  },
+  {
+   "entry_id": "*",
+   "skill": "medicine",
+   "note": "[TBD] None of the 12 test entries has canon Medicine material."
+  }
+ ],
+ "guild": {
+  "id": "g-emc",
+  "name": "Empire Mercenary Company"
+ },
+ "squads": [
+  {
+   "id": "sq-a",
+   "guild_id": "g-emc",
+   "label": "Squad A (example)"
+  },
+  {
+   "id": "sq-b",
+   "guild_id": "g-emc",
+   "label": "Squad B (example)"
+  },
+  {
+   "id": "sq-c",
+   "guild_id": "g-emc",
+   "label": "New squad (example)"
+  }
+ ],
+ "characters": [
+  {
+   "id": "ch-a1",
+   "squad_id": "sq-a",
+   "label": "Example character A1",
+   "skill_mods": {
+    "history": 4,
+    "medicine": 0,
+    "culture": 0,
+    "alchemy": 1,
+    "nature": 2,
+    "survival": 1
+   },
+   "passives": {
+    "history": 14,
+    "medicine": 10,
+    "culture": 10,
+    "alchemy": 11,
+    "nature": 12,
+    "survival": 11
+   },
+   "passive_history": 14,
+   "cultures": [],
+   "languages": [
+    "Common"
+   ]
+  },
+  {
+   "id": "ch-a2",
+   "squad_id": "sq-a",
+   "label": "Example character A2",
+   "skill_mods": {
+    "history": -1,
+    "medicine": 1,
+    "culture": 2,
+    "alchemy": 5,
+    "nature": 0,
+    "survival": 0
+   },
+   "passives": {
+    "history": 9,
+    "medicine": 11,
+    "culture": 12,
+    "alchemy": 15,
+    "nature": 10,
+    "survival": 10
+   },
+   "passive_history": 9,
+   "cultures": [],
+   "languages": [
+    "Common",
+    "Halfling"
+   ]
+  },
+  {
+   "id": "ch-b1",
+   "squad_id": "sq-b",
+   "label": "Example character B1",
+   "skill_mods": {
+    "history": 2,
+    "medicine": 0,
+    "culture": 2,
+    "alchemy": 0,
+    "nature": 0,
+    "survival": 3
+   },
+   "passives": {
+    "history": 12,
+    "medicine": 10,
+    "culture": 12,
+    "alchemy": 10,
+    "nature": 10,
+    "survival": 13
+   },
+   "passive_history": 12,
+   "cultures": [
+    "halflings"
+   ],
+   "languages": [
+    "Common",
+    "Halfling"
+   ]
+  },
+  {
+   "id": "ch-r1",
+   "squad_id": "sq-c",
+   "label": "New recruit (example)",
+   "skill_mods": {
+    "history": 0,
+    "medicine": 0,
+    "culture": 0,
+    "alchemy": 0,
+    "nature": 0,
+    "survival": 0
+   },
+   "passives": {
+    "history": 10,
+    "medicine": 10,
+    "culture": 10,
+    "alchemy": 10,
+    "nature": 10,
+    "survival": 10
+   },
+   "passive_history": 10,
+   "cultures": [],
+   "languages": [
+    "Common"
+   ]
+  }
+ ],
+ "sessions": [
+  {
+   "id": "s-induct",
+   "label": "Induction",
+   "date": null
+  },
+  {
+   "id": "s-a-leg1",
+   "squad_id": "sq-a",
+   "label": "Leg 1 muster",
+   "date": "[date TBD]"
+  },
+  {
+   "id": "s-a-b2",
+   "squad_id": "sq-a",
+   "label": "Book 2 muster",
+   "date": "[date TBD]"
+  },
+  {
+   "id": "s-b-1",
+   "squad_id": "sq-b",
+   "label": "Squad B muster",
+   "date": "[date TBD]"
+  },
+  {
+   "id": "s-b-2",
+   "squad_id": "sq-b",
+   "label": "Squad B muster",
+   "date": "[date TBD]"
+  }
+ ],
+ "entries": [
+  {
+   "public_name": true,
+   "public_name_basis": "The city's own name (TC-700 B2). Anyone who lives there knows it.",
+   "id": "bleakspire",
+   "kind": "place",
+   "display_name": "Bleakspire",
+   "aliases": [],
+   "tags": [
+    "city",
+    "fortress",
+    "island",
+    "coast",
+    "home"
+   ],
+   "hearsay": "A fortress with a small city around it, built for far more people than are left in it.",
+   "voice_line": "We hold a city built for far more than are left in it, and the weather never lets us forget it.",
+   "image": {
+    "src": "img/bleakspire.jpg",
+    "alt": "Ink sketch of a stone fortress on a headland above an inlet, a walled town below it.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B2",
+    "R-020",
+    "R-068",
+    "R-069",
+    "R-070",
+    "R-076",
+    "R-105",
+    "R-106"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "One of the named city wards (R-070). Ward names are civic geography.",
+   "id": "hollows",
+   "kind": "place",
+   "display_name": "The Hollows",
+   "aliases": [
+    "Hollows"
+   ],
+   "tags": [
+    "ward",
+    "district",
+    "ruins",
+    "gardens"
+   ],
+   "hearsay": "The emptiest ward in the city. Gardens grow inside the shells of houses.",
+   "voice_line": "We walked the Hollows and counted more roofless houses than lit windows.",
+   "image": {
+    "src": "img/hollows.jpg",
+    "alt": "Ink sketch of roofless stone houses with gardens growing inside them.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": "Hollows",
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B2",
+    "R-070",
+    "R-074",
+    "R-106",
+    "R-110"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "One of the named city wards (R-070). Ward names are civic geography.",
+   "id": "harbour",
+   "kind": "place",
+   "display_name": "The Harbour",
+   "aliases": [
+    "Harbour",
+    "Harbor",
+    "docks",
+    "quays"
+   ],
+   "tags": [
+    "ward",
+    "district",
+    "sea",
+    "fishing",
+    "ships"
+   ],
+   "hearsay": "A couple of quays still work. The shipyard is a ruin.",
+   "voice_line": "We keep the boats in the water because half of what this city eats comes out of the sea.",
+   "image": {
+    "src": "img/harbour.jpg",
+    "alt": "Ink sketch of a storm-worn harbour with a crumbling quay, beached boats and a ruined hull frame.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": "Harbour",
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B2",
+    "R-069",
+    "R-070",
+    "R-106",
+    "R-110",
+    "TC-700 B4"
+   ]
+  },
+  {
+   "public_name": false,
+   "public_name_basis": null,
+   "id": "hills-hearth",
+   "kind": "place",
+   "display_name": "Hill's Hearth",
+   "aliases": [
+    "Hills Hearth",
+    "the Hearth"
+   ],
+   "tags": [
+    "bar",
+    "tavern",
+    "drow"
+   ],
+   "hearsay": "A bar folk call a drow loyalist bar.",
+   "voice_line": "Hill's Hearth keeps its own counsel. We note what we saw and leave the rest for later.",
+   "image": {
+    "src": "img/hills_hearth.jpg",
+    "alt": "Ink sketch of a shuttered stone tavern on a wet street, lamplight behind the shutters.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": "[TBD]",
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B4",
+    "R-110 (keep unassigned; CX-092 open)"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "The Company is the city's public mercenary outfit (TC-700 B1/B3). Its entry has a Common tier.",
+   "id": "company",
+   "kind": "faction",
+   "display_name": "The Empire Mercenary Company",
+   "aliases": [
+    "the Company",
+    "EMC",
+    "Empire Mercenary Company"
+   ],
+   "tags": [
+    "faction",
+    "mercenaries",
+    "officers",
+    "barracks"
+   ],
+   "hearsay": "The mercenaries who brought down the Emperor.",
+   "voice_line": "We are a Company, not a guild. We pool what we have and we get the job done.",
+   "image": {
+    "src": "img/company.jpg",
+    "alt": "Ink sketch of a barracks muster table with a ledger, an iron helm, weights and a worn red banner.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B1",
+    "TC-700 B3",
+    "R-040",
+    "R-070",
+    "R-072",
+    "R-110",
+    "R-116",
+    "R-117"
+   ]
+  },
+  {
+   "public_name": false,
+   "public_name_basis": null,
+   "id": "greenmantle",
+   "kind": "faction",
+   "display_name": "House Greenmantle",
+   "aliases": [
+    "Greenmantle",
+    "the wood elves"
+   ],
+   "tags": [
+    "faction",
+    "elves",
+    "wood elf",
+    "house",
+    "farms",
+    "timber"
+   ],
+   "hearsay": "The wood-elf house that holds most of the timber and farms outside the walls.",
+   "voice_line": "Most of what grows or gets cut outside the walls answers to Greenmantle sooner or later.",
+   "image": {
+    "src": "img/greenmantle.jpg",
+    "alt": "Ink sketch of a timber camp and a walled farm in a valley behind the headland.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B2",
+    "TC-700 B4",
+    "R-019",
+    "R-070",
+    "R-071",
+    "R-077",
+    "R-082"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "The Company's leader and one of the party that deposed the Emperor (TC-700 B3, R-035). His entry has a Common tier.",
+   "id": "valthar",
+   "kind": "person",
+   "display_name": "Valthar Brightlance",
+   "aliases": [
+    "Valthar",
+    "Brightlance"
+   ],
+   "tags": [
+    "officer",
+    "leader",
+    "Company"
+   ],
+   "hearsay": "Leader of the Company, and of the party that brought down the Emperor.",
+   "voice_line": "Valthar never once said he was in charge. He never had to.",
+   "image": {
+    "src": "img/valthar.jpg",
+    "alt": "Ink sketch of an officer's camp desk with a map of the city, a wax seal and a helm. No likeness on file.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": "company",
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B3",
+    "TC-700 B6",
+    "R-026",
+    "R-035",
+    "R-116",
+    "R-117"
+   ]
+  },
+  {
+   "public_name": false,
+   "public_name_basis": null,
+   "id": "aligher",
+   "kind": "person",
+   "display_name": "Aligher",
+   "aliases": [],
+   "tags": [
+    "officer",
+    "quartermaster",
+    "procurement",
+    "Company"
+   ],
+   "hearsay": "Valthar's 'procurement specialist', as vague and as ominous as it sounds.",
+   "voice_line": "If the Company needs it, we ask Aligher. We don't ask where it came from.",
+   "image": {
+    "src": "img/aligher.jpg",
+    "alt": "Ink sketch of a crammed storeroom with crates, rope, keys and a lockbox. No likeness on file.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": "company",
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B6",
+    "R-102",
+    "R-112",
+    "R-116"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "Her statue stands at Town Hall (TC-700 B3), a public monument.",
+   "id": "tessa",
+   "kind": "person",
+   "display_name": "Tessa",
+   "aliases": [],
+   "tags": [
+    "blacksmith",
+    "dwarf",
+    "statue",
+    "Town Hall",
+    "fallen"
+   ],
+   "hearsay": "The dwarf blacksmith whose statue stands at Town Hall.",
+   "voice_line": "Tessa died saving this city. Her statue stands at Town Hall.",
+   "image": {
+    "src": "img/tessa.jpg",
+    "alt": "Ink sketch of a weathered stone statue of a dwarf smith at an anvil, before a town hall.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B3"
+   ]
+  },
+  {
+   "public_name": false,
+   "public_name_basis": null,
+   "id": "the-empress",
+   "kind": "thing",
+   "display_name": "The Empress",
+   "aliases": [
+    "Empress"
+   ],
+   "tags": [
+    "ship",
+    "flagship",
+    "harbour",
+    "Salt"
+   ],
+   "hearsay": "Flagship of Bleakspire harbour. Salt captains her.",
+   "voice_line": "Flagship of the harbour now, and Salt has the helm.",
+   "image": {
+    "src": "img/the_empress.jpg",
+    "alt": "Ink sketch of a refitted three-masted ship at anchor, new planks among old.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B4",
+    "TC-700 B5",
+    "R-023",
+    "R-029"
+   ]
+  },
+  {
+   "public_name": true,
+   "public_name_basis": "The founding party killed the Emperor and took his tower (TC-700 B3). This is the city's founding event, and the entry has a Common tier.",
+   "id": "emperors-fall",
+   "kind": "event",
+   "display_name": "The Emperor's fall",
+   "aliases": [
+    "the Emperor",
+    "Ivory Guard"
+   ],
+   "tags": [
+    "event",
+    "history",
+    "Emperor",
+    "tower"
+   ],
+   "hearsay": "About 16.5 years ago, a party of seven deposed and killed the Emperor and took his tower.",
+   "voice_line": "We were not there. The officers were. That is why the Company exists.",
+   "image": {
+    "src": "img/emperors_fall.jpg",
+    "alt": "Ink sketch of a broken tower top with wrecked machinery and torn banners under storm clouds.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B3",
+    "R-032",
+    "R-069",
+    "R-115",
+    "R-117"
+   ]
+  },
+  {
+   "public_name": false,
+   "public_name_basis": null,
+   "id": "sea-serpent",
+   "kind": "creature",
+   "display_name": "The giant sea serpent",
+   "aliases": [
+    "sea serpent",
+    "serpent"
+   ],
+   "tags": [
+    "creature",
+    "sea",
+    "Inspiration"
+   ],
+   "hearsay": "A giant sea serpent attacked after the wreck of the Alchemist ship Inspiration.",
+   "voice_line": "Sailors tell stories about serpents. We stopped calling them stories.",
+   "image": {
+    "src": "img/sea_serpent.jpg",
+    "alt": "Ink sketch of a giant sea serpent's coils rising beside a damaged ship.",
+    "kind": "illustration",
+    "likeness": false,
+    "credit": "Generated illustration, prototype only"
+   },
+   "faction_hint_entry_id": null,
+   "ward": null,
+   "editorial_status": "canon",
+   "canon_refs": [
+    "TC-700 B4",
+    "R-022"
+   ]
+  }
+ ],
+ "facts": [
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-bl-1",
+   "entry_id": "bleakspire",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Bleakspire is a fortress with a small city around it, on a large island. About 4,000 people live inside the walls and about 1,500 outside them. The walls were built for about 14,000, so most buildings stand empty.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-020; R-068; R-076; R-105"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "Violent storms, hard winters, and walls built for far more of us than there are.",
+   "id": "f-bl-2",
+   "entry_id": "bleakspire",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "It sits on a coastal inlet, with valleys behind the headland for farms and timber. The storms are violent and the winters are harsh.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-068; R-105"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-bl-3",
+   "entry_id": "bleakspire",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The city has seven wards inside the walls (Fortress, Hall Square, {{harbour|the Harbour}}, Manor Ward, Market Ward, Old Town and {{hollows|the Hollows}}) plus the Outer Ring. The Mayor governs with a small cadre of high elven bureaucrats.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-070; R-037"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-bl-4",
+   "entry_id": "bleakspire",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Fishing feeds about half the city. Three walled farms still work the hinterland, all held by {{greenmantle|House Greenmantle}}. Most of the outer farms were overrun long ago.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-069; R-077; R-082"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-bl-5",
+   "entry_id": "bleakspire",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Port Dawnreach is a much larger city on another landmass. It is Bleakspire's long-haul sea link and trading partner, not a nearby port.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-068 (CX-093)"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-bl-6",
+   "entry_id": "bleakspire",
+   "tier": "roll",
+   "dc": 15,
+   "dc_is_placeholder": true,
+   "teaser": "How old the walls are, and who built them.",
+   "body": "Bleakspire began as a Tyraniff Empire research fortress for weapons and magitech, built roughly 1,000 to 1,200 years ago and meant to sit out of the way. When the empire fell, the supply ships stopped and the city had to learn to feed itself.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-069"
+  },
+  {
+   "skill": "alchemy",
+   "culture_id": null,
+   "skill_tag_reason": "What scavenged magical technology is and who buys it is magic/engineering knowledge.",
+   "pull_quote": null,
+   "id": "f-bl-7",
+   "entry_id": "bleakspire",
+   "tier": "roll",
+   "dc": 18,
+   "dc_is_placeholder": true,
+   "teaser": "What people have scavenged over the years, and who would take it.",
+   "body": "Over time, people here have scavenged magical technology without knowing what it did. They could trade it to the Alchemists, and to merchants who traded with the Alchemists.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-105 (TC-700 B2)"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ho-1",
+   "entry_id": "hollows",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The Hollows are the most abandoned ward in {{bleakspire|Bleakspire}}. The great majority of the buildings are empty, degraded or ruined, and gardens grow inside the shells.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-106"
+  },
+  {
+   "skill": "culture",
+   "culture_id": "halflings",
+   "skill_tag_reason": "About a people and their way of life (R-074).",
+   "pull_quote": "The halflings keep their gardens tidy and look after their own.",
+   "id": "f-ho-2",
+   "entry_id": "hollows",
+   "tier": "baseline",
+   "dc": 14,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "A group of halflings lives in the Hollows almost like their own small settlement: gardens and artisan crafts, and they mostly look after themselves. Halflings are somewhat rare in Bleakspire.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-074"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ho-3",
+   "entry_id": "hollows",
+   "tier": "roll",
+   "dc": 14,
+   "dc_is_placeholder": true,
+   "teaser": "Why the empty houses stay empty.",
+   "body": "Nobody can lawfully repair a Hollows shell and move in until the question of who holds title to it has been cleared.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-110 (title-clear)"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ha-1",
+   "entry_id": "harbour",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The Harbour is the second most abandoned ward. Well under half of it is in use. A couple of quays still work, and the shipyard is ruined.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-106"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ha-2",
+   "entry_id": "harbour",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Fishing is about half of what {{bleakspire|Bleakspire}} eats, so the small boats on the beach and the inlet matter more than they look.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-069"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ha-3",
+   "entry_id": "harbour",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Lockjaw, an orc and a former Alchemist marine, is the Docksmaster. {{the-empress|The Empress}} is the flagship of the harbour, and Salt captains her.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4; R-019; R-023"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "Fix a quay before there is a breakwater, and the next storm takes it back.",
+   "id": "f-ha-4",
+   "entry_id": "harbour",
+   "tier": "roll",
+   "dc": 14,
+   "dc_is_placeholder": true,
+   "teaser": "Why the quays keep breaking.",
+   "body": "Storms undo repaired quays. Until there is a breakwater, any quay that gets restored is at risk every time the weather turns.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-110"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-hh-1",
+   "entry_id": "hills-hearth",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Hill's Hearth is a bar in {{bleakspire|Bleakspire}}. Folk call it a drow loyalist bar. Which ward it stands in: [TBD].",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-hh-2",
+   "entry_id": "hills-hearth",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "The story goes that a drow house split, and the Imperial Loyalists went underground.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-co-1",
+   "entry_id": "company",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The party that deposed and killed the Emperor named themselves the Empire Mercenary Company ({{emperors-fall|the Emperor's fall}}). {{valthar|Valthar Brightlance}} leads it.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B3; R-115"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "Forty to sixty of us, and a great deal of wall.",
+   "id": "f-co-2",
+   "entry_id": "company",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "It is a Company, not a guild, though it works like one: members pool their resources to get assignments done. At {{bleakspire|Bleakspire}} it is a thin cadre of about 40 to 60, and holding the walls is a real problem.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-040; R-070"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-co-3",
+   "entry_id": "company",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "There are seven officers: Alexandria, {{aligher|Aligher}}, David, Earl, Gorbon, Jadross and {{valthar|Valthar}}, who leads them. All seven were the party that brought down the Emperor.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-116; R-117"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-co-4",
+   "entry_id": "company",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Loot is split 40% to you, 40% to your squad and 20% to the Company purse. City rebuilds are paid from the Company or squad purse.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-072; R-110"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-co-5",
+   "entry_id": "company",
+   "tier": "roll",
+   "dc": 15,
+   "dc_is_placeholder": true,
+   "teaser": "Why Valthar runs it the way he does.",
+   "body": "Valthar holds the clearance for the high-level adventuring contracts. He calls it a company because he is a military man and sees it as a paramilitary outfit.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-035; R-040"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-gm-1",
+   "entry_id": "greenmantle",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "House Greenmantle is a wood-elf house. It holds most of the natural-resource work outside the walls of {{bleakspire|Bleakspire}}: timber, farming and hunting. Its main estate is outside the walls; it keeps a town lodge in Manor Ward.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4; R-070; R-071"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-gm-2",
+   "entry_id": "greenmantle",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "It owns all three working walled farms: Pine Apple Press Farm, Tepeyac Ranch, and Root and Runner, which is the farthest out and the most heavily guarded.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-077; R-082"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "The Dude doesn't seem to care who runs things. \"Seem\" is the word we keep using.",
+   "id": "f-gm-3",
+   "entry_id": "greenmantle",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "The head of the house is Lord Greenmantle, called \"The Dude\". He has no other name. He is easy-going and doesn't seem interested in running things, at least as far as we have learned. It could be an act. His niece is Stella.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4; R-019"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-gm-4",
+   "entry_id": "greenmantle",
+   "tier": "roll",
+   "dc": 15,
+   "dc_is_placeholder": true,
+   "teaser": "What became of the son who ran the timber.",
+   "body": "His elder son, Thananir, ran the timber. Thananir is dead.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-va-1",
+   "entry_id": "valthar",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Valthar Brightlance leads {{company|the Company}}. He led the party of seven that deposed and killed the Emperor ({{emperors-fall|the Emperor's fall}}).",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-035; R-117"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "He never asked anyone to follow him. They followed anyway.",
+   "id": "f-va-2",
+   "entry_id": "valthar",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "He never came out and said he was the leader. He recruited the people, and the party looked to him. He is one of the seven officers.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-035; R-116"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-va-3",
+   "entry_id": "valthar",
+   "tier": "roll",
+   "dc": 15,
+   "dc_is_placeholder": true,
+   "teaser": "Where he came from, before any of this.",
+   "body": "He started as a farmer, called to war by his liegelord: border skirmishes between lords on another continent. He rose through the ranks as a natural leader. When he went home, his family farm was burned and his village razed.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-026"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-va-4",
+   "entry_id": "valthar",
+   "tier": "roll",
+   "dc": 18,
+   "dc_is_placeholder": true,
+   "teaser": "Who trained him, and what he did after.",
+   "body": "With no ties left, he took the Alchemists' offer and trained as an Inquisitor. He was of low birth, not high enough for their knightly orders. Later he led a team of his own on missions recovering magical items.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-026"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-al-1",
+   "entry_id": "aligher",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Aligher is one of the seven officers of {{company|the Company}}, and {{valthar|Valthar}}'s 'procurement specialist'. He can get his hands on almost anything.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-102; R-116"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-al-2",
+   "entry_id": "aligher",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Before the Company he was a thief, then a no-questions-asked quartermaster at a small backwater fort. Whose fort it was: [TBD]. He was one of the newest additions to Valthar's old party.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-102; R-112"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "He takes what's needed. Sometimes a little more, if it helps the Company.",
+   "id": "f-al-3",
+   "entry_id": "aligher",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "These days he mostly takes only what's needed. If he sees something that could help him, his friends or the Company, he won't hesitate to snag it.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-102"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-al-4",
+   "entry_id": "aligher",
+   "tier": "roll",
+   "dc": 16,
+   "dc_is_placeholder": true,
+   "teaser": "How Valthar found him.",
+   "body": "He had worked with the Emperor once before, on another job, not long service. Valthar tracked him down as someone who could give him information, and Aligher impressed him enough to get hired.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-102 (canon backstory; not confirmed player-known, so roll-gated)"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-te-1",
+   "entry_id": "tessa",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "Tessa was a dwarf blacksmith who died saving {{bleakspire|Bleakspire}}. Her statue stands at Town Hall.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B3"
+  },
+  {
+   "skill": "alchemy",
+   "culture_id": null,
+   "skill_tag_reason": "Kinetic-weapon plans are engineering.",
+   "pull_quote": "Her plans outlived her.",
+   "id": "f-te-2",
+   "entry_id": "tessa",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Her plans for kinetic weapons survived her.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B3"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-em-1",
+   "entry_id": "the-empress",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The Empress is the flagship of {{harbour|Bleakspire harbour}}. Salt captains her.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-023; R-029"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-em-2",
+   "entry_id": "the-empress",
+   "tier": "baseline",
+   "dc": 10,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "Salt is a white dragonborn sea-poacher.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B5"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "We know every plank on that ship that's new, and we don't talk about why.",
+   "id": "f-em-3",
+   "entry_id": "the-empress",
+   "tier": "discovery",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "She was a pirate ship called the Widow's Mercy. We stole her from a pirate harbour, refitted her so nobody could tell what she had been, renamed her The Empress and gave her to Salt.",
+   "adds_aliases": [
+    "Widow's Mercy"
+   ],
+   "editorial_status": "canon",
+   "canon_ref": "R-023; R-029"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ef-1",
+   "entry_id": "emperors-fall",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "The Emperor was a despot. His forces were the Ivory Guard. About 16.5 years ago, {{valthar|Valthar}} and his party deposed and killed him and took his tower. They became {{company|the Company}}.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B3; R-032; R-115"
+  },
+  {
+   "skill": "history",
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ef-2",
+   "entry_id": "emperors-fall",
+   "tier": "baseline",
+   "dc": 12,
+   "dc_is_placeholder": true,
+   "teaser": null,
+   "body": "He spent about three and a half years gathering power before the party came. The party was seven: the officers, {{aligher|Aligher}} among them.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-032; R-117"
+  },
+  {
+   "skill": "alchemy",
+   "culture_id": null,
+   "skill_tag_reason": "The Tyraniff machine on the tower is magic tech (R-069).",
+   "pull_quote": "Whatever was on that tower, the weather has been worse since it came down.",
+   "id": "f-ef-3",
+   "entry_id": "emperors-fall",
+   "tier": "roll",
+   "dc": 15,
+   "dc_is_placeholder": true,
+   "teaser": "What stood on top of his tower.",
+   "body": "On top of the fortress tower the Emperor had reactivated an old Tyraniff machine he did not fully understand. The party destroyed it. Since then the weather has been worse and the wild things angrier.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "R-069"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": null,
+   "id": "f-ss-1",
+   "entry_id": "sea-serpent",
+   "tier": "common",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "A giant sea serpent attacked after the Alchemist ship Inspiration was wrecked.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4; R-022"
+  },
+  {
+   "skill": null,
+   "culture_id": null,
+   "skill_tag_reason": null,
+   "pull_quote": "Wounded, not killed. Keep that in mind the next time you're at sea.",
+   "id": "f-ss-2",
+   "entry_id": "sea-serpent",
+   "tier": "discovery",
+   "dc": null,
+   "dc_is_placeholder": false,
+   "teaser": null,
+   "body": "At the island where the ship put in for repairs, Melichar, the orc marines and Ironmaw fought it and wounded it. Wounded, not killed.",
+   "adds_aliases": [],
+   "editorial_status": "canon",
+   "canon_ref": "TC-700 B4; R-022"
+  }
+ ],
+ "links": [
+  {
+   "id": "l-hollows-bleakspire",
+   "from_entry_id": "hollows",
+   "to_entry_id": "bleakspire",
+   "link_type": "based_in",
+   "label": "Ward of",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-harbour-bleakspire",
+   "from_entry_id": "harbour",
+   "to_entry_id": "bleakspire",
+   "link_type": "based_in",
+   "label": "Ward of",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-hills-hearth-bleakspire",
+   "from_entry_id": "hills-hearth",
+   "to_entry_id": "bleakspire",
+   "link_type": "based_in",
+   "label": "In",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-company-bleakspire",
+   "from_entry_id": "company",
+   "to_entry_id": "bleakspire",
+   "link_type": "based_in",
+   "label": "Based in",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-greenmantle-bleakspire",
+   "from_entry_id": "greenmantle",
+   "to_entry_id": "bleakspire",
+   "link_type": "associates",
+   "label": "Works the land around",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-valthar-company",
+   "from_entry_id": "valthar",
+   "to_entry_id": "company",
+   "link_type": "holds_position",
+   "label": "Leads",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-aligher-company",
+   "from_entry_id": "aligher",
+   "to_entry_id": "company",
+   "link_type": "holds_position",
+   "label": "Officer of",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-aligher-valthar",
+   "from_entry_id": "aligher",
+   "to_entry_id": "valthar",
+   "link_type": "associates",
+   "label": "Procures for",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-tessa-bleakspire",
+   "from_entry_id": "tessa",
+   "to_entry_id": "bleakspire",
+   "link_type": "associates",
+   "label": "Died saving",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-the-empress-harbour",
+   "from_entry_id": "the-empress",
+   "to_entry_id": "harbour",
+   "link_type": "based_in",
+   "label": "Flagship of",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-emperors-fall-valthar",
+   "from_entry_id": "emperors-fall",
+   "to_entry_id": "valthar",
+   "link_type": "other",
+   "label": "Led by",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-emperors-fall-aligher",
+   "from_entry_id": "emperors-fall",
+   "to_entry_id": "aligher",
+   "link_type": "other",
+   "label": "One of the seven",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-emperors-fall-company",
+   "from_entry_id": "emperors-fall",
+   "to_entry_id": "company",
+   "link_type": "other",
+   "label": "Founded",
+   "editorial_status": "canon",
+   "dm_only": false
+  },
+  {
+   "id": "l-emperors-fall-bleakspire",
+   "from_entry_id": "emperors-fall",
+   "to_entry_id": "bleakspire",
+   "link_type": "other",
+   "label": "Happened at",
+   "editorial_status": "canon",
+   "dm_only": false
+  }
+ ],
+ "reveals": [
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "bleakspire",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "company",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "valthar",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "emperors-fall",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "tessa",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "bleakspire",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "company",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "valthar",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "emperors-fall",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "tessa",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-c",
+   "entry_id": "bleakspire",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-c",
+   "entry_id": "company",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-c",
+   "entry_id": "valthar",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-c",
+   "entry_id": "emperors-fall",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-c",
+   "entry_id": "tessa",
+   "fact_id": null,
+   "source": "dm",
+   "source_session_id": "s-induct",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "hollows",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "harbour",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "greenmantle",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "the-empress",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "hills-hearth",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "sea-serpent",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": "aligher",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-a-b2",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": null,
+   "fact_id": "f-em-3",
+   "source": "dm",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-a",
+   "entry_id": null,
+   "fact_id": "f-ss-2",
+   "source": "dm",
+   "source_session_id": "s-a-leg1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "harbour",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-b-1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "greenmantle",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-b-1",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "the-empress",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-b-2",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "squad",
+   "scope_id": "sq-b",
+   "entry_id": "hollows",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-b-2",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  },
+  {
+   "scope": "character",
+   "scope_id": "ch-b1",
+   "entry_id": "hills-hearth",
+   "fact_id": null,
+   "source": "meeting",
+   "source_session_id": "s-b-2",
+   "revealed_by": "dm-example",
+   "revealed_at": null
+  }
+ ],
+ "checks": [
+  {
+   "character_id": "ch-a1",
+   "entry_id": "aligher",
+   "session_id": "s-a-b2",
+   "kind": "roll",
+   "skill": "history",
+   "total": 17
+  },
+  {
+   "character_id": "ch-a1",
+   "entry_id": "bleakspire",
+   "session_id": "s-a-leg1",
+   "kind": "roll",
+   "skill": "history",
+   "total": 16
+  },
+  {
+   "character_id": "ch-a1",
+   "entry_id": "valthar",
+   "session_id": "s-a-b2",
+   "kind": "roll",
+   "skill": "history",
+   "total": 15
+  },
+  {
+   "character_id": "ch-a2",
+   "entry_id": "bleakspire",
+   "session_id": "s-a-leg1",
+   "kind": "roll",
+   "skill": "alchemy",
+   "total": 19
+  },
+  {
+   "character_id": "ch-b1",
+   "entry_id": "greenmantle",
+   "session_id": "s-b-1",
+   "kind": "roll",
+   "skill": "history",
+   "total": 15
+  }
+ ],
+ "squad_home": {
+  "sq-a": {
+   "last_session": {
+    "session_id": "s-a-b2",
+    "summary": "[TBD: written from the DM-approved recap]"
+   },
+   "open_leads": [
+    {
+     "text": "Ironmaw was left alive on the island. Nobody has seen him since.",
+     "ref": "TC-700 B4; R-022"
+    },
+    {
+     "text": "Saffron's case that Rosemary and Harrow are corrupt has gone to the Alchemist Order in writing.",
+     "ref": "R-093 (public)"
+    }
+   ]
+  },
+  "sq-b": {
+   "last_session": {
+    "session_id": "s-b-2",
+    "summary": "[TBD: written from the DM-approved recap]"
+   },
+   "open_leads": [
+    {
+     "text": "[TBD: from the DM-approved recap]",
+     "ref": ""
+    }
+   ]
+  },
+  "sq-c": {
+   "last_session": null,
+   "open_leads": []
+  }
+ },
+ "chits": {
+  "note": "Chits from allied factions, or from inside the same overall faction, trade 2 for 1 (R-118).",
+  "held": {
+   "sq-a": {
+    "company": "[TBD example]",
+    "greenmantle": "[TBD example]"
+   },
+   "sq-b": {},
+   "sq-c": {}
+  }
+ }
+}
