@@ -364,7 +364,7 @@ function Entry({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/sirath/sketch.svg" alt={entry.image?.alt || ""} />
           {entry.kind === "person" && entry.image?.likeness === false ? (
-            <figcaption>A sketch of where you&apos;d find them, not a likeness. Portrait: [TBD]</figcaption>
+            <figcaption>A sketch of where you&apos;d find them, not a likeness.</figcaption>
           ) : null}
         </figure>
         <p>
@@ -387,7 +387,7 @@ function Entry({
             <dt>Seen with</dt>
             <dd>{entry.faction_hint ? <Link href={withQuery(`/sirath/${entry.faction_hint.id}`, query)}>{entry.faction_hint.name}</Link> : "Not yet learned."}</dd>
             <dt>Your chits</dt>
-            <dd>{entry.chits || "[TBD example]"}</dd>
+            <dd>{entry.chits || "None recorded"}</dd>
             <dt>Last met</dt>
             <dd>{entry.last_encounter ? `At the ${sessionLine(entry.last_encounter)}` : "Known by name; not met in play yet"}</dd>
           </dl>
@@ -447,8 +447,7 @@ function Entry({
                 <div className="meta">
                   <span>{fact.teaser}</span>
                   <span>
-                    Sealed · {fact.skill_label} DC {fact.dc}
-                    {fact.dc_is_placeholder ? " (placeholder)" : ""} · opens with a {fact.opens_by}
+                    Sealed · {fact.skill_label} DC {fact.dc} · opens with a {fact.opens_by}
                   </span>
                 </div>
               </div>

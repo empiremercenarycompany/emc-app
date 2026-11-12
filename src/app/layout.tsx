@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito_Sans } from "next/font/google";
 import { CodexProviders } from "@/components/codex-provider";
 import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
@@ -12,12 +11,8 @@ import { recruitName } from "@/lib/recruit-name";
 import "./globals.css";
 import "@/components/sirath/sirath.css";
 
-const nunito = Nunito_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  variable: "--font-nunito",
-  display: "swap",
-});
+const FONTS =
+  "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap";
 
 export const metadata: Metadata = {
   title: { default: "Empire Mercenary Company", template: "%s · EMC" },
@@ -54,12 +49,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
   const sirathNew = await loadSirathBadge(viewer.character?.id ?? null);
   return (
-    <html lang="en" data-font="body" className={nunito.variable}>
+    <html lang="en" data-font="body">
       <head>
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap"
-        />
+        {/* Stylesheet links, not next/font. The Google font loader crashes on Vercel when a file URL has no extension. */}
+        <link rel="stylesheet" href={FONTS} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{if(localStorage.getItem(${JSON.stringify(TEXT_SIZE_KEY)})==="large")document.documentElement.dataset.font="large"}catch(e){}})();`,

@@ -7,10 +7,11 @@
   Bronze is for large headings, the logo frame, and active line icons.
   Steel is for borders and inactive line icons, not for body text.
   Secondary text uses the contrast-safe mute.
-  All-caps display uses Corleone Due. Corleone Regular is the mixed-case face
-  and the second step in the stack. Both files are weight 400. Headings ask
-  for 800 only until a real Corleone face loads, so Nunito Sans 700
-  stays bold when the files are missing, and a loaded face is never faux-bold.
+  All-caps chrome uses Bebas Neue: headlines, buttons, and fact lines.
+  Letter-spacing is 2% and line-height is 1.1. Nunito Sans is body text:
+  weight 300 from 18px up, 400 below that, 600 for emphasis.
+  Corleone Due is one accent line (the sign-off), never body, buttons, or fact lines.
+  Both Corleone files are weight 400 and are added at deploy time.
 */
 @font-face {
   font-family: Corleone;
@@ -44,9 +45,10 @@
   --color-ink-2: #4a4036;
   --color-mute: #c4bfb2;
   --text-sm: 0.9375rem;
-  --font-sans: var(--font-nunito), "Nunito Sans", sans-serif;
-  --font-condensed: var(--font-nunito), "Nunito Sans", sans-serif;
-  --font-display: "Corleone Due", Corleone, var(--font-nunito), "Nunito Sans", sans-serif;
+  --font-sans: "Nunito Sans", sans-serif;
+  --font-condensed: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-display: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-accent: "Corleone Due", Corleone, "Nunito Sans", sans-serif;
 }
 
 html {
@@ -70,7 +72,7 @@ body {
   color: var(--color-parchment);
   font-family: var(--font-sans);
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 300;
   line-height: 1.5;
 }
 
@@ -87,9 +89,10 @@ h3,
 .display,
 .wordmark {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 400;
   font-synthesis: none;
   letter-spacing: 0.02em;
+  line-height: 1.1;
   text-transform: uppercase;
   color: var(--color-parchment);
 }
@@ -101,9 +104,18 @@ nav,
 summary,
 .signoff,
 .stat {
-  font-family: var(--font-condensed), "Nunito Sans", sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--font-condensed), "Bebas Neue", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.signoff {
+  font-family: var(--font-accent);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 
@@ -138,8 +150,10 @@ label {
   margin-top: 2rem;
   color: var(--color-parchment);
   text-align: center;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--font-accent);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }
 
 .page-pad {
@@ -1891,4 +1905,15 @@ html[data-display-face="corleone"] :is(h1, h2, h3, .display, .wordmark, .sheet-n
   .dm-notes > .dm-body {
     max-height: 40rem;
   }
+}
+
+button,
+.button,
+.button.primary,
+.button.secondary,
+.tab-link {
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }

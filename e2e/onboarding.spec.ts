@@ -30,13 +30,12 @@ test("recruitment papers keep the display face and field type", async ({ page })
       loaded: names.map((name) => ({ name, ok: probe(name) })),
     };
   });
-  expect(type.names[0]).toBe("Corleone Due");
-  expect(type.names).toContain("Corleone");
-  expect(type.names.join(" ")).toMatch(/Nunito Sans/i);
-  expect(type.weight).toBe(fontFile.status() === 200 ? "400" : "800");
+  expect(type.names[0]).toBe("Bebas Neue");
+  expect(type.names.join(" ")).not.toMatch(/Corleone/);
+  expect(type.weight).toBe("400");
   expect(type.transform).toBe("uppercase");
-  expect(type.corleone).toBe(fontFile.status() === 200);
-  expect(type.loaded.some((face) => /nunito/i.test(face.name) && face.ok)).toBe(true);
+  const spacing = await heading.evaluate((el) => getComputedStyle(el).letterSpacing);
+  expect(spacing === "0.02em" || Number.parseFloat(spacing) > 0).toBe(true);
 
   const prompt = page.getByRole("link", { name: "Sign in to continue" });
   const buttonType = await prompt.evaluate((el) => {
@@ -44,8 +43,8 @@ test("recruitment papers keep the display face and field type", async ({ page })
     return { family: style.fontFamily, weight: style.fontWeight, transform: style.textTransform };
   });
   expect(buttonType.family).not.toContain("Corleone");
-  expect(buttonType.family).toMatch(/Nunito Sans/i);
-  expect(buttonType.weight).toBe("700");
+  expect(buttonType.family).toMatch(/Bebas Neue/i);
+  expect(buttonType.weight).toBe("400");
   expect(buttonType.transform).toBe("uppercase");
 
   await page.goto("/sign-in");

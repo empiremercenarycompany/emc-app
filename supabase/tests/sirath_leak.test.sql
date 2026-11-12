@@ -38,13 +38,45 @@ set squad_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2',
     intelligence = 14
 where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2';
 
+do $$
+declare
+  cid uuid;
+  req uuid := 'abababab-abab-4aba-8aba-abababababab';
+  m int;
+begin
+  select id into cid from public.characters where user_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1';
+  select sirath_internal.skill_modifier(cid, 'alchemy') into m;
+  if m <> 4 then
+    raise exception 'alchemy modifier %, expected 4 from Arcana training', m;
+  end if;
+  select sirath_internal.skill_modifier(cid, 'history') into m;
+  if m <> 2 then
+    raise exception 'untrained history modifier %, expected 2', m;
+  end if;
+  insert into public.grew_up_requests (id, guild_id, requester_character_id, requested_by, kind, option_id, note, status)
+  values (req, '11111111-1111-4111-8111-111111111111', cid, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', 'tool', 'history', 'Sample proficiency row.', 'approved');
+  insert into public.character_proficiencies (character_id, request_id, kind, option_id)
+  values (cid, req, 'skill', 'history');
+  select sirath_internal.skill_modifier(cid, 'history') into m;
+  if m <> 4 then
+    raise exception 'history modifier %, expected 4 from a skill proficiency row', m;
+  end if;
+  insert into public.character_knowledge (character_id, guild_id, skill_mods)
+  values (cid, '11111111-1111-4111-8111-111111111111', '{"alchemy": 9}'::jsonb);
+  select sirath_internal.skill_modifier(cid, 'alchemy') into m;
+  if m <> 9 then
+    raise exception 'alchemy override %, expected 9', m;
+  end if;
+  delete from public.character_knowledge where character_id = cid;
+end $$;
+
 insert into public.sessions (id, guild_id, squad_id, title) values
   ('cccccccc-cccc-4ccc-8ccc-ccccccccccc1', '11111111-1111-4111-8111-111111111111', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1', 'Book 2 muster');
 
 insert into public.story_entries (id, guild_id, kind, display_name, hearsay, voice_line, public_name, editorial_status) values
-  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd1', '11111111-1111-4111-8111-111111111111', 'place', 'Open Square', 'A square.', 'We know this square.', false, 'canon'),
-  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd2', '11111111-1111-4111-8111-111111111111', 'place', 'The Harbour', 'A harbour.', 'We know the docks.', true, 'canon'),
-  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', '11111111-1111-4111-8111-111111111111', 'person', 'Hidden Courier', 'A courier.', 'We do not name him.', false, 'canon');
+  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd1', '11111111-1111-4111-8111-111111111111', 'place', 'Sample Plaza', 'A sample square.', 'We know this square.', false, 'canon'),
+  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd2', '11111111-1111-4111-8111-111111111111', 'place', 'Public Dock', 'A sample dock.', 'The name is common.', true, 'canon'),
+  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', '11111111-1111-4111-8111-111111111111', 'person', 'Secret Runner', 'A sample person.', 'Hidden on purpose.', false, 'canon');
 
 insert into public.story_entries_dm (entry_id, true_identity) values
   ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', 'SENTINEL_TRUE_NAME');
@@ -57,7 +89,7 @@ insert into public.story_fact_public (id, guild_id, entry_id, tier, skill, cultu
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'discovery', null, null, null, false, null, 'canon');
 
 insert into public.story_fact_text (fact_id, body) values
-  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', 'Trade passes {{dddddddd-dddd-4ddd-8ddd-ddddddddddd2|The Harbour}} and nobody asks {{dddddddd-dddd-4ddd-8ddd-ddddddddddd3|Hidden Courier}}.'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', 'At {{dddddddd-dddd-4ddd-8ddd-ddddddddddd1|Sample Plaza}} people name {{dddddddd-dddd-4ddd-8ddd-ddddddddddd2|Public Dock}} and never {{dddddddd-dddd-4ddd-8ddd-ddddddddddd3|Secret Runner}}.'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2', 'ALCHEMY_BASELINE_OPEN'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3', 'SCAVENGE_SENTINEL_BODY'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee4', 'HALFLING_GARDEN_SENTINEL'),
@@ -165,7 +197,7 @@ begin
     raise exception 'player entry count was %', n;
   end if;
 
-  if exists (select 1 from public.story_entries where display_name = 'Hidden Courier') then
+  if exists (select 1 from public.story_entries where display_name = 'Secret Runner') then
     raise exception 'player selected the hidden entry';
   end if;
 
@@ -191,10 +223,13 @@ begin
      or book::text like '%SENTINEL_DM_LINK%' or book::text like '%SENTINEL_CANON_REF%' then
     raise exception 'DM sentinel leaked into sirath_book';
   end if;
-  if book::text like '%Hidden Courier%' or book::text like '%dddddddd-dddd-4ddd-8ddd-ddddddddddd3%' then
+  if book::text like '%Secret Runner%' or book::text like '%dddddddd-dddd-4ddd-8ddd-ddddddddddd3%' then
     raise exception 'hidden person leaked';
   end if;
-  if book::text not like '%{{!plain|The Harbour}}%' then
+  if book::text not like '%{{dddddddd-dddd-4ddd-8ddd-ddddddddddd1|Sample Plaza}}%' then
+    raise exception 'learned inline name was smudged';
+  end if;
+  if book::text not like '%{{!plain|Public Dock}}%' then
     raise exception 'public name was not plain text';
   end if;
   if book::text like '%dddddddd-dddd-4ddd-8ddd-ddddddddddd2%' then
@@ -249,7 +284,7 @@ begin
   if book::text not like '%SCAVENGE_SENTINEL_BODY%' then
     raise exception 'alchemy roll did not open its fact';
   end if;
-  if book::text like '%Hidden Courier%' then
+  if book::text like '%Secret Runner%' then
     raise exception 'opened fact still leaked a hidden name';
   end if;
 end $$;
@@ -262,7 +297,7 @@ declare
   book jsonb;
   n int;
 begin
-  select count(*) into n from public.story_entries where display_name = 'Open Square';
+  select count(*) into n from public.story_entries where display_name = 'Sample Plaza';
   if n <> 1 then
     raise exception 'character reveal did not show the entry';
   end if;

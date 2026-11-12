@@ -74,8 +74,11 @@ create table public.story_entries_dm (
   past text,
   body_dm text,
   public_name_basis text,
-  canon_refs text[] not null default '{}'
+  canon_refs text[] not null default '{}',
+  slug text
 );
+
+create unique index story_entries_dm_slug on public.story_entries_dm (slug) where slug is not null;
 
 comment on table public.story_entries_dm is
   'Staff only. Never joined into a player payload.';

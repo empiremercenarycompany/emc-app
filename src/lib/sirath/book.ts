@@ -29,6 +29,20 @@ const SKILL_LABEL: Record<KnowledgeSkill, string> = {
 
 const TOKEN = /\{\{([a-z0-9-]+)\|([^}]*)\}\}/g;
 
+/** Drop unfinished notes. Players never see a TBD or placeholder field. */
+export function forPlayer(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const kept = value
+    .split(/(?<=[.!?])\s+/)
+    .filter((sentence) => !/\bTBD\b|placeholder/i.test(sentence))
+    .join(" ")
+    .replace(/\[[^\]]*\]/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!kept || /\bTBD\b|placeholder/i.test(kept)) return null;
+  return kept;
+}
+
 export function cultureBonus(character: SirathSource["characters"][number], fact: SirathSource["facts"][number], rules: SirathSource["rules"]): CultureBonus | null {
   if (fact.skill !== "culture" || !fact.culture_id) return null;
   const bonus = rules.culture_bonus;
@@ -60,7 +74,8 @@ function sessionLabel(source: SirathSource, id: string | null): SessionLabel | n
   if (!id) return null;
   const session = source.sessions.find((item) => item.id === id);
   if (!session) return null;
-  return { id, label: session.label, date: session.date };
+  const label = forPlayer(session.label) ?? "Session";
+  return { id, label, date: forPlayer(session.date) };
 }
 
 /**
@@ -107,13 +122,15 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
     return token;
   };
   const scrub = (text: string) =>
-    text.replace(TOKEN, (_match, entryId: string, label: string) => {
-      if (visible.has(entryId)) return `{{${entryId}|${label}}}`;
-      const entry = entries.get(entryId);
-      if (entry?.public_name) return `{{!plain|${label}}}`;
-      const kind = entry?.kind ?? "thing";
-      return `{{?${tokenFor(entryId)}|${kind}}}`;
-    });
+    forPlayer(
+      text.replace(TOKEN, (_match, entryId: string, label: string) => {
+        if (visible.has(entryId)) return `{{${entryId}|${label}}}`;
+        const entry = entries.get(entryId);
+        if (entry?.public_name) return `{{!plain|${label}}}`;
+        const kind = entry?.kind ?? "thing";
+        return `{{?${tokenFor(entryId)}|${kind}}}`;
+      }),
+    ) ?? "";
 
   const squadSessions = source.sessions.filter((session) => session.squad_id === squadId);
   const latest = squadSessions.length ? squadSessions[squadSessions.length - 1].id : null;
@@ -130,7 +147,7 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
     const aliases = [...entry.aliases];
     for (const fact of facts) {
       if (fact.tier === "common") {
-        tiers.common.push({ id: fact.id, body: scrub(fact.body), pull_quote: fact.pull_quote });
+        tiers.common.push({ id: fact.id, body: scrub(fact.body), pull_quote: forPlayer(fact.pull_quote) });
         aliases.push(...fact.adds_aliases);
       } else if (fact.tier === "baseline" || fact.tier === "roll") {
         const known = knowsFact(character, fact, rolls, source.rules);
@@ -146,7 +163,7 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
             dc: fact.dc ?? 0,
             bonus: known.bonus,
             dc_is_placeholder: fact.dc_is_placeholder,
-            pull_quote: fact.pull_quote,
+            pull_quote: forPlayer(fact.pull_quote),
           });
           aliases.push(...fact.adds_aliases);
         } else {
@@ -155,7 +172,7 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
             skill_label: label,
             dc: fact.dc ?? 0,
             dc_is_placeholder: fact.dc_is_placeholder,
-            teaser: fact.teaser || "More you might recall.",
+            teaser: forPlayer(fact.teaser) || "More you might recall.",
             opens_by: fact.tier === "roll" ? `${label} roll` : `${label} roll (or a higher passive ${label})`,
           });
         }
@@ -165,7 +182,7 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
           id: fact.id,
           body: scrub(fact.body),
           session: sessionLabel(source, reveal?.source_session_id ?? null),
-          pull_quote: fact.pull_quote,
+          pull_quote: forPlayer(fact.pull_quote),
         });
         aliases.push(...fact.adds_aliases);
       }
@@ -197,14 +214,14 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
       id: entry.id,
       kind: entry.kind,
       display_name: entry.display_name,
-      aliases,
+      aliases: aliases.map((alias) => forPlayer(alias)).filter((alias): alias is string => Boolean(alias)),
       tags: entry.tags,
-      hearsay: entry.hearsay,
-      voice_line: entry.voice_line,
+      hearsay: forPlayer(entry.hearsay) ?? "",
+      voice_line: forPlayer(entry.voice_line) ?? "",
       image: entry.image,
-      ward: entry.ward,
+      ward: forPlayer(entry.ward),
       faction_hint: hint ? { id: hint.id, name: hint.display_name } : null,
-      chits: hintId ? (source.chits.held[squadId]?.[hintId] ?? null) : null,
+      chits: forPlayer(hintId ? (source.chits.held[squadId]?.[hintId] ?? null) : null),
       last_encounter: last,
       learned_rank: ranks.length ? Math.max(...ranks) : 0,
       tiers,
@@ -246,9 +263,12 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
       learned_count: out.length,
       latest_session: sessionLabel(source, latest),
       last_session: lastSession?.session_id
-        ? { session: sessionLabel(source, lastSession.session_id) as SessionLabel, summary: lastSession.summary }
+        ? {
+            session: sessionLabel(source, lastSession.session_id) as SessionLabel,
+            summary: forPlayer(lastSession.summary) ?? "",
+          }
         : null,
-      open_leads: (home?.open_leads ?? []).map((lead) => lead.text),
+      open_leads: (home?.open_leads ?? []).map((lead) => forPlayer(lead.text)).filter((lead): lead is string => Boolean(lead)),
       new_entry_ids: newIds,
       new_from_checkin_ids: checkNew,
       new_from_session_ids: sessionNew,

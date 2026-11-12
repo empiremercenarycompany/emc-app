@@ -83,9 +83,10 @@
   background: transparent;
   color: #111;
   padding: 4px 11px;
-  font-family: var(--font-sans), "Nunito Sans", sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-family: "Bebas Neue", "Arial Narrow", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 

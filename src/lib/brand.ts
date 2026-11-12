@@ -2,23 +2,22 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 
 /**
- * One switch.
- * nunito: body and UI are Nunito Sans.
- * corleone: the same, except big titles use Corleone when the gitignored woff2 is present.
- * The files are never committed. A missing file keeps Nunito Sans.
+ * One switch for the accent line.
+ * Headlines, buttons, and fact lines are Bebas Neue.
+ * Body is Nunito Sans. Corleone Due is the sign-off only, when the gitignored file is present.
  */
-export const FONT_PAIR = "nunito" as "nunito" | "corleone";
+export const FONT_PAIR = "bebas" as "bebas" | "corleone";
 
 export const FONT_PAIRS = {
-  nunito: {
+  bebas: {
     body: "Nunito Sans",
-    ui: "Nunito Sans",
-    heading: "Nunito Sans",
+    ui: "Bebas Neue",
+    heading: "Bebas Neue",
   },
   corleone: {
     body: "Nunito Sans",
-    ui: "Nunito Sans",
-    heading: "Corleone Due",
+    ui: "Bebas Neue",
+    heading: "Bebas Neue",
   },
 } as const;
 
@@ -43,8 +42,13 @@ export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));
 }
 
-/** All-caps titles. A missing woff2 keeps Nunito Sans through the CSS stack. */
-export function headingFace(): "Nunito Sans" | "Corleone Due" {
+/** Chrome titles. Bebas Neue, all caps. Corleone is not a heading face. */
+export function headingFace(): "Bebas Neue" {
+  return "Bebas Neue";
+}
+
+/** The one accent line. A missing woff2 keeps Nunito Sans. */
+export function accentFace(): "Nunito Sans" | "Corleone Due" {
   if (localFileReady(CORLEONE_DUE_FILE)) return "Corleone Due";
   return "Nunito Sans";
 }
