@@ -23,7 +23,7 @@ import { recruitName } from "@/lib/recruit-name";
 import { isStaff } from "@/lib/types";
 import { SirathNewRows } from "@/components/sirath/new-rows";
 import { SirathProto } from "@/components/sirath/proto";
-import { sirathFixtureAllowed } from "@/lib/sirath/fixture";
+import { sirathDevChrome } from "@/lib/sirath/fixture";
 import { loadSirathView } from "@/lib/sirath/load";
 import { loadSirathSource } from "@/lib/sirath/source";
 
@@ -42,7 +42,7 @@ export default async function BarracksPage({
   const params = searchParams ? await searchParams : {};
   const viewer = await loadViewer();
   const sirath = await loadSirathView(params.as ?? null, params.as ? null : viewer.character?.id ?? null);
-  const sirathPeople = sirathFixtureAllowed()
+  const sirathPeople = sirathDevChrome()
     ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label }))
     : [];
   const setup = setupMessage(viewer);

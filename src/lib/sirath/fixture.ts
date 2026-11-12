@@ -2,11 +2,14 @@ import { buildSirathView } from "./book";
 import { isFixtureCharacter, loadSirathSource } from "./source";
 import type { SirathView } from "./types";
 
-/** Example books are a dev aid. Production reads sirath_book() for the signed-in character. */
+/** The striped viewer is a dev aid. A production build does not show it. */
+export function sirathDevChrome(): boolean {
+  return process.env.NODE_ENV !== "production" && !process.env.VERCEL_ENV;
+}
+
+/** Fake book for local runs, including `next start` on this machine. Never on Vercel. */
 export function sirathFixtureAllowed(): boolean {
-  if (process.env.VERCEL_ENV === "production") return false;
-  if (process.env.NODE_ENV === "production") return false;
-  return true;
+  return !process.env.VERCEL_ENV;
 }
 
 export function fixtureView(characterId: string | null | undefined): SirathView | null {

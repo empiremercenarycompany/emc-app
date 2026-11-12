@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizePlayerValue } from "./book";
 import { fixtureView, sirathFixtureAllowed } from "./fixture";
 import { isFixtureCharacter } from "./source";
 import type { SirathView } from "./types";
@@ -12,7 +13,7 @@ export async function loadSirathView(as: string | null | undefined, characterId:
   if (!supabase) return null;
   const { data, error } = await supabase.rpc("sirath_book", { p_character_id: characterId });
   if (error || !data || typeof data !== "object") return null;
-  return data as SirathView;
+  return sanitizePlayerValue(data) as SirathView;
 }
 
 export async function loadSirathBadge(characterId: string | null): Promise<number> {
@@ -29,7 +30,7 @@ export async function loadSirathBadge(characterId: string | null): Promise<numbe
           if (!supabase) return null;
           const { data, error } = await supabase.rpc("sirath_book", { p_character_id: characterId });
           if (error || !data) return null;
-          return data as SirathView;
+          return sanitizePlayerValue(data) as SirathView;
         })()
       : null);
   if (!book?.home.latest_session) return 0;

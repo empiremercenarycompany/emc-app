@@ -1,7 +1,7 @@
 import { SirathBook } from "@/components/sirath/book-view";
 import { SirathProto } from "@/components/sirath/proto";
 import { SirathSeen } from "@/components/sirath/seen";
-import { sirathFixtureAllowed } from "@/lib/sirath/fixture";
+import { sirathDevChrome } from "@/lib/sirath/fixture";
 import { loadSirathView } from "@/lib/sirath/load";
 import { loadSirathSource } from "@/lib/sirath/source";
 import { loadViewer } from "@/lib/company";
@@ -22,7 +22,7 @@ export default async function SirathEntryPage({
   const view = await loadSirathView(queryParams.as ?? null, viewer.character?.id ?? null);
   const query = new URLSearchParams();
   if (queryParams.as) query.set("as", queryParams.as);
-  const people = sirathFixtureAllowed() ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label })) : [];
+  const people = sirathDevChrome() ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label })) : [];
   return (
     <main id="main" className="sirath-main page-pad">
       {people.length ? <SirathProto as={queryParams.as} path={`/sirath/${id}`} people={people} /> : null}

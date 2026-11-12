@@ -78,8 +78,8 @@ insert into public.story_entries (id, guild_id, kind, display_name, hearsay, voi
   ('dddddddd-dddd-4ddd-8ddd-ddddddddddd2', '11111111-1111-4111-8111-111111111111', 'place', 'Public Dock', 'A sample dock.', 'The name is common.', true, 'canon'),
   ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', '11111111-1111-4111-8111-111111111111', 'person', 'Secret Runner', 'A sample person.', 'Hidden on purpose.', false, 'canon');
 
-insert into public.story_entries_dm (entry_id, true_identity) values
-  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', 'SENTINEL_TRUE_NAME');
+insert into public.story_entries_dm (entry_id, true_identity, past) values
+  ('dddddddd-dddd-4ddd-8ddd-ddddddddddd3', 'SENTINEL_TRUE_NAME', 'LEAK_SENTINEL_ALPHA');
 
 insert into public.story_fact_public (id, guild_id, entry_id, tier, skill, culture_key, dc, dc_is_placeholder, teaser, editorial_status) values
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'common', null, null, null, false, null, 'canon'),
@@ -89,7 +89,7 @@ insert into public.story_fact_public (id, guild_id, entry_id, tier, skill, cultu
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'discovery', null, null, null, false, null, 'canon');
 
 insert into public.story_fact_text (fact_id, body) values
-  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', 'At {{dddddddd-dddd-4ddd-8ddd-ddddddddddd1|Sample Plaza}} people name {{dddddddd-dddd-4ddd-8ddd-ddddddddddd2|Public Dock}} and never {{dddddddd-dddd-4ddd-8ddd-ddddddddddd3|Secret Runner}}.'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', 'At {{dddddddd-dddd-4ddd-8ddd-ddddddddddd1|Sample Plaza}} people name {{dddddddd-dddd-4ddd-8ddd-ddddddddddd2|Public Dock}} and never {{dddddddd-dddd-4ddd-8ddd-ddddddddddd3|Secret Runner}}. Which ward it stands in: [TBD]. Whose fort it was: [TBD]. [date TBD].'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2', 'ALCHEMY_BASELINE_OPEN'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3', 'SCAVENGE_SENTINEL_BODY'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee4', 'HALFLING_GARDEN_SENTINEL'),
@@ -238,8 +238,11 @@ begin
   if book::text not like '%ALCHEMY_BASELINE_OPEN%' then
     raise exception 'derived alchemy passive did not open its fact';
   end if;
-  if book::text like '%Velryn%' or book::text like '%Dananir%' then
-    raise exception 'banned name leaked';
+  if book::text like '%TBD%' then
+    raise exception 'unfinished note reached sirath_book';
+  end if;
+  if book::text like '%LEAK_SENTINEL_ALPHA%' then
+    raise exception 'planted sentinel leaked into sirath_book';
   end if;
 
   begin

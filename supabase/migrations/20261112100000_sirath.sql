@@ -136,7 +136,7 @@ create table public.story_links (
 );
 
 comment on table public.story_links is
-  'Player links only. A link that must stay hidden, including any future Dananir link, goes in story_links_dm instead of a flag on this table.';
+  'Player links only. A link that must stay hidden goes in story_links_dm instead of a flag on this table.';
 
 create table public.story_links_dm (
   id uuid primary key default gen_random_uuid(),
@@ -149,7 +149,7 @@ create table public.story_links_dm (
 );
 
 comment on table public.story_links_dm is
-  'Staff only. Dananir links belong here and nowhere a player can select.';
+  'Staff only. Hidden links belong here and nowhere a player can select.';
 
 create table public.story_reveals (
   id uuid primary key default gen_random_uuid(),
@@ -461,6 +461,48 @@ revoke all on function sirath_internal.entry_visible_to(uuid, uuid) from public,
 -- PLAYER BOOK
 -- ============================================================
 
+-- Strip unfinished notes before a string can leave sirath_book().
+create or replace function sirath_internal.player_text(p_text text)
+returns text
+language sql
+immutable
+as $$
+  select nullif(
+    btrim(regexp_replace(coalesce(p_text, ''), '[^.!?]*TBD[^.!?]*[.!?]?', '', 'gi')),
+    ''
+  );
+$$;
+
+create or replace function sirath_internal.scrub_player_json(p jsonb)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+  key text;
+  item jsonb;
+  cleaned jsonb := '{}'::jsonb;
+begin
+  if p is null then
+    return null;
+  elsif jsonb_typeof(p) = 'string' then
+    return to_jsonb(coalesce(sirath_internal.player_text(p #>> '{}'), ''));
+  elsif jsonb_typeof(p) = 'array' then
+    select coalesce(jsonb_agg(sirath_internal.scrub_player_json(value)), '[]'::jsonb)
+      into cleaned
+    from jsonb_array_elements(p);
+    return cleaned;
+  elsif jsonb_typeof(p) = 'object' then
+    for key, item in select * from jsonb_each(p)
+    loop
+      cleaned := cleaned || jsonb_build_object(key, sirath_internal.scrub_player_json(item));
+    end loop;
+    return cleaned;
+  end if;
+  return p;
+end;
+$$;
+
 create or replace function public.sirath_book(p_character_id uuid)
 returns jsonb
 language plpgsql
@@ -755,7 +797,7 @@ begin
     ),
     'chit_note', (select chit_note from public.story_rules where id = 1)
   );
-  return result;
+  return sirath_internal.scrub_player_json(result);
 end;
 $$;
 
@@ -1061,6 +1103,8 @@ begin
 end;
 $$;
 
+revoke all on function sirath_internal.player_text(text) from public, anon, authenticated;
+revoke all on function sirath_internal.scrub_player_json(jsonb) from public, anon, authenticated;
 revoke all on function sirath_internal.scrub_body(text, uuid, jsonb) from public, anon, authenticated;
 revoke all on function sirath_internal.link_end(uuid, uuid) from public, anon, authenticated;
 

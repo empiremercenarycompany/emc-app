@@ -447,7 +447,7 @@ function Entry({
                 <div className="meta">
                   <span>{fact.teaser}</span>
                   <span>
-                    Sealed · {fact.skill_label} DC {fact.dc} · opens with a {fact.opens_by}
+                    Sealed · {fact.skill_label} DC {fact.dc} · opens with {/^[aeiou]/i.test(fact.opens_by) ? "an" : "a"} {fact.opens_by}
                   </span>
                 </div>
               </div>

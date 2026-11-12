@@ -4,7 +4,7 @@ import { QueueControls } from "@/components/sirath/queue-controls";
 import { SirathProto } from "@/components/sirath/proto";
 import { roleMayOpen } from "@/lib/access";
 import { loadViewer } from "@/lib/company";
-import { sirathFixtureAllowed } from "@/lib/sirath/fixture";
+import { sirathDevChrome, sirathFixtureAllowed } from "@/lib/sirath/fixture";
 import { loadSirathSource } from "@/lib/sirath/source";
 
 export const dynamic = "force-dynamic";
@@ -67,7 +67,7 @@ export default async function SirathQueuePage({
     if (!viewer.userId) redirect("/sign-in");
     if (!roleMayOpen(viewer.role, "/dm")) redirect("/");
   }
-  const people = fixture ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label })) : [];
+  const people = sirathDevChrome() ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label })) : [];
   return (
     <main id="main" className="sirath-main page-pad sirath-queue">
       {people.length ? <SirathProto as={params.as ?? "ch-a1"} path="/dm/sirath" people={people} /> : null}

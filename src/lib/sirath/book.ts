@@ -29,18 +29,29 @@ const SKILL_LABEL: Record<KnowledgeSkill, string> = {
 
 const TOKEN = /\{\{([a-z0-9-]+)\|([^}]*)\}\}/g;
 
-/** Drop unfinished notes. Players never see a TBD or placeholder field. */
+/** Drop unfinished notes. Players never see a TBD field, including inside a fact body. */
 export function forPlayer(value: string | null | undefined): string | null {
   if (!value) return null;
   const kept = value
     .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => !/\bTBD\b|placeholder/i.test(sentence))
+    .filter((sentence) => !/\bTBD\b/i.test(sentence))
     .join(" ")
-    .replace(/\[[^\]]*\]/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
-  if (!kept || /\bTBD\b|placeholder/i.test(kept)) return null;
+  if (!kept || /\bTBD\b/i.test(kept)) return null;
   return kept;
+}
+
+/** Walk a player payload and drop unfinished notes from every string. */
+export function sanitizePlayerValue(value: unknown): unknown {
+  if (typeof value === "string") return forPlayer(value) ?? "";
+  if (Array.isArray(value)) return value.map((item) => sanitizePlayerValue(item));
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) out[key] = sanitizePlayerValue(item);
+    return out;
+  }
+  return value;
 }
 
 export function cultureBonus(character: SirathSource["characters"][number], fact: SirathSource["facts"][number], rules: SirathSource["rules"]): CultureBonus | null {
@@ -147,7 +158,7 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
     const aliases = [...entry.aliases];
     for (const fact of facts) {
       if (fact.tier === "common") {
-        tiers.common.push({ id: fact.id, body: scrub(fact.body), pull_quote: forPlayer(fact.pull_quote) });
+        tiers.common.push({ id: fact.id, body: scrub(fact.body) || "", pull_quote: forPlayer(fact.pull_quote) });
         aliases.push(...fact.adds_aliases);
       } else if (fact.tier === "baseline" || fact.tier === "roll") {
         const known = knowsFact(character, fact, rolls, source.rules);
