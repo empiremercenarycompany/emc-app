@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { slugToUuid } from "./ids";
 
 const script = path.resolve("scripts/seed-sirath.ts");
 
@@ -52,5 +53,43 @@ describe("sirath seed loader", () => {
     expect(unfinished.status).not.toBe(0);
     expect(unfinished.stderr).toMatch(/no player-facing name/);
     expect(unfinished.stderr).not.toMatch(/\[TBD\]/);
+  });
+
+  it("saves a note-only fact as a draft with an empty body", () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "sirath-psql-"));
+    const captured = path.join(dir, "captured.sql");
+    const psql = path.join(dir, "psql");
+    writeFileSync(psql, `#!/bin/sh\ncat > '${captured}'\nexit 0\n`);
+    chmodSync(psql, 0o755);
+    const result = run(
+      {
+        PATH: `${dir}${path.delimiter}${process.env.PATH ?? ""}`,
+        DATABASE_URL: "postgres://local/db",
+        SIRATH_UUID_NAMESPACE: "secret-ns",
+      },
+      outside("note.json", {
+        entries: [entry],
+        facts: [
+          {
+            id: "note-only",
+            entry_id: "sample-place",
+            tier: "common",
+            body: "Which ward it stands in: [TBD]. Whose fort it was: [TBD]. [date TBD].",
+            editorial_status: "canon",
+          },
+        ],
+      }),
+    );
+    expect(result.status).toBe(0);
+    const sql = readFileSync(captured, "utf8");
+    const factId = slugToUuid("fact:note-only", "secret-ns");
+    const statements = sql.split(/(?=insert into )/);
+    const publicLine = statements.find((line) => line.includes("story_fact_public") && line.includes(factId));
+    const textLine = statements.find((line) => line.includes("story_fact_text") && line.includes(factId));
+    expect(publicLine).toContain("draft");
+    expect(publicLine).not.toContain("canon");
+    expect(textLine).toMatch(/\$sirath_[0-9a-f]+\$\$sirath_[0-9a-f]+\$/);
+    expect(sql).not.toMatch(/TBD/);
+    expect(result.stdout).not.toContain("secret-ns");
   });
 });

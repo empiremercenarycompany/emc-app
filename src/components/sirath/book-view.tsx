@@ -392,21 +392,27 @@ function Entry({
             <dd>{entry.last_encounter ? `At the ${sessionLine(entry.last_encounter)}` : "Known by name; not met in play yet"}</dd>
           </dl>
         ) : null}
-        <hr className="sirath-rule" />
-        <h2 className="sec-h">Common knowledge</h2>
-        {entry.tiers.common.map((fact) => (
-          <div key={fact.id}>
-            <p>
-              <Rich text={fact.body} nouns={view.unknown_nouns} query={query} />
-            </p>
-            {fact.pull_quote ? (
-              <blockquote className="sirath-pull">
-                {fact.pull_quote}
-                <cite>Company field notes</cite>
-              </blockquote>
-            ) : null}
-          </div>
-        ))}
+        {entry.tiers.common.some((fact) => fact.body.trim()) ? (
+          <>
+            <hr className="sirath-rule" />
+            <h2 className="sec-h">Common knowledge</h2>
+            {entry.tiers.common.map((fact) =>
+              fact.body.trim() ? (
+                <div key={fact.id}>
+                  <p>
+                    <Rich text={fact.body} nouns={view.unknown_nouns} query={query} />
+                  </p>
+                  {fact.pull_quote ? (
+                    <blockquote className="sirath-pull">
+                      {fact.pull_quote}
+                      <cite>Company field notes</cite>
+                    </blockquote>
+                  ) : null}
+                </div>
+              ) : null,
+            )}
+          </>
+        ) : null}
         {entry.tiers.recall.length ? (
           <>
             <hr className="sirath-rule" />

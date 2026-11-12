@@ -86,14 +86,45 @@ insert into public.story_fact_public (id, guild_id, entry_id, tier, skill, cultu
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'baseline', 'alchemy', null, 14, true, 'A sealed baseline.', 'canon'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'roll', 'alchemy', null, 18, true, 'What was scavenged.', 'canon'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee4', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'baseline', 'culture', 'halflings', 14, true, 'A people nearby.', 'canon'),
-  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'discovery', null, null, null, false, null, 'canon');
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'discovery', null, null, null, false, null, 'canon'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee6', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'common', null, null, null, false, null, 'canon'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee7', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'common', null, null, null, false, null, 'draft');
 
 insert into public.story_fact_text (fact_id, body) values
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1', 'At {{dddddddd-dddd-4ddd-8ddd-ddddddddddd1|Sample Plaza}} people name {{dddddddd-dddd-4ddd-8ddd-ddddddddddd2|Public Dock}} and never {{dddddddd-dddd-4ddd-8ddd-ddddddddddd3|Secret Runner}}. Which ward it stands in: [TBD]. Whose fort it was: [TBD]. [date TBD].'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee2', 'ALCHEMY_BASELINE_OPEN'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3', 'SCAVENGE_SENTINEL_BODY'),
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee4', 'HALFLING_GARDEN_SENTINEL'),
-  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', 'SENTINEL_DISCOVERY_BODY');
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5', 'SENTINEL_DISCOVERY_BODY'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee6', 'Which ward it stands in: [TBD].'),
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee7', '');
+
+do $$
+begin
+  insert into public.story_fact_public (id, guild_id, entry_id, tier, editorial_status)
+  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee8', '11111111-1111-4111-8111-111111111111', 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1', 'common', 'canon');
+  insert into public.story_fact_text (fact_id, body)
+  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee8', '   ');
+  raise exception 'empty canon body was stored';
+exception
+  when others then
+    if sqlerrm not like '%canon fact needs a body%' then
+      raise;
+    end if;
+end $$;
+
+do $$
+begin
+  update public.story_fact_public
+  set editorial_status = 'canon'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee7';
+  raise exception 'empty draft was promoted';
+exception
+  when others then
+    if sqlerrm not like '%canon fact needs a body%' then
+      raise;
+    end if;
+end $$;
 
 insert into public.story_fact_staff (fact_id, canon_ref) values
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3', 'SENTINEL_CANON_REF');
@@ -238,7 +269,7 @@ begin
   if book::text not like '%ALCHEMY_BASELINE_OPEN%' then
     raise exception 'derived alchemy passive did not open its fact';
   end if;
-  if book::text like '%TBD%' then
+  if book::text like '%TBD%' or book::text like '%eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee6%' then
     raise exception 'unfinished note reached sirath_book';
   end if;
   if book::text like '%LEAK_SENTINEL_ALPHA%' then

@@ -614,9 +614,12 @@ begin
     loop
       known := sirath_internal.character_knows_fact(c.id, f.id);
       if f.tier = 'common' then
-        body := sirath_internal.scrub_body(f.body, c.id, tokens);
+        body := sirath_internal.player_text(sirath_internal.scrub_body(f.body, c.id, tokens));
         -- scrub_body updates tokens via a session guc. See function.
-        tokens := current_setting('sirath.tokens', true)::jsonb;
+        tokens := coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb;
+        if body is null then
+          continue;
+        end if;
         facts := jsonb_set(facts, '{common}', (facts->'common') || jsonb_build_array(jsonb_build_object(
           'id', f.id, 'body', body, 'pull_quote', f.pull_quote
         )));
@@ -641,8 +644,11 @@ begin
           else
             bonus := null;
           end if;
-          body := sirath_internal.scrub_body(f.body, c.id, coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb);
-          tokens := current_setting('sirath.tokens', true)::jsonb;
+          body := sirath_internal.player_text(sirath_internal.scrub_body(f.body, c.id, coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb));
+          tokens := coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb;
+          if body is null then
+            continue;
+          end if;
           facts := jsonb_set(facts, '{recall}', (facts->'recall') || jsonb_build_array(jsonb_build_object(
             'id', f.id,
             'body', body,
@@ -669,8 +675,11 @@ begin
           )));
         end if;
       elsif f.tier = 'discovery' and known then
-        body := sirath_internal.scrub_body(f.body, c.id, coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb);
-        tokens := current_setting('sirath.tokens', true)::jsonb;
+        body := sirath_internal.player_text(sirath_internal.scrub_body(f.body, c.id, coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb));
+        tokens := coalesce(nullif(current_setting('sirath.tokens', true), ''), '{}')::jsonb;
+        if body is null then
+          continue;
+        end if;
         facts := jsonb_set(facts, '{uncovered}', (facts->'uncovered') || jsonb_build_array(jsonb_build_object(
           'id', f.id, 'body', body, 'pull_quote', f.pull_quote,
           'session', (
@@ -1105,6 +1114,42 @@ $$;
 
 revoke all on function sirath_internal.player_text(text) from public, anon, authenticated;
 revoke all on function sirath_internal.scrub_player_json(jsonb) from public, anon, authenticated;
+
+-- A canon fact keeps a player-facing body. A draft may be empty.
+create or replace function sirath_internal.reject_empty_canon_body()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  status text;
+  stored text;
+begin
+  if tg_table_name = 'story_fact_text' then
+    select editorial_status into status from public.story_fact_public where id = new.fact_id;
+    stored := new.body;
+  else
+    status := new.editorial_status;
+    select body into stored from public.story_fact_text where fact_id = new.id;
+  end if;
+  if status = 'canon' and (stored is null or btrim(stored) = '') then
+    raise exception 'a canon fact needs a body';
+  end if;
+  return null;
+end;
+$$;
+
+create trigger story_fact_text_canon_body
+after insert or update of body on public.story_fact_text
+for each row execute function sirath_internal.reject_empty_canon_body();
+
+create trigger story_fact_public_canon_body
+after update of editorial_status on public.story_fact_public
+for each row
+when (new.editorial_status = 'canon')
+execute function sirath_internal.reject_empty_canon_body();
+
+revoke all on function sirath_internal.reject_empty_canon_body() from public, anon, authenticated;
 revoke all on function sirath_internal.scrub_body(text, uuid, jsonb) from public, anon, authenticated;
 revoke all on function sirath_internal.link_end(uuid, uuid) from public, anon, authenticated;
 

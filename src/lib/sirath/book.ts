@@ -158,16 +158,20 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
     const aliases = [...entry.aliases];
     for (const fact of facts) {
       if (fact.tier === "common") {
-        tiers.common.push({ id: fact.id, body: scrub(fact.body) || "", pull_quote: forPlayer(fact.pull_quote) });
+        const body = scrub(fact.body);
+        if (!body) continue;
+        tiers.common.push({ id: fact.id, body, pull_quote: forPlayer(fact.pull_quote) });
         aliases.push(...fact.adds_aliases);
       } else if (fact.tier === "baseline" || fact.tier === "roll") {
         const known = knowsFact(character, fact, rolls, source.rules);
         const skill = fact.skill as KnowledgeSkill;
         const label = SKILL_LABEL[skill];
         if (known) {
+          const body = scrub(fact.body);
+          if (!body) continue;
           tiers.recall.push({
             id: fact.id,
-            body: scrub(fact.body),
+            body,
             skill,
             skill_label: label,
             how: known.how,
@@ -188,10 +192,12 @@ export function buildSirathView(source: SirathSource, characterId: string): Sira
           });
         }
       } else if (fact.tier === "discovery" && factReveals.has(fact.id)) {
+        const body = scrub(fact.body);
+        if (!body) continue;
         const reveal = factReveals.get(fact.id);
         tiers.uncovered.push({
           id: fact.id,
-          body: scrub(fact.body),
+          body,
           session: sessionLabel(source, reveal?.source_session_id ?? null),
           pull_quote: forPlayer(fact.pull_quote),
         });
