@@ -18,7 +18,7 @@ const PRIMARY = [
 
 type Item = { href: string; label: string };
 
-function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
+function menuGroups(role: AppRole | null, sirathNew = 0): { title: string; items: Item[] }[] {
   const staff: Item[] = [];
   if (isDmOrAdmin(role)) staff.push({ href: "/dm", label: "Table" });
   if (isStaff(role)) staff.push({ href: "/muster", label: "Table Muster" });
@@ -45,6 +45,7 @@ function menuGroups(role: AppRole | null): { title: string; items: Item[] }[] {
       title: "Company",
       items: [
         { href: "/squad", label: "Squad" },
+        { href: "/sirath", label: sirathNew > 0 ? `The Sirath (${sirathNew} new)` : "The Sirath" },
         { href: "/library", label: "Library" },
         { href: "/about", label: "About" },
         { href: "/codex#faq", label: "Help & FAQ" },
@@ -64,13 +65,16 @@ export function SiteNav({
   role,
   displayName,
   roleLabel,
+  sirathNew = 0,
 }: {
   signedIn: boolean;
   role: AppRole | null;
   displayName: string | null;
   roleLabel: string | null;
+  sirathNew?: number;
 }) {
   const pathname = usePathname();
+  const sirathBadge = pathname.startsWith("/sirath") ? 0 : sirathNew;
   const [open, setOpen] = useState(false);
   const help = useHelpMode();
   const codex = useCodexOverlay();
@@ -114,6 +118,11 @@ export function SiteNav({
             onClick={() => setOpen(true)}
           >
             <LineIcon name="menu" />
+            {sirathBadge > 0 ? (
+              <span className="menu-badge" aria-label={`${sirathBadge} new in The Sirath`}>
+                {sirathBadge}
+              </span>
+            ) : null}
           </button>
         </div>
       </header>
@@ -133,7 +142,7 @@ export function SiteNav({
               {displayName?.trim() || "Recruit"}
               {roleLabel ? ` · ${roleLabel}` : ""}
             </p>
-            {menuGroups(role).map((group) => (
+            {menuGroups(role, sirathBadge).map((group) => (
               <section key={group.title}>
                 <h2>{group.title}</h2>
                 <div className="mt-2 flex flex-col">

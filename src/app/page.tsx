@@ -21,6 +21,11 @@ import { Portrait } from "@/components/portrait";
 import { signedPortraitMap, signedPortraitUrl } from "@/lib/portraits";
 import { recruitName } from "@/lib/recruit-name";
 import { isStaff } from "@/lib/types";
+import { SirathNewRows } from "@/components/sirath/new-rows";
+import { SirathProto } from "@/components/sirath/proto";
+import { sirathDevChrome } from "@/lib/sirath/fixture";
+import { loadSirathView } from "@/lib/sirath/load";
+import { loadSirathSource } from "@/lib/sirath/source";
 
 const WEEK_ITEMS = [
   ["workouts", "Workouts"],
@@ -29,8 +34,17 @@ const WEEK_ITEMS = [
   ["cha", "Charisma"],
 ] as const;
 
-export default async function BarracksPage() {
+export default async function BarracksPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ as?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
   const viewer = await loadViewer();
+  const sirath = await loadSirathView(params.as ?? null, params.as ? null : viewer.character?.id ?? null);
+  const sirathPeople = sirathDevChrome()
+    ? loadSirathSource().characters.map((person) => ({ id: person.id, label: person.label }))
+    : [];
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   let announcements: {
@@ -188,7 +202,10 @@ export default async function BarracksPage() {
       : new Map<string, string>();
 
   return (
+    <>
+    {sirathPeople.length && params.as ? <SirathProto as={params.as} path="/" people={sirathPeople} /> : null}
     <Page mark={false}>
+      <SirathNewRows view={sirath} as={params.as} />
       <header className="hero-band span-all">
         <p className="eyebrow hero-kicker">{viewer.firstVisit ? "Welcome" : "Welcome back"}</p>
         {viewer.character ? (
@@ -414,5 +431,6 @@ export default async function BarracksPage() {
         )}
       </Panel>
     </Page>
+    </>
   );
 }

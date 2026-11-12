@@ -8,9 +8,17 @@ import { companyWeekNumber } from "@/lib/rules/calendar";
 import { CLEARANCE_LADDER, clearanceRank, PILLAR_INTERVAL, PILLAR_NAME } from "@/lib/rules/clearance";
 import { currentWeekEnd, currentWeekStart, parseDate } from "@/lib/rules/dates";
 import { isStaff } from "@/lib/types";
+import { SirathNewRows } from "@/components/sirath/new-rows";
+import { loadSirathView } from "@/lib/sirath/load";
 
-export default async function CheckInPage() {
+export default async function CheckInPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ as?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
   const viewer = await loadViewer();
+  const sirath = await loadSirathView(params.as ?? null, params.as ? null : viewer.character?.id ?? null);
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const squadName =
@@ -38,6 +46,7 @@ export default async function CheckInPage() {
 
   return (
     <Page hero mark={false} title="Check-in" lede="Four quick questions">
+      <SirathNewRows view={sirath} as={params.as} />
       <p className="span-all text-center">
         Due Friday at 11:59 PM. Honest answers help your coach support your goals. This does not lock your character.
       </p>

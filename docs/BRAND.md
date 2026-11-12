@@ -24,9 +24,9 @@ Red audit: the only red fill is `button.primary` and `.button.primary` in `src/a
 
 `FONT_PAIR` in `src/lib/brand.ts` is the only switch.
 
-Body and help text are Barlow 400/500. Labels, buttons, tabs, and stat names are Barlow Condensed 600–700, uppercase. Screen titles and the wordmark use `--font-display: Corleone, var(--font-barlow-condensed), "Barlow Condensed", sans-serif` at weight 800, uppercase, and only for those short lines. The loaded face is in that stack, so a missing file still renders Barlow Condensed 800.
+Body text is Nunito Sans: weight 300 from 18px up, 400 below that, and 600 for emphasis. Headlines, buttons, labels, and tabs are Bebas Neue, all caps, 2% letter-spacing, line-height 1.1. `--font-display` is `"Bebas Neue", "Arial Narrow", sans-serif`. The Sirath journal uses EB Garamond. Corleone Due is the sign-off only, one short line, never body, buttons, or fact lines. John approved replacing Barlow on 12 Nov 2026. Brand guide v3.2 keeps Bebas Neue for chrome.
 
-EMC holds a FontMesa Corleone license for web and app use. The files are never committed. `@font-face` points at `public/fonts/corleone/Corleone-Regular.woff2` (`font-family: Corleone`) and `public/fonts/corleone/Corleone-Due-Regular.woff2` (`font-family: "Corleone Due"`). Both are weight 400, normal, `font-display: swap`. All-caps headings use Corleone Due, then Corleone, then Barlow Condensed, then system sans. Corleone Regular is for mixed-case display only. Headings use weight 400 once a Corleone face loads, with `font-synthesis: none`, so the browser does not faux-bold it. Until then they stay weight 800 so the Barlow Condensed fallback is the real 800. That folder is gitignored. John adds the files at deploy time. A missing file does not fail the build.
+EMC holds a FontMesa Corleone license for web and app use. The files are never committed. `@font-face` points at `public/fonts/corleone/Corleone-Regular.woff2` (`font-family: Corleone`) and `public/fonts/corleone/Corleone-Due-Regular.woff2` (`font-family: "Corleone Due"`). Both are weight 400, normal, `font-display: swap`. The sign-off uses Corleone Due, then Corleone, then Nunito Sans. That folder is gitignored. John adds the files at deploy time. A missing file does not fail the build.
 
 League Spartan and Cinzel are not used.
 

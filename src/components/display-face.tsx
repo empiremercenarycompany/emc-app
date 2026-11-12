@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-/** When a real Corleone face loads, headings drop to weight 400. Otherwise they stay 800 for Barlow Condensed. */
+/** Headlines are Bebas Neue. Corleone Due is the sign-off accent only, and only when that file is present. */
 export function DisplayFace() {
   useEffect(() => {
     let cancel = false;

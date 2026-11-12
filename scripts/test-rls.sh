@@ -46,6 +46,7 @@ run_sql -f supabase/tests/goal_owner.test.sql
 run_sql -f supabase/tests/grew_up.test.sql
 run_sql -f supabase/tests/checkin_week.test.sql
 run_sql -f supabase/tests/dm_dashboard.test.sql
+run_sql -f supabase/tests/sirath_leak.test.sql
 echo "RLS tests passed"
 
 echo "Test account seed"

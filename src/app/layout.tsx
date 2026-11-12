@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed } from "next/font/google";
 import { CodexProviders } from "@/components/codex-provider";
 import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
@@ -7,22 +6,13 @@ import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { TEXT_SIZE_KEY } from "@/lib/text-size";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
+import { loadSirathBadge } from "@/lib/sirath/load";
 import { recruitName } from "@/lib/recruit-name";
 import "./globals.css";
+import "@/components/sirath/sirath.css";
 
-const barlow = Barlow({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-barlow",
-  display: "swap",
-});
-
-const condensed = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-barlow-condensed",
-  display: "swap",
-});
+const FONTS =
+  "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Nunito+Sans:ital,wght@0,300;0,400;0,600;1,400&display=swap";
 
 export const metadata: Metadata = {
   title: { default: "Empire Mercenary Company", template: "%s · EMC" },
@@ -57,9 +47,12 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const viewer = await loadViewer();
   const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
+  const sirathNew = await loadSirathBadge(viewer.character?.id ?? null);
   return (
-    <html lang="en" data-font="barlow" className={`${barlow.variable} ${condensed.variable}`}>
+    <html lang="en" data-font="body">
       <head>
+        {/* Stylesheet links, not next/font. The Google font loader crashes on Vercel when a file URL has no extension. */}
+        <link rel="stylesheet" href={FONTS} />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{if(localStorage.getItem(${JSON.stringify(TEXT_SIZE_KEY)})==="large")document.documentElement.dataset.font="large"}catch(e){}})();`,
@@ -82,6 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               email: viewer.email,
             })}
             roleLabel={roleLabel}
+            sirathNew={sirathNew}
           />
           {children}
           <FeedbackDock />

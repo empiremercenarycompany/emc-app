@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DmBoard } from "@/components/dm-board";
 import { Notice } from "@/components/ui";
@@ -39,6 +40,9 @@ export default async function DmPage({
     <main id="main" className="page-pad dm-shell">
       <h1 className="mt-4 text-4xl">Table</h1>
       <p className="mt-2">For the DM and admins. Players do not see this page.</p>
+      <p className="mt-2">
+        <Link href="/dm/sirath">Sirath review queue</Link>
+      </p>
       <DmBoard action={saveDmSessionNote} {...table} />
     </main>
   );

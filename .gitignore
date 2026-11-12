@@ -23,3 +23,7 @@ public/brand/local/*
 public/fonts/private/*
 !public/fonts/private/README.md
 public/fonts/corleone/
+
+# Canon for The Sirath. Staff keep this outside the public repo and load it with scripts/seed-sirath.ts.
+supabase/seed/sirath_source.json
+supabase/seed/private/

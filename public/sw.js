@@ -1,5 +1,5 @@
 /* EMC shell cache. Offline log sync is not implemented. */
-const CACHE = "emc-shell-v4";
+const CACHE = "emc-shell-v5";
 const SHELL = ["/", "/offline", "/sign-in", "/about", "/dice", "/library", "/manifest.webmanifest", "/favicon.png", "/favicon.ico", "/brand/emc_mark.png"];
 
 self.addEventListener("install", (event) => {
@@ -26,6 +26,11 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  // The Sirath is network-only. Do not cache entries, facts, or the review queue.
+  if (url.pathname === "/sirath" || url.pathname.startsWith("/sirath/") || url.pathname.startsWith("/dm/sirath")) {
+    event.respondWith(fetch(request));
+    return;
+  }
   // Server actions and route refreshes must hit the network. A cached page
   // response on the first post surfaces as a page change error.
   if (
