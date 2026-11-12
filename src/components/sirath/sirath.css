@@ -121,7 +121,7 @@
     repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(90, 70, 40, 0.05) 28px),
     #e0d0a8;
   color: #111111;
-  font-family: var(--font-garamond), "EB Garamond", Georgia, serif;
+  font-family: "EB Garamond", Georgia, serif;
   font-size: 18px;
   font-weight: 400;
   line-height: 1.55;
@@ -133,7 +133,7 @@
 .sirath-sheet h1,
 .sirath-sheet h2,
 .sirath-sheet .entry-name {
-  font-family: var(--font-garamond), "EB Garamond", Georgia, serif;
+  font-family: "EB Garamond", Georgia, serif;
   font-weight: 600;
   font-variant: small-caps;
   letter-spacing: 0.06em;
