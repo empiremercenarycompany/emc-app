@@ -39,7 +39,7 @@ test("sign-in asks for an email link", async ({ page }) => {
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
   await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
-  await expect(page.getByText("Signed up on empiremercenarycompany.com? Use the same email.")).toBeVisible();
+  await expect(page.getByText("Enlisted on empiremercenarycompany.com? Use the same email.")).toBeVisible();
   await expect(page.getByRole("link", { name: "empiremercenarycompany.com" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Feedback" })).toHaveCount(0);
   await expect(page.getByText(/No password is stored/)).toBeVisible();
