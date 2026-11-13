@@ -28,7 +28,7 @@ describe("sirath stays out of the player bundle", () => {
   it("keeps The Sirath out of the service worker cache", () => {
     const sw = readFileSync(path.join(process.cwd(), "public/sw.js"), "utf8");
     expect(sw).toContain('pathname.startsWith("/sirath/")');
-    expect(sw).toContain("emc-shell-v5");
+    expect(sw).toContain("emc-shell-v6");
     const shell = sw.slice(sw.indexOf("const SHELL"), sw.indexOf("self.addEventListener"));
     expect(shell).not.toContain("sirath");
   });

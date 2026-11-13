@@ -178,36 +178,22 @@ label {
 .logo-img {
   display: block;
   height: 4rem;
-  width: auto;
+  width: 4rem;
   max-width: 100%;
   object-fit: contain;
 }
 
-.logo-on-parchment {
-  background: var(--color-parchment);
-  padding: 1rem;
-  width: fit-content;
-}
-
 .logo-badge {
-  padding: 2.5rem 0;
+  padding: 3rem 0;
 }
 
 .logo-mark-splash {
   display: block;
-  height: 10rem;
+  height: 12rem;
   width: auto;
   max-width: 100%;
   margin-inline: auto;
   object-fit: contain;
-}
-
-.logo-badge-img {
-  display: block;
-  width: 14rem;
-  max-width: 100%;
-  height: auto;
-  margin-inline: auto;
 }
 
 :focus-visible {
@@ -854,8 +840,9 @@ button.weapon-row {
 .brand-lockup {
   display: inline-flex;
   min-height: 2.75rem;
+  min-width: 0;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1.25rem;
   color: var(--color-bronze-lt);
   text-decoration: none;
   font-family: var(--font-condensed), "Nunito Sans", sans-serif;
@@ -866,8 +853,10 @@ button.weapon-row {
 }
 
 .brand-lockup img {
-  height: 2.25rem;
-  width: auto;
+  height: 8rem;
+  width: 8rem;
+  flex: none;
+  object-fit: contain;
 }
 
 .header-tools {

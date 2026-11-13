@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCodexOverlay, useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
+import { MASTER_LOGO } from "@/components/logo-slot";
 import { signOut } from "@/lib/actions/staff";
 import { isDmOrAdmin, isLogApprover, isStaff, type AppRole } from "@/lib/types";
 
@@ -94,9 +95,9 @@ export function SiteNav({
     <>
       <header className="app-header">
         <Link href="/" className="brand-lockup">
-          {/* Approved mark. Not recolored. */}
+          {/* Approved FINAL logo. Not recolored or filtered. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/emc_mark.png" alt="" />
+          <img src={MASTER_LOGO} alt="" />
           The Company
         </Link>
         <div className="header-tools">

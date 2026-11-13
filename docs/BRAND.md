@@ -16,7 +16,7 @@ Confirmed. Do not add a sixth brand color.
 
 Red as text on Iron Black fails contrast, so it is not used that way. Parchment is the text on a red fill. Bronze is for large type and marks, not for body copy. Steel is not body text. Secondary text uses the contrast-safe mute `#C4BFB2`.
 
-The approved visual direction warms how those colors are used. It does not add a brand color and it does not recolor the logo. The page ground is warm charcoal `#1A1613`, with raised charcoal `#241E19` for cards. Documents (the character sheet, notices, Recruitment Papers, Codex entries) sit on parchment with ink `#211B15`. Bronze light `#D2B07A` is for small labels on charcoal. Bronze dark `#6B4F27` is for small labels on parchment. Weathered bronze stays a midtone, not small text. Red stays a fill on a primary action. The app icon, splash, and manifest ground stay Iron Black `#111111` so the mark is unchanged. The browser chrome uses charcoal so it matches the page.
+The approved visual direction warms how those colors are used. It does not add a brand color and it does not recolor the logo. The page ground is warm charcoal `#1A1613`, with raised charcoal `#241E19` for cards. Documents (the character sheet, notices, Recruitment Papers, Codex entries) sit on parchment with ink `#211B15`. Bronze light `#D2B07A` is for small labels on charcoal. Bronze dark `#6B4F27` is for small labels on parchment. Weathered bronze stays a midtone, not small text. Red stays a fill on a primary action. The manifest ground stays Iron Black `#111111`. The browser chrome uses charcoal so it matches the page. The logo files are not given a new field.
 
 Red audit: the only red fill is `button.primary` and `.button.primary` in `src/app/globals.css`. Repeated actions (saving a name, posting a note, raising one ability) use a steel outline. A page keeps one red action: Join the Company, Sign your papers, Record Work, or Roll.
 
@@ -32,11 +32,13 @@ League Spartan and Cinzel are not used.
 
 ## Logo
 
-John approved logo set v2. The files are committed. None is recolored, stretched, or given a glow. Clear space around a mark is at least a quarter of its height. Screen titles are live type. The wide lockup is not used, because its wordmark is baked in Barlow Condensed.
+John approved the FINAL logo on 13 Nov 2026, brand guide v3.4. The files are committed. None is recolored, filtered, inverted, tinted, or stretched. No CSS filter on the logo. No brown field and no black-and-white-only version. Clear space around a mark is at least a quarter of its height. Screen titles stay live type.
 
-- `public/brand/emc_mark.png` is the transparent helm and kettlebell. It is the header, the sign-in screen, and About.
-- `public/brand/emc_app_icon.png` is that mark on Iron Black `#111111`, with about 12% padding, at 1024. The PWA icons (192, 512, and a maskable 512), the 180 apple touch icon, the 32 and 16 favicon, and the splash are resizes of this file. Theme color and splash ground stay `#111111`.
-- `public/brand/emc_badge_light.png` is the full badge on parchment. It is for a light surface. The app screens are Iron Black, so they use the transparent mark.
+The artwork carries Iron Black `#111111`, Mercenary Red `#B11217` (rays and banner outlines), Banner Tan `#D5B793` (banners), Helmet Bone `#DFD5CC` (helmet), and black lettering. Those two tan and bone values live in the file. They are not new UI tokens.
+
+- `public/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg` is the full logo. Use it at about 128px and up: the header, sign-in, About, and the splash.
+- `public/brand/EMC_logo_small-mark_2026-11-13_FINAL.svg` is the small mark. Use it under 128px: the favicon, the apple touch icon, the PWA icons, and small in-app marks. `icon-512.png`, `icon-192.png`, `icon-64.png`, `icon-32.png`, `icon-16.png`, the maskable 512, `favicon.png`, the 180 apple touch icon, and `favicon.ico` (32 and 16) are resizes of this file. Corners stay transparent where the source is transparent. Nothing paints a background behind them.
+- The apple splash places the full logo on a transparent canvas. Manifest `theme_color` and `background_color` stay `#111111`.
 
 ## Icons
 

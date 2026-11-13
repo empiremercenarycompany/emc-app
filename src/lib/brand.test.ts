@@ -3,7 +3,6 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { execSync } from "node:child_process";
 import {
-  APP_ICON,
   CORLEONE_DUE_FAMILY,
   CORLEONE_DUE_FILE,
   CORLEONE_FAMILY,
@@ -12,13 +11,29 @@ import {
   FONT_PAIRS,
   accentFace,
   headingFace,
-  LOGO_LIGHT,
-  LOGO_MARK,
+  LOGO_MASTER,
+  LOGO_SMALL,
 } from "./brand";
 
 function pngSize(relativePath: string): { w: number; h: number } {
   const bytes = readFileSync(path.join(process.cwd(), relativePath));
   return { w: bytes.readUInt32BE(16), h: bytes.readUInt32BE(20) };
+}
+
+/** True when the PNG can store a transparent corner (RGBA, or a palette with tRNS). */
+function pngHasAlpha(relativePath: string): boolean {
+  const bytes = readFileSync(path.join(process.cwd(), relativePath));
+  const color = bytes[25];
+  if (color === 4 || color === 6) return true;
+  let offset = 8;
+  while (offset + 8 < bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.toString("ascii", offset + 4, offset + 8);
+    if (type === "tRNS") return true;
+    if (type === "IEND") break;
+    offset += 12 + length;
+  }
+  return false;
 }
 
 describe("brand fonts", () => {
@@ -49,20 +64,39 @@ describe("brand fonts", () => {
     expect(example).not.toContain("NEXT_PUBLIC_HEADING_FONT_URL");
     const tracked = execSync("git ls-files", { encoding: "utf8" });
     expect(tracked).not.toMatch(/\.(otf|ttf|woff2?)$/m);
-    expect(existsSync(path.join(process.cwd(), LOGO_MARK))).toBe(true);
-    expect(existsSync(path.join(process.cwd(), LOGO_LIGHT))).toBe(true);
-    expect(pngSize(APP_ICON)).toEqual({ w: 1024, h: 1024 });
-    expect(pngSize(LOGO_MARK)).toEqual({ w: 1024, h: 1024 });
-    expect(pngSize(LOGO_LIGHT)).toEqual({ w: 1024, h: 1024 });
+    expect(existsSync(path.join(process.cwd(), LOGO_MASTER))).toBe(true);
+    expect(existsSync(path.join(process.cwd(), LOGO_SMALL))).toBe(true);
+    const masterSvg = readFileSync(path.join(process.cwd(), LOGO_MASTER), "utf8");
+    const smallSvg = readFileSync(path.join(process.cwd(), LOGO_SMALL), "utf8");
+    for (const svg of [masterSvg, smallSvg]) {
+      expect(svg).toContain("#111111");
+      expect(svg).toContain("#B11217");
+      expect(svg).toContain("#DFD5CC");
+      expect(svg).not.toMatch(/<text[\s>]|<image[\s>]|filter=/i);
+    }
+    expect(masterSvg).toContain("#D5B793");
     expect(pngSize("public/icons/icon-512.png")).toEqual({ w: 512, h: 512 });
     expect(pngSize("public/icons/icon-192.png")).toEqual({ w: 192, h: 192 });
+    expect(pngSize("public/icons/icon-64.png")).toEqual({ w: 64, h: 64 });
     expect(pngSize("public/icons/icon-maskable-512.png")).toEqual({ w: 512, h: 512 });
     expect(pngSize("public/icons/apple-touch-icon.png")).toEqual({ w: 180, h: 180 });
     expect(pngSize("public/icons/icon-32.png")).toEqual({ w: 32, h: 32 });
     expect(pngSize("public/icons/icon-16.png")).toEqual({ w: 16, h: 16 });
     expect(pngSize("public/favicon.png")).toEqual({ w: 32, h: 32 });
     expect(pngSize("public/icons/apple-splash.png")).toEqual({ w: 1170, h: 2532 });
-    expect(existsSync(path.join(process.cwd(), "public/favicon.ico"))).toBe(true);
+    expect(pngHasAlpha("public/icons/icon-512.png")).toBe(true);
+    expect(pngHasAlpha("public/icons/icon-32.png")).toBe(true);
+    expect(pngHasAlpha("public/icons/apple-touch-icon.png")).toBe(true);
+    expect(pngHasAlpha("public/icons/apple-splash.png")).toBe(true);
+    expect(pngHasAlpha("public/favicon.png")).toBe(true);
+    const ico = readFileSync(path.join(process.cwd(), "public/favicon.ico"));
+    expect(ico.readUInt16LE(2)).toBe(1);
+    expect(ico.readUInt16LE(4)).toBe(2);
+    expect(ico.readUInt8(6)).toBe(16);
+    expect(ico.readUInt8(22)).toBe(32);
+    expect(existsSync(path.join(process.cwd(), "public/brand/emc_mark.png"))).toBe(false);
+    expect(existsSync(path.join(process.cwd(), "public/brand/emc_app_icon.png"))).toBe(false);
+    expect(existsSync(path.join(process.cwd(), "public/brand/emc_badge_light.png"))).toBe(false);
     expect(existsSync(path.join(process.cwd(), "public/brand/logo_dark.png"))).toBe(false);
     expect(existsSync(path.join(process.cwd(), "public/brand/emc_logo.png"))).toBe(false);
     expect(existsSync(path.join(process.cwd(), "public/brand/emc_mark_helm_square.png"))).toBe(false);

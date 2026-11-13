@@ -30,7 +30,7 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Clearance is a civic honor. Week 4 Known, week 10 Trusted, week 20 Vouched For, week 36 Honored, week 52 Esteemed of Bleakspire. Pillar of Bleakspire starts 26 weeks later and repeats every 26 weeks, numbered from II. Depth thresholds stay 60, 70, 80, 90, and 100. Unlock text stays empty.
 - A player NPC note is approved only when `profiles.can_approve_lore` is true. An admin sets that in SQL. Other DMs can read a note and send it back. The flag defaults to false.
 - The local test roster is the six officer sheets in `supabase/seed/roster.json`. Squads there are a placeholder. Final scores are stored even when they miss the recruit starting-array check. David's Druid class and the officers' spells are approved. Skill ids `arcana` and `religion` still display as Alchemy and Culture.
-- Logo set v2 is approved and committed. The app icon is the helm and kettlebell on Iron Black. The header and sign-in use the transparent mark. The parchment badge is for a light surface. The wide lockup is not used.
+- The FINAL logo (13 Nov 2026, brand guide v3.4) replaces logo set v2. The full badge is the header, sign-in, and splash at about 128px and up. The small mark is the favicon, apple touch icon, PWA icons, and in-app marks under 128px. The parchment badge is retired. The files are not recolored.
 
 ## Still open
 

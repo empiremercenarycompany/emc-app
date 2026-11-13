@@ -6,13 +6,13 @@ test("barracks shows the company lines", async ({ page }) => {
   await expect(page.getByText("Train. Record. Advance.")).toHaveCount(0);
   await expect(page.getByText("Your week shapes your character and the story.")).toHaveCount(0);
   await expect(page.getByText("Go forth and conquer.")).toBeVisible();
-  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
+  await expect(page.locator("img[src='/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg']").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Join the Company" })).toBeVisible();
 });
 
 test("about attributes the SRD and stays clear of invented place copy", async ({ page }) => {
   await page.goto("/about");
-  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
+  await expect(page.locator("img[src='/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg']").first()).toBeVisible();
   await expect(page.getByText("Bleakspire is a fortress with a small city around it.")).toBeVisible();
   await expect(page.getByText(/Creative Commons Attribution 4\.0/)).toBeVisible();
   await expect(page.getByText(/System Reference Document 5\.2/)).toBeVisible();
@@ -35,7 +35,7 @@ test("dice roller keeps a total", async ({ page }) => {
 test("sign-in asks for an email link", async ({ page }) => {
   await page.goto("/sign-in");
   await expect(page.getByRole("heading", { name: "Join the Company" })).toBeVisible();
-  await expect(page.locator("img[src='/brand/emc_mark.png']").first()).toBeVisible();
+  await expect(page.locator("img[src='/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg']").first()).toBeVisible();
   await expect(page.getByLabel("Email")).toBeVisible();
   await expect(page.getByRole("button", { name: "Send my sign-in link" })).toBeVisible();
   await expect(page.getByText("Already with the Company? The same link brings you back.")).toBeVisible();
@@ -337,7 +337,9 @@ test("the manifest names the company", async ({ request }) => {
   expect(body.short_name).toBe("EMC");
   expect(body.display).toBe("standalone");
   expect(body.background_color).toBe("#111111");
-  expect(body.icons.some((icon: { src: string }) => icon.src === "/brand/emc_app_icon.png")).toBe(true);
+  expect(body.icons.some((icon: { src: string }) => icon.src === "/icons/icon-512.png")).toBe(true);
+  expect(body.icons.some((icon: { src: string }) => icon.src === "/icons/icon-192.png")).toBe(true);
+  expect(body.icons.some((icon: { src: string }) => icon.src.includes("emc_app_icon"))).toBe(false);
   expect(body.icons.some((icon: { src: string; purpose?: string }) => icon.src === "/icons/icon-maskable-512.png" && icon.purpose === "maskable")).toBe(true);
   expect(body.theme_color).toBe("#111111");
 });
