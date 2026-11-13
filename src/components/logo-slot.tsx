@@ -1,29 +1,27 @@
 import type { ReactNode } from "react";
 
 /**
- * Header, sign-in, and About use the transparent v2 mark. The heading is live type.
- * A light surface uses the parchment badge. Nothing is recolored or stretched.
+ * FINAL logo, 13 Nov 2026. The master is the full badge at about 128px and up.
+ * The small mark is everything under that. Nothing is recolored, filtered, or stretched.
  * Clear space is a quarter of the mark height.
  */
-export function LogoSlot({ surface = "dark" }: { surface?: "dark" | "light" }) {
-  if (surface === "light") {
-    return (
-      <div className="logo-on-parchment" data-logo-slot="light">
-        <Mark src="/brand/emc_badge_light.png" className="logo-badge-img" />
-      </div>
-    );
-  }
+export const MASTER_LOGO = "/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg";
+export const SMALL_LOGO = "/brand/EMC_logo_small-mark_2026-11-13_FINAL.svg";
+
+/** In-app mark under 128px. Not-found and other small slots. */
+export function LogoSlot() {
   return (
     <div className="logo-slot" data-logo-slot="image">
-      <Mark src="/brand/emc_mark.png" className="logo-img" />
+      <Mark src={SMALL_LOGO} className="logo-img" />
     </div>
   );
 }
 
+/** Full logo on sign-in, About, and the confirm step. */
 export function CompanyBadge() {
   return (
     <div className="logo-badge" data-logo-slot="badge">
-      <Mark src="/brand/emc_mark.png" className="logo-mark-splash" />
+      <Mark src={MASTER_LOGO} className="logo-mark-splash" />
     </div>
   );
 }

@@ -29,14 +29,11 @@ export const CORLEONE_DUE_FILE = "public/fonts/corleone/Corleone-Due-Regular.wof
 export const CORLEONE_FAMILY = "Corleone";
 export const CORLEONE_DUE_FAMILY = "Corleone Due";
 
-/** Approved v2 icon. Helm and kettlebell on Iron Black. PWA sizes are resizes of this file. */
-export const APP_ICON = "public/brand/emc_app_icon.png";
+/** FINAL full logo. Header, sign-in, About, and the splash, at about 128px and up. */
+export const LOGO_MASTER = "public/brand/EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg";
 
-/** Approved v2 transparent mark. Header, sign-in, and About. */
-export const LOGO_MARK = "public/brand/emc_mark.png";
-
-/** Approved v2 badge on parchment. Light surfaces only. */
-export const LOGO_LIGHT = "public/brand/emc_badge_light.png";
+/** FINAL small mark. Favicon, apple touch icon, PWA icons, and in-app marks under 128px. */
+export const LOGO_SMALL = "public/brand/EMC_logo_small-mark_2026-11-13_FINAL.svg";
 
 export function localFileReady(relativePath: string): boolean {
   return existsSync(path.join(process.cwd(), relativePath));

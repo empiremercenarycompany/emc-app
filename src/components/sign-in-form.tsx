@@ -66,7 +66,7 @@ export function SignInForm() {
         {pending ? "Opening the gates..." : "Send my sign-in link"}
       </button>
       <p className="text-sm text-mute">Already with the Company? The same link brings you back.</p>
-      <p className="text-sm text-mute">Signed up on empiremercenarycompany.com? Use the same email.</p>
+      <p className="text-sm text-mute">Enlisted on empiremercenarycompany.com? Use the same email.</p>
       <p className="text-sm text-mute">
         New here? Start at{" "}
         <a href="https://empiremercenarycompany.com">empiremercenarycompany.com</a>.

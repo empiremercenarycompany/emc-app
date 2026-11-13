@@ -6,13 +6,12 @@ This repository is public. Do not commit keys, service-role secrets, or a hosted
 
 ## Brand files
 
-The marks in `public/brand/` are the approved v2 set:
+The marks in `public/brand/` are the approved FINAL set (13 Nov 2026, brand guide v3.4):
 
-- `emc_mark.png` — transparent helm and kettlebell. Header, sign-in, and About.
-- `emc_app_icon.png` — the same mark on Iron Black, 1024. PWA icons, the apple touch icon, the favicon, and the splash are resizes of this file.
-- `emc_badge_light.png` — full badge on parchment, for a light surface.
+- `EMC_logo_master-app-mark-dark_2026-11-13_FINAL.svg` — full logo. Header, sign-in, About, and the splash, at about 128px and up.
+- `EMC_logo_small-mark_2026-11-13_FINAL.svg` — small mark. Favicon, apple touch icon, PWA icons, and in-app marks under 128px. The 512, 192, 64, 32, and 16 PNGs, the 180 apple touch icon, and `favicon.ico` are resizes of this file.
 
-Nothing is recolored. The wide lockup is not used. Headings are live type.
+Nothing is recolored or filtered. Corners stay transparent where the source is transparent. Headings are live type.
 
 Corleone is FontMesa's cut, licensed for web and app use, and never committed. Put `Corleone-Regular.woff2` (`font-family: Corleone`, mixed-case display) and `Corleone-Due-Regular.woff2` (`font-family: "Corleone Due"`, all-caps headings) in `public/fonts/corleone/` (gitignored). Both faces are weight 400. The display stack is `"Corleone Due", Corleone, "Nunito Sans", sans-serif`. A missing file does not fail the build; headings then use Nunito Sans. See `public/fonts/private/README.md`.
 
