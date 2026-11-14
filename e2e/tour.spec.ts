@@ -86,6 +86,19 @@ test.describe("tour stills", () => {
       await page.reload();
       await page.evaluate(() => document.fonts.ready);
       await openTour(page);
+      if (theme === "light") {
+        const colors = await page.evaluate(() => {
+          const card = document.querySelector(".tour-card");
+          const paper = document.querySelector("main");
+          if (!(card instanceof HTMLElement) || !(paper instanceof HTMLElement)) return null;
+          const cardStyle = getComputedStyle(card);
+          const paperStyle = getComputedStyle(paper);
+          return { ink: cardStyle.color, card: cardStyle.backgroundColor, page: paperStyle.backgroundColor };
+        });
+        expect(colors?.ink).toBe("rgb(28, 25, 22)");
+        expect(colors?.card).toBe("rgb(233, 220, 192)");
+        expect(colors?.page).toBe("rgb(244, 235, 216)");
+      }
       await page.screenshot({ path: `${SHOTS}/${theme}-welcome.png` });
 
       await advanceTo(page, "Recruitment Papers");
