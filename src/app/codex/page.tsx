@@ -7,7 +7,7 @@ export default async function CodexPage() {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
   return (
-    <Page hero title="The Company Codex" lede="Plain answers" mark={false}>
+    <Page hero tour="codex" title="The Company Codex" lede="Plain answers" mark={false}>
       {setup ? <Notice>{setup}</Notice> : null}
       <p className="span-all text-center">Every word in the app, explained.</p>
       {viewer.beginner ? (

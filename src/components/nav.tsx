@@ -7,6 +7,7 @@ import { useCodexOverlay, useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
 import { MASTER_LOGO } from "@/components/logo-slot";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TourReplay } from "@/components/tour";
 import { signOut } from "@/lib/actions/staff";
 import { isDmOrAdmin, isLogApprover, isStaff, type AppRole } from "@/lib/types";
 
@@ -101,7 +102,7 @@ export function SiteNav({
           <img src={MASTER_LOGO} alt="" />
           The Company
         </Link>
-        <div className="header-tools">
+        <div className="header-tools" data-tour="wayfinding">
           <button
             type="button"
             className="icon-round"
@@ -154,6 +155,7 @@ export function SiteNav({
                       {item.label}
                     </Link>
                   ))}
+                  {group.title === "Company" ? <TourReplay onStart={() => setOpen(false)} /> : null}
                 </div>
               </section>
             ))}

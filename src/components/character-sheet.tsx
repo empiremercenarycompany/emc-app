@@ -60,6 +60,7 @@ export function CharacterSheet({
   conditionLabel = null,
   subclass = null,
   portraitSrc = null,
+  initialTab = 0,
 }: {
   name: string;
   classLabel: string;
@@ -90,8 +91,14 @@ export function CharacterSheet({
   conditionLabel?: string | null;
   subclass?: { name: string | null; features: string | null; spells: string | null } | null;
   portraitSrc?: string | null;
+  initialTab?: number;
 }) {
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(initialTab);
+  const [seenTab, setSeenTab] = useState(initialTab);
+  if (initialTab !== seenTab) {
+    setSeenTab(initialTab);
+    setTab(initialTab);
+  }
   const [roll, setRoll] = useState<string | null>(null);
   const dex = abilityModifier(scores.dexterity);
   const str = abilityModifier(scores.strength);
@@ -319,7 +326,7 @@ export function CharacterSheet({
 
   return (
     <div className="span-all flex flex-col gap-4">
-      <div role="tablist" aria-label="Sheet sections" className="segmented" onKeyDown={onKeys}>
+      <div role="tablist" aria-label="Sheet sections" className="segmented" data-tour="character" onKeyDown={onKeys}>
         {TABS.map((label, index) => (
           <button
             key={label}
@@ -327,6 +334,7 @@ export function CharacterSheet({
             type="button"
             aria-selected={tab === index}
             data-index={index}
+            data-tour={label === "Progress" ? "progress" : undefined}
             className={tab === index ? "is-on" : undefined}
             onClick={() => show(index)}
           >

@@ -4,6 +4,7 @@ import { InstallHelp } from "@/components/install-help";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { TextSizeToggle } from "@/components/text-size-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TourReplay } from "@/components/tour";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveDisplayName } from "@/lib/actions/character";
 import { saveIntake } from "@/lib/actions/intake";
@@ -40,10 +41,11 @@ export default async function ProfilePage() {
   const nameField = storedName && storedName.toLowerCase() !== mailbox && !storedName.includes("@") ? storedName : "";
 
   return (
-    <Page title="Profile" lede="Who the Company sees when you walk in.">
+    <Page tour="profile" title="Profile" lede="Who the Company sees when you walk in.">
       {setup ? <Notice>{setup}</Notice> : null}
       <ThemeToggle />
       <TextSizeToggle />
+      <TourReplay className="secondary" />
       <InstallHelp />
       {!viewer.userId ? <SignInPrompt /> : (
         <>

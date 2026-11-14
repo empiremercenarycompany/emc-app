@@ -75,11 +75,13 @@ function ProficiencyRecord({ row }: { row: CharacterRow }) {
 export default async function CharacterPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ preview?: string; welcomed?: string; recruit?: string }>;
+  searchParams?: Promise<{ preview?: string; welcomed?: string; recruit?: string; tab?: string }>;
 }) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
   const params = await searchParams;
+  const sheetTabs = ["overview", "skills", "gear", "story", "progress"];
+  const initialTab = Math.max(0, sheetTabs.indexOf((params?.tab ?? "").trim().toLowerCase()));
   const previewName = params?.preview;
   const host = (await headers()).get("host");
   if (!viewer.userId && previewName && devLoginAllowed(process.env.NEXT_PUBLIC_DEV_LOGIN, host)) {
@@ -88,7 +90,7 @@ export default async function CharacterPage({
       const scores = row.scores;
       return (
         <Page title="Character" mark={false}>
-          <CharacterSheet
+          <CharacterSheet initialTab={initialTab}
             name={row.name}
             classLabel={`${speciesLabel(row.species, row.species.charAt(0).toUpperCase() + row.species.slice(1))}${row.lineage ? ` · ${row.lineage}` : ""} · ${row.className}`}
             level={row.level}
@@ -118,7 +120,7 @@ export default async function CharacterPage({
       <Page title="Character" mark={false}>
         {setup ? <Notice>{setup}</Notice> : null}
         <p>Sign in to open your sheet.</p>
-        <CharacterSheet
+        <CharacterSheet initialTab={initialTab}
           name="Recruit"
           classLabel="Not yet inducted"
           level={1}
@@ -177,7 +179,7 @@ export default async function CharacterPage({
     const recruitPortrait = recruitClient ? await signedPortraitUrl(recruitClient, recruit.portrait_url) : null;
     return (
       <Page title="Character" lede={recruit.name} mark={false}>
-        <CharacterSheet
+        <CharacterSheet initialTab={initialTab}
           portraitSrc={recruitPortrait}
           name={recruit.name}
           classLabel={`${recruit.rank} · ${recruit.class ?? "Not yet inducted"}`}
@@ -394,7 +396,7 @@ export default async function CharacterPage({
         <p className="text-mute">A session you attend counts as 1 outside that.</p>
       </Panel>
       <PortraitForm hasPortrait={Boolean(character.portrait_url)} />
-      <CharacterSheet
+      <CharacterSheet initialTab={initialTab}
         portraitSrc={portraitSrc}
         name={character.name}
         classLabel={`${character.rank} · ${character.class ?? "Not yet inducted"}`}

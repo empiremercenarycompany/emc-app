@@ -27,7 +27,7 @@ export default async function LibraryPage() {
   const editor = isLibraryEditor(viewer.role);
 
   return (
-    <Page title="Library" lede="Company workouts. Each one has a gym version, a lighter version, and a home version.">
+    <Page tour="library" title="Library" lede="Company workouts. Each one has a gym version, a lighter version, and a home version.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt /> : null}
       {(drills ?? [])
