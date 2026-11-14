@@ -48,7 +48,7 @@ export default async function MissionsPage() {
       : [];
 
   return (
-    <Page title="Missions" lede="Contracts, barracks challenges, and table check-in.">
+    <Page tour="missions" title="Missions" lede="Contracts, barracks challenges, and table check-in.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt /> : null}
       {(missions ?? []).length === 0 ? (

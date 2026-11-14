@@ -45,7 +45,7 @@ export default async function CheckInPage({
   const rank = clearanceRank(companyWeek);
 
   return (
-    <Page hero mark={false} title="Check-in" lede="Four quick questions">
+    <Page hero tour="check-in" mark={false} title="Check-in" lede="Four quick questions">
       <SirathNewRows view={sirath} as={params.as} />
       <p className="span-all text-center">
         Due Friday at 11:59 PM. Honest answers help your coach support your goals. This does not lock your character.
