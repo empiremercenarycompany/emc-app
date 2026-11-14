@@ -239,7 +239,7 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Help & FAQ" })).toHaveAttribute("href", "/codex#faq");
   const background = await overlay.evaluate((element) => getComputedStyle(element).backgroundColor);
-  expect(background).toBe("rgb(233, 220, 192)");
+  expect(background).toBe("rgb(26, 22, 19)");
   await page.goto("/menu");
   await expect(page).not.toHaveURL(/\/menu$/);
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
@@ -280,7 +280,7 @@ test("a term sheet button stays readable on the cream sheet", async ({ page }) =
   const got = page.getByRole("button", { name: "Got it" });
   await expect(got).toBeVisible();
   const color = await got.evaluate((element) => getComputedStyle(element).color);
-  expect(color).toBe("rgb(28, 25, 22)");
+  expect(color).toBe("rgb(33, 27, 21)");
 });
 
 test("goals stays closed until a player opens a sheet", async ({ page }) => {

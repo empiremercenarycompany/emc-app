@@ -147,9 +147,13 @@ describe("theme contrast", () => {
 
   it("paints the stylesheet with the same pairs", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    for (const hex of [DARK_PAGE, DARK_INK, DARK_CAPTION, LIGHT_PAGE, LIGHT_INK, LIGHT_CAPTION, LEATHER, HEADER_STRIP, BRAND_RED]) {
+    for (const hex of [DARK_PAGE, DARK_INK, DARK_CAPTION, LEATHER, HEADER_STRIP, BRAND_RED]) {
       expect(css.toLowerCase()).toContain(hex.toLowerCase());
     }
+    const root = css.slice(0, css.indexOf('html[data-theme="dark"]'));
+    expect(root).toContain("background-color: var(--color-char)");
+    expect(root.toLowerCase()).not.toContain("#f4ebd8");
+    expect(root.toLowerCase()).not.toContain("#4a2e1e");
     const manifest = readFileSync(path.join(process.cwd(), "src/app/manifest.ts"), "utf8");
     expect(manifest).toContain('"#111111"');
     expect(manifest).not.toContain(DARK_PAGE);

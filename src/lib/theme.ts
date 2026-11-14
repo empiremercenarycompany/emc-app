@@ -8,11 +8,11 @@ export type ResolvedTheme = "light" | "dark";
 
 /**
  * Browser chrome behind the status bar.
- * Light matches the tan header strip. Dark matches the night ledger page.
+ * Light stays the main charcoal #1A1613. Dark matches the night ledger page.
  * The manifest stays Iron Black #111111.
  */
 export const THEME_COLOR: Record<ResolvedTheme, string> = {
-  light: "#C6B08A",
+  light: "#1A1613",
   dark: "#1C1916",
 };
 

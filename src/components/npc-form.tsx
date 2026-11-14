@@ -61,7 +61,7 @@ export function NpcForm({
         What they are like
         <textarea name="likeness" value={likeness} onChange={(event) => setLikeness(event.target.value)} />
       </label>
-      <p className={used > CAP ? "text-mute is-over" : "text-mute"} data-testid="npc-counter">
+      <p className={used > CAP ? "text-parchment" : "text-mute"} data-testid="npc-counter">
         {used} / {CAP}
       </p>
       <p className="text-mute">

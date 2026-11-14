@@ -13,7 +13,7 @@ test("dark mode applies from the toggle and persists", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
-  await expect(page.locator("main").first()).toHaveCSS("background-color", "rgb(244, 235, 216)");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(26, 22, 19)");
 
   await openMenu(page);
   await page.getByRole("radio", { name: "Dark" }).click();

@@ -90,7 +90,7 @@ export function ImpactCard({ impact }: { impact: Impact }) {
   } else if (impact.status === "none") headline = "Saved. Nothing new is ready to place.";
 
   return (
-    <div className="impact-card" data-testid="impact">
+    <div className="border border-steel bg-iron p-3" data-testid="impact">
       <p className="font-bold">{headline}</p>
       {impact.unspent_after ? (
         <p className="text-mute">

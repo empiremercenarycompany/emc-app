@@ -51,66 +51,8 @@
   --font-accent: "Corleone Due", Corleone, "Nunito Sans", sans-serif;
 }
 
-/*
-  Field journal by day, leather ledger at night.
-  Shared binding: header strip #C6B08A, leather #4A2E1E, brand red #B11217.
-  Night page #1C1916, body #D9CBA8, captions #A89880.
-  Day page #F4EBD8, body #1C1916, captions #5C4632.
-  Red is a fill, a rule, a ribbon, or a border. It is not small text on the night page.
-*/
-:root {
-  color-scheme: light;
-  --leather: #4a2e1e;
-  --header: #c6b08a;
-  --header-ink: #1c1916;
-  --chrome-ink: #e7d7b4;
-  --accent: #b11217;
-  --on-accent: #f4f1e8;
-  --page: #f4ebd8;
-  --raised: #e9dcc0;
-  --field: #fff9ee;
-  --ink: #1c1916;
-  --ink-dim: #5c4632;
-  --line: rgba(74, 46, 30, 0.38);
-  --focus: #1c1916;
-  --stitch: rgba(74, 46, 30, 0.45);
-  --hero-scrim: linear-gradient(180deg, rgba(244, 235, 216, 0.2), rgba(244, 235, 216, 0.92));
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 .28  0 0 0 0 .18  0 0 0 0 .08  0 0 0 .05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  --leather-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 .15  0 0 0 0 .08  0 0 0 0 .04  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-html[data-theme="dark"] {
-  color-scheme: dark;
-  --page: #1c1916;
-  --raised: #26211c;
-  --field: #141210;
-  --ink: #d9cba8;
-  --ink-dim: #a89880;
-  --line: rgba(217, 203, 168, 0.38);
-  --focus: #d9cba8;
-  --stitch: rgba(231, 215, 180, 0.35);
-  --hero-scrim: linear-gradient(180deg, rgba(28, 25, 22, 0.2), rgba(28, 25, 22, 0.9));
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 .85  0 0 0 0 .75  0 0 0 0 .58  0 0 0 .04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
-@media (prefers-color-scheme: dark) {
-  html:not([data-theme]) {
-    color-scheme: dark;
-    --page: #1c1916;
-    --raised: #26211c;
-    --field: #141210;
-    --ink: #d9cba8;
-    --ink-dim: #a89880;
-    --line: rgba(217, 203, 168, 0.38);
-    --focus: #d9cba8;
-    --stitch: rgba(231, 215, 180, 0.35);
-    --hero-scrim: linear-gradient(180deg, rgba(28, 25, 22, 0.2), rgba(28, 25, 22, 0.9));
-    --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 .85  0 0 0 0 .75  0 0 0 0 .58  0 0 0 .04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  }
-}
-
 html {
-  background: var(--leather);
+  background: var(--color-char);
 }
 
 html[data-font="large"] body {
@@ -1965,23 +1907,63 @@ button,
   line-height: 1.1;
 }
 
-/* Journal shell. Leather binding around a page that follows the theme. */
+/* The toggle is the only new control in the existing (light) theme. */
+.theme-toggle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
 
-html,
-body {
+.theme-toggle button {
+  background: transparent;
+  color: var(--color-parchment);
+  border-color: rgba(210, 176, 122, 0.45);
+}
+
+.theme-toggle button[aria-checked="true"] {
+  border-color: #b11217;
+  box-shadow: inset 0 -3px 0 #b11217;
+}
+
+/*
+  Refined D. Night ledger inside a leather binding.
+  Applies only when data-theme is dark. Light stays the rules above.
+*/
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --leather: #4a2e1e;
+  --header: #c6b08a;
+  --header-ink: #1c1916;
+  --chrome-ink: #e7d7b4;
+  --accent: #b11217;
+  --on-accent: #f4f1e8;
+  --page: #1c1916;
+  --raised: #26211c;
+  --field: #141210;
+  --ink: #d9cba8;
+  --ink-dim: #a89880;
+  --line: rgba(217, 203, 168, 0.38);
+  --focus: #d9cba8;
+  --stitch: rgba(231, 215, 180, 0.35);
+  --hero-scrim: linear-gradient(180deg, rgba(28, 25, 22, 0.2), rgba(28, 25, 22, 0.9));
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='4'/><feColorMatrix values='0 0 0 0 .85  0 0 0 0 .75  0 0 0 0 .58  0 0 0 .04 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --leather-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 .15  0 0 0 0 .08  0 0 0 0 .04  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+html[data-theme="dark"],
+html[data-theme="dark"] body {
   background-color: var(--leather);
   background-image: var(--leather-grain);
 }
 
-body {
+html[data-theme="dark"] body {
   color: var(--ink);
 }
 
-main.page-wrap,
-main.sirath-main {
+html[data-theme="dark"] main {
   position: relative;
   width: auto;
-  max-width: none;
+  max-width: 72rem;
   margin: 0.65rem 0.6rem 0;
   background-color: var(--page);
   background-image: var(--grain);
@@ -1990,8 +1972,7 @@ main.sirath-main {
   outline-offset: -7px;
 }
 
-main.page-wrap::after,
-main.sirath-main::after {
+html[data-theme="dark"] main::after {
   content: "";
   position: absolute;
   z-index: 2;
@@ -2004,8 +1985,7 @@ main.sirath-main::after {
   pointer-events: none;
 }
 
-main.page-wrap::before,
-main.sirath-main::before {
+html[data-theme="dark"] main::before {
   content: "";
   position: absolute;
   z-index: 2;
@@ -2018,32 +1998,19 @@ main.sirath-main::before {
 }
 
 @media (min-width: 768px) {
-  main.page-wrap,
-  main.sirath-main {
+  html[data-theme="dark"] main {
     width: min(100% - 1.6rem, 72rem);
     margin-inline: auto;
   }
 }
 
-h1,
-h2,
-h3,
-.display,
-.wordmark,
-.sheet-name,
-.sheet-head h2,
-.paper h2,
-.paper h3,
-.paper .sheet-name,
-.goal-card h2,
-.goal-card h3,
-.goal-card .progress-fraction {
+html[data-theme="dark"] :is(h1, h2, h3, .display, .wordmark, .sheet-name, .sheet-head h2, .paper h2, .paper h3, .goal-card h2, .goal-card h3, .signoff) {
   color: var(--ink);
 }
 
-.in-world > h1,
-.in-world h2,
-.sirath-sheet :is(h1, h2, .entry-name, .sec-h) {
+html[data-theme="dark"] .in-world > h1,
+html[data-theme="dark"] .in-world h2,
+html[data-theme="dark"] .sirath-sheet :is(h1, h2, .entry-name, .sec-h) {
   font-family: "EB Garamond", Georgia, serif;
   font-weight: 600;
   font-synthesis: none;
@@ -2052,405 +2019,298 @@ h3,
   text-transform: none;
 }
 
-.in-world > h1 {
+html[data-theme="dark"] .in-world > h1 {
   text-align: center;
   font-size: 2.6rem;
 }
 
-html .text-mute,
-.paper .text-mute,
-.paper .sheet-note,
-.dm-sub,
-.dm-empty,
-.dm-k,
-.sheet-hint,
-.skill-head span,
-.crest-score {
+html[data-theme="dark"] :is(.text-mute, .eyebrow, .dm-sub, .dm-empty, .dm-k, .sheet-hint, .skill-head span, .crest-score, .paper .text-mute, .paper .sheet-note, .paper .eyebrow, .paper .sheet-rank) {
   color: var(--ink-dim);
 }
 
-html .eyebrow,
-.paper .eyebrow,
-.paper .sheet-rank {
-  color: var(--ink-dim);
-}
-
-html :focus-visible,
-.choice input:focus-visible + .choice-mark,
-.sheet-panel-pop :focus-visible {
+html[data-theme="dark"] :focus-visible,
+html[data-theme="dark"] .choice input:focus-visible + .choice-mark,
+html[data-theme="dark"] .sheet-panel-pop :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
-html .skip:focus {
-  background: var(--ink);
-  color: var(--page);
-}
-
-.app-header {
+html[data-theme="dark"] .app-header {
   background-color: var(--header);
   background-image: var(--leather-grain);
   color: var(--header-ink);
 }
 
-.brand-lockup {
+html[data-theme="dark"] .brand-lockup {
   color: var(--header-ink);
 }
 
-.app-header .brand-lockup img {
+html[data-theme="dark"] .app-header .brand-lockup img {
   height: 4.5rem;
   width: 4.5rem;
 }
 
-html .icon-round,
-html .icon-round[aria-pressed="true"] {
+html[data-theme="dark"] .icon-round,
+html[data-theme="dark"] .icon-round[aria-pressed="true"] {
   background: var(--leather);
   color: var(--chrome-ink);
   border-color: #3a2418;
+  box-shadow: none;
 }
 
-html .icon-round[aria-pressed="true"] {
+html[data-theme="dark"] .icon-round[aria-pressed="true"] {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-.tab-bar {
+html[data-theme="dark"] .tab-bar {
   background-color: var(--leather);
   background-image: var(--leather-grain);
-  color: var(--chrome-ink);
-  border-top: 1px solid rgba(0, 0, 0, 0.35);
+  border-top-color: rgba(0, 0, 0, 0.35);
 }
 
-.tab-link,
-.tab-link.is-on,
-.tab-icon {
+html[data-theme="dark"] .tab-link,
+html[data-theme="dark"] .tab-link.text-parchment,
+html[data-theme="dark"] .tab-link.text-mute,
+html[data-theme="dark"] .tab-link .text-bronze,
+html[data-theme="dark"] .tab-link .text-mute {
   color: var(--chrome-ink);
 }
 
-.tab-link.is-on {
+html[data-theme="dark"] .tab-link.text-parchment {
   box-shadow: inset 0 -3px 0 var(--accent);
 }
 
-.tab-bar .spinner {
+html[data-theme="dark"] .tab-bar .spinner {
   border-color: var(--chrome-ink);
   border-right-color: transparent;
 }
 
-html .card,
-html .paper,
-html .goal-card,
-html .notice,
-html .dm-panel,
-html .dm-card,
-html .impact-card,
-html .week-item,
-html .new-here,
-html .callout,
-html .menu-overlay,
-html .codex-overlay,
-html .codex-overlay-bar,
-html .sheet-panel-pop,
-html .toast-banner,
-html .skeleton {
+html[data-theme="dark"] :is(.card, .paper, .goal-card, .notice, .dm-panel, .dm-card, .week-item, .new-here, .callout, .menu-overlay, .codex-overlay, .codex-overlay-bar, .sheet-panel-pop, .toast-banner, .skeleton, [data-testid="impact"]) {
   background-color: var(--raised);
   background-image: none;
   color: var(--ink);
   border-color: var(--line);
 }
 
-html .paper,
-html .notice,
-html .sheet-panel-pop,
-html .callout {
+html[data-theme="dark"] :is(.paper, .notice, .sheet-panel-pop, .callout) {
   background-image: var(--grain);
 }
 
-html .paper p,
-html .paper li,
-html .paper button.secondary,
-html .paper .button.secondary,
-html .paper button.roll-btn,
-html .goal-card,
-html .goal-card h2,
-html .goal-card h3,
-html button.weapon-row {
+html[data-theme="dark"] :is(.paper p, .paper li, .paper button.secondary, .paper .button.secondary, button.weapon-row, .goal-card, .menu-overlay a, .codex-overlay, .identity) {
   color: var(--ink);
-  border-color: var(--line);
 }
 
-html button,
-html .button,
-html button.secondary,
-html .button.secondary,
-html .paper button.secondary,
-html .paper .button.secondary,
-html .sheet-panel-pop button.secondary,
-html .sheet-panel-pop .button.secondary {
+html[data-theme="dark"] :is(button, .button, button.secondary, .button.secondary, .paper button.secondary, .sheet-panel-pop button.secondary, .sheet-panel-pop .button.secondary) {
   color: var(--ink);
   border-color: var(--line);
   background: transparent;
 }
 
-html button.primary,
-html .button.primary,
-html .sheet-panel-pop button.primary,
-html .sheet-panel-pop .button.primary {
+html[data-theme="dark"] :is(button.primary, .button.primary, .sheet-panel-pop button.primary, .sheet-panel-pop .button.primary) {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
 }
 
-html input,
-html select,
-html textarea,
-html .paper input,
-html .paper select,
-html .paper textarea,
-html .sheet-panel-pop input,
-html .sheet-panel-pop select,
-html .sheet-panel-pop textarea {
+html[data-theme="dark"] :is(input, select, textarea, .paper input, .paper select, .paper textarea) {
   background: var(--field);
   color: var(--ink);
   border-color: var(--line);
 }
 
-html input::placeholder,
-html textarea::placeholder {
+html[data-theme="dark"] :is(input, textarea)::placeholder {
   color: var(--ink-dim);
 }
 
-html .choice-mark {
+html[data-theme="dark"] .choice-mark {
   background: var(--field);
   border-color: var(--line);
 }
 
-html .choice input:checked + .choice-mark {
+html[data-theme="dark"] .choice input:checked + .choice-mark {
   background: var(--accent);
   border-color: var(--accent);
 }
 
-html .help-banner {
+html[data-theme="dark"] .theme-toggle button {
+  background: var(--field);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .theme-toggle button[aria-checked="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 -3px 0 var(--accent);
+}
+
+html[data-theme="dark"] .help-banner {
   background: var(--leather);
   color: var(--chrome-ink);
 }
 
-html .help-banner button.help-banner-link {
+html[data-theme="dark"] .help-banner button.help-banner-link {
   color: var(--chrome-ink);
   border-bottom-color: var(--accent);
 }
 
-html .feedback-fab {
+html[data-theme="dark"] .feedback-fab {
   background: var(--page);
   color: var(--ink);
   border-color: var(--accent);
 }
 
-html .toast-banner {
+html[data-theme="dark"] .toast-banner {
   border-color: var(--accent);
 }
 
-html .theme-toggle {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.35rem;
-}
-
-html .theme-toggle button {
-  background: var(--field);
-  color: var(--ink);
-  border-color: var(--line);
-}
-
-html .theme-toggle button[aria-checked="true"] {
-  border-color: var(--accent);
-  box-shadow: inset 0 -3px 0 var(--accent);
-}
-
-html .is-over {
-  color: var(--ink);
-  box-shadow: inset 0 -2px 0 var(--accent);
-}
-
-html .hero-band {
+html[data-theme="dark"] .hero-band {
   color: var(--ink);
 }
 
-html .hero-band::before {
+html[data-theme="dark"] .hero-band::before {
   background: var(--hero-scrim), url("/art/header-band-placeholder.jpg") center / cover no-repeat;
 }
 
-html .segmented {
+html[data-theme="dark"] .segmented {
   background: var(--field);
   border-color: var(--line);
 }
 
-html .segmented button {
+html[data-theme="dark"] .segmented button {
   color: var(--ink-dim);
 }
 
-html .segmented button.is-on,
-html .choice-grid button[aria-pressed="true"],
-html .filter-chip[aria-pressed="true"] {
+html[data-theme="dark"] :is(.segmented button.is-on, .choice-grid button[aria-pressed="true"], .filter-chip[aria-pressed="true"]) {
   background: var(--ink);
   color: var(--page);
   border-color: var(--accent);
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-html .choice-grid button,
-html .filter-chip {
+html[data-theme="dark"] :is(.choice-grid button, .filter-chip) {
   background: var(--field);
   color: var(--ink);
   border-color: var(--line);
 }
 
-html .sheet-panel-pop button.sheet-choice {
+html[data-theme="dark"] .sheet-panel-pop button.sheet-choice {
   background: var(--field);
   color: var(--ink);
   border-color: var(--line);
 }
 
-html .sheet-panel-pop button.sheet-choice .sheet-choice-condition {
+html[data-theme="dark"] .sheet-panel-pop button.sheet-choice .sheet-choice-condition {
   color: var(--ink-dim);
 }
 
-html .sheet-panel-pop button.sheet-choice[aria-pressed="true"],
-html .sheet-panel-pop button.sheet-choice[aria-pressed="true"] .sheet-choice-condition {
+html[data-theme="dark"] .sheet-panel-pop button.sheet-choice[aria-pressed="true"],
+html[data-theme="dark"] .sheet-panel-pop button.sheet-choice[aria-pressed="true"] .sheet-choice-condition {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
 }
 
-html .sheet-head h2,
-html .sheet-choices legend,
-html .sheet-close,
-html .sheet-plain {
+html[data-theme="dark"] :is(.sheet-head h2, .sheet-choices legend, .sheet-close, .sheet-plain) {
   color: var(--ink);
 }
 
-html .sheet-grab {
+html[data-theme="dark"] .sheet-grab {
   background: var(--ink-dim);
 }
 
-html .sheet-close {
+html[data-theme="dark"] .sheet-close {
   border-color: var(--line);
 }
 
-html .stat-chip {
+html[data-theme="dark"] .stat-chip {
   background: var(--leather);
   color: var(--chrome-ink);
 }
 
-html .stat-value,
-html .stat-chip .term-link {
+html[data-theme="dark"] :is(.stat-value, .stat-chip .term-link) {
   color: var(--chrome-ink);
   border-bottom-color: var(--chrome-ink);
 }
 
-html .crest {
+html[data-theme="dark"] .crest {
   background: var(--field);
   border-color: var(--line);
   color: var(--ink);
 }
 
-html .crest-mod,
-html .crest p,
-html .progress-fraction {
+html[data-theme="dark"] :is(.crest-mod, .crest p, .progress-fraction) {
   color: var(--ink);
 }
 
-html .term-link {
+html[data-theme="dark"] .term-link {
   border-bottom-color: var(--ink-dim);
 }
 
-html .skill-head,
-html .skill-row,
-html button.weapon-row {
+html[data-theme="dark"] :is(.skill-head, .skill-row, button.weapon-row) {
   border-bottom-color: var(--line);
 }
 
-html .week-dot.filed,
-html .check-progress span.on,
-html .progress > span {
+html[data-theme="dark"] :is(.week-dot.filed, .check-progress span.on, .progress > span) {
   background: var(--ink);
   border-color: var(--ink);
 }
 
-html .impact-card {
-  border: 1px solid var(--line);
-  padding: 0.75rem;
-}
-
-html .miss-note {
+html[data-theme="dark"] .miss-note {
   color: var(--ink);
   border-color: var(--line);
   background: var(--raised);
 }
 
-html .goal-chips span {
+html[data-theme="dark"] .goal-chips span {
   border-color: var(--line);
   color: var(--ink-dim);
 }
 
-html .goal-chips span.is-on {
+html[data-theme="dark"] .goal-chips span.is-on {
   border-color: var(--accent);
   background: var(--field);
   color: var(--ink);
 }
 
-html .menu-overlay a,
-html .codex-overlay,
-html .identity {
-  color: var(--ink);
-}
-
-html .dm-panel > summary,
-html .dm-example,
-html .dm-flag {
+html[data-theme="dark"] :is(.dm-panel > summary, .dm-example, .dm-flag) {
   color: var(--ink-dim);
 }
 
-html .signoff,
-html .avatar,
-html .sheet-level,
-html .sheet-note {
-  color: var(--ink);
+html[data-theme="dark"] .empty-mark {
+  stroke: var(--ink-dim);
 }
 
-html .avatar {
-  border-color: var(--line);
+html[data-theme="dark"] .level-ring text {
+  fill: var(--ink);
+}
+
+html[data-theme="dark"] .ring-track {
+  stroke: var(--line);
+}
+
+html[data-theme="dark"] .ring-value {
+  stroke: var(--accent);
+}
+
+html[data-theme="dark"] .term-pop {
   background: var(--field);
-}
-
-html .term-pop {
-  background: var(--field);
   color: var(--ink);
   border-color: var(--line);
 }
 
-html .new-here,
-html .new-here a {
+html[data-theme="dark"] .new-here,
+html[data-theme="dark"] .new-here a {
   background: var(--raised);
   color: var(--ink);
-  border-color: var(--line);
 }
 
-html .new-index {
+html[data-theme="dark"] .new-index {
   background: var(--leather);
   color: var(--chrome-ink);
 }
 
-html .empty-mark {
-  stroke: var(--ink-dim);
-}
-
-html .level-ring text {
-  fill: var(--ink);
-}
-
-html .ring-track {
-  stroke: var(--line);
-}
-
-html .ring-value {
-  stroke: var(--accent);
+html[data-theme="dark"] .avatar {
+  color: var(--ink);
+  border-color: var(--line);
+  background: var(--field);
 }

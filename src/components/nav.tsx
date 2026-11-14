@@ -184,7 +184,7 @@ export function SiteNav({
           </div>
         </div>
       ) : null}
-      <nav className="tab-bar fixed inset-x-0 bottom-0 z-10">
+      <nav className="tab-bar fixed inset-x-0 bottom-0 z-10 border-t border-[rgba(210,176,122,0.3)] bg-char">
         <div className="mx-auto grid max-w-lg grid-cols-5">
           {PRIMARY.map((item) => {
             const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -193,10 +193,9 @@ export function SiteNav({
                 key={item.href}
                 href={item.href}
                 prefetch
-                className={`tab-link flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center${active ? " is-on" : ""}`}
-                aria-current={active ? "page" : undefined}
+                className={`tab-link flex min-h-11 flex-col items-center justify-center px-1 py-2 text-center ${active ? "text-parchment" : "text-mute"}`}
               >
-                <TabBody icon={item.icon} label={item.label} />
+                <TabBody icon={item.icon} label={item.label} active={active} />
               </Link>
             );
           })}
@@ -209,14 +208,16 @@ export function SiteNav({
 function TabBody({
   icon,
   label,
+  active,
 }: {
   icon: "barracks" | "missions" | "goals" | "character" | "codex";
   label: string;
+  active: boolean;
 }) {
   const { pending } = useLinkStatus();
   return (
     <>
-      <span className="tab-icon">
+      <span className={active ? "text-bronze" : "text-mute"}>
         {pending ? <span className="spinner" aria-hidden="true" /> : <LineIcon name={icon} />}
       </span>
       {label}
