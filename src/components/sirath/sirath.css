@@ -478,3 +478,110 @@
     display: none;
   }
 }
+
+/* Night ledger. The daylight book above is unchanged. */
+html[data-theme="dark"] .sirath-sheet {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .sirath-sheet :is(h1, h2, h3, .entry-name, .sec-h, p, li, a) {
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .sirath-sheet .subtitle {
+  display: table;
+  margin-inline: auto;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+html[data-theme="dark"] .sirath-sheet :is(.sirath-caption, .kind-tag, .scouts, .sirath-how, .count-line),
+html[data-theme="dark"] .sirath-card dt,
+html[data-theme="dark"] .sirath-hero figcaption,
+html[data-theme="dark"] .sirath-voice cite,
+html[data-theme="dark"] .sirath-pull cite,
+html[data-theme="dark"] .sirath-sealed .meta {
+  color: var(--ink-dim);
+}
+
+html[data-theme="dark"] .sirath-pane .sec-h {
+  color: var(--ink) !important;
+}
+
+html[data-theme="dark"] .sirath-rule {
+  background: repeating-linear-gradient(90deg, var(--ink-dim) 0 8px, transparent 8px 12px);
+}
+
+html[data-theme="dark"] .sirath-find,
+html[data-theme="dark"] .sirath-pane {
+  background: var(--raised);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .sirath-find input,
+html[data-theme="dark"] .sirath-notes textarea {
+  background: var(--field);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .sirath-find input::placeholder {
+  color: var(--ink-dim);
+}
+
+html[data-theme="dark"] .sirath-chip {
+  color: var(--ink);
+  border-color: var(--line);
+  background: transparent;
+}
+
+html[data-theme="dark"] .sirath-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+html[data-theme="dark"] .sirath-results,
+html[data-theme="dark"] .sirath-results a,
+html[data-theme="dark"] .sirath-results p {
+  background: var(--field);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .sirath-index a,
+html[data-theme="dark"] .sirath-pane a,
+html[data-theme="dark"] .sirath-crumbs,
+html[data-theme="dark"] .sirath-crumbs a {
+  color: var(--ink);
+}
+
+html[data-theme="dark"] .sirath-pane a[aria-current="page"] {
+  background: var(--leather);
+  color: var(--chrome-ink);
+}
+
+html[data-theme="dark"] .sirath-card,
+html[data-theme="dark"] .sirath-connected li,
+html[data-theme="dark"] .sirath-index a {
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .sirath-voice,
+html[data-theme="dark"] .sirath-pull {
+  border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .sirath-leather,
+html[data-theme="dark"] .sirath-leather :is(h2, h3, p, a),
+html[data-theme="dark"] .sirath-from,
+html[data-theme="dark"] .sirath-new,
+html[data-theme="dark"] .sirath-new .t,
+html[data-theme="dark"] .sirath-queue .status {
+  background: var(--leather);
+  color: var(--chrome-ink);
+  border-color: #3a2418;
+}

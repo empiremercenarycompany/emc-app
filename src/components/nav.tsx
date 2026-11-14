@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useCodexOverlay, useHelpMode } from "@/components/codex-provider";
 import { LineIcon } from "@/components/icons";
 import { MASTER_LOGO } from "@/components/logo-slot";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { signOut } from "@/lib/actions/staff";
 import { isDmOrAdmin, isLogApprover, isStaff, type AppRole } from "@/lib/types";
 
@@ -139,6 +140,7 @@ export function SiteNav({
       {open ? (
         <div id="company-menu" className="menu-overlay" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
+            <ThemeToggle />
             <p className="recruit-name">
               {displayName?.trim() || "Recruit"}
               {roleLabel ? ` · ${roleLabel}` : ""}
