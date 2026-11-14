@@ -160,6 +160,7 @@ export default async function GoalsPage() {
 
   return (
     <Page
+      tour="goals"
       title="Goals"
       lede="Nutrition and sleep feed Constitution. Mental goals feed Intelligence or Wisdom. Social goals feed Charisma."
       mark={false}

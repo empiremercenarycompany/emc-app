@@ -12,6 +12,7 @@ export function Page({
   mark = false,
   inWorld = false,
   leading,
+  tour,
   children,
 }: {
   title?: string;
@@ -25,6 +26,8 @@ export function Page({
   /** Ledger and other in-world pages use EB Garamond for their titles. */
   inWorld?: boolean;
   leading?: ReactNode;
+  /** Spotlight anchor for the hall tour. Not shown as text. */
+  tour?: string;
   children: ReactNode;
 }) {
   return (
@@ -34,11 +37,15 @@ export function Page({
       {hero ? (
         <header className="hero-band">
           {lede ? <p className="eyebrow hero-kicker">{lede}</p> : null}
-          {title ? <h1>{title}</h1> : null}
+          {title ? <h1 data-tour={tour}>{title}</h1> : null}
         </header>
       ) : (
         <>
-          {title ? <h1 className="mt-4 text-4xl">{title}</h1> : null}
+          {title ? (
+            <h1 className="mt-4 text-4xl" data-tour={tour}>
+              {title}
+            </h1>
+          ) : null}
           {lede ? <p className="mt-2 text-left">{lede}</p> : null}
         </>
       )}

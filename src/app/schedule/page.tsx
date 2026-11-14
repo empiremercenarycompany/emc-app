@@ -145,7 +145,7 @@ export default async function SchedulePage() {
   const yours = slots.find((slot) => slot.id === viewer.intake?.timeslotId) ?? null;
 
   return (
-    <Page title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
+    <Page tour="schedule" title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Next session">
         <p>

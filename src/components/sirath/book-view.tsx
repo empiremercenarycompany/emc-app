@@ -238,7 +238,7 @@ function Home({
   const list = showAll ? filtered : filtered.slice(0, 5);
   const count = view.home.learned_count;
   return (
-    <article className="sirath-sheet">
+    <article className="sirath-sheet" data-tour="sirath">
       <h1>The Sirath</h1>
       <p className="subtitle">What your squad has learned about Bleakspire</p>
       <p className="count-line">

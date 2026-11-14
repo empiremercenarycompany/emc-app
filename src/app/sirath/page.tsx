@@ -27,7 +27,7 @@ export default async function SirathPage({
       {view ? (
         <SirathBook view={view} query={query.toString()} listAll={params.list === "all"} />
       ) : (
-        <article className="sirath-sheet">
+        <article className="sirath-sheet" data-tour="sirath">
           <h1>The Sirath</h1>
           <p className="subtitle">What your squad has learned about Bleakspire</p>
           <p>Sign in to open your squad&apos;s book.</p>

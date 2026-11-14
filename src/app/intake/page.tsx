@@ -18,7 +18,7 @@ export default async function IntakePage() {
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
 
   return (
-    <Page title="About you" lede="This is you, not your character. Four short answers.">
+    <Page tour="about-you" title="About you" lede="This is you, not your character. Four short answers.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt /> : null}
       {viewer.userId ? (

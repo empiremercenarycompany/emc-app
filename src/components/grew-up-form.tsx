@@ -45,7 +45,7 @@ export function GrewUpForm({
     const label = grewUpLabel(request.kind, request.optionId);
     const state = request.status === "approved" ? "Approved" : "Pending";
     return (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2" data-tour="shieldmate">
         <p>
           Shieldmate · {state} · {label}
         </p>
@@ -66,7 +66,7 @@ export function GrewUpForm({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3" data-tour="shieldmate">
       <label className="shieldmate-ask">
         <input
           type="checkbox"

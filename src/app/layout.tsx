@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { CodexProviders } from "@/components/codex-provider";
 import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
 import { ThemeSync } from "@/components/theme-toggle";
+import { TourHost } from "@/components/tour";
 import { themeBootScript } from "@/lib/theme";
 import { TEXT_SIZE_KEY } from "@/lib/text-size";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
@@ -90,6 +92,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           />
           {children}
           <FeedbackDock />
+          <Suspense fallback={null}>
+            <TourHost userId={viewer.userId} level={viewer.character?.level ?? null} />
+          </Suspense>
         </CodexProviders>
       </body>
     </html>
