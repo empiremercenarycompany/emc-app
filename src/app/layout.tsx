@@ -4,6 +4,8 @@ import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
+import { ThemeSync } from "@/components/theme-toggle";
+import { themeBootScript } from "@/lib/theme";
 import { TEXT_SIZE_KEY } from "@/lib/text-size";
 import { loadViewer, sessionRoleLabel } from "@/lib/company";
 import { loadSirathBadge } from "@/lib/sirath/load";
@@ -36,7 +38,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1A1613",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#C6B08A" },
+    { media: "(prefers-color-scheme: dark)", color: "#1C1916" },
+  ],
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -49,10 +54,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const roleLabel = sessionRoleLabel(viewer.role, viewer.canApproveLore);
   const sirathNew = await loadSirathBadge(viewer.character?.id ?? null);
   return (
-    <html lang="en" data-font="body">
+    <html lang="en" data-font="body" suppressHydrationWarning>
       <head>
         {/* Stylesheet links, not next/font. The Google font loader crashes on Vercel when a file URL has no extension. */}
         <link rel="stylesheet" href={FONTS} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: themeBootScript(),
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{if(localStorage.getItem(${JSON.stringify(TEXT_SIZE_KEY)})==="large")document.documentElement.dataset.font="large"}catch(e){}})();`,
@@ -60,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
+        <ThemeSync />
         <a className="skip" href="#main">
           Skip to content
         </a>

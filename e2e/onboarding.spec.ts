@@ -6,7 +6,7 @@ test("recruitment papers ask a logged-out visitor to sign in", async ({ page }) 
   await expect(page.getByRole("link", { name: "Sign in to continue" })).toBeVisible();
   await expect(page.getByText("Step 1 of 4")).toHaveCount(0);
   await expect(page.getByLabel("Name")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Next" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Next", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign the Papers" })).toHaveCount(0);
 });
 

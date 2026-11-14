@@ -120,7 +120,7 @@ export default async function JournalPage() {
       : [];
 
   return (
-    <Page title="Journal" lede="Approved exercises only. Drag or tap to build the list, then record the session.">
+    <Page inWorld title="Journal" lede="Approved exercises only. Drag or tap to build the list, then record the session.">
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Also on paper">
         <p>Sleep and cardio are this week&apos;s Constitution goal.</p>

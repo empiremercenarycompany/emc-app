@@ -100,7 +100,7 @@ test("logged-out pages offer a sign-in button", async ({ page }) => {
 
 test("weekly check-in explains the Friday cutoff", async ({ page }) => {
   await page.goto("/check-in");
-  await expect(page.getByRole("heading", { name: "Check-in" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Check-in", level: 1 })).toBeVisible();
   await expect(page.getByText(/Friday at 11:59 PM/)).toBeVisible();
   await expect(page.getByText("Known · week 4")).toBeVisible();
   await expect(page.getByText("Vouched For · week 20")).toBeVisible();
@@ -225,6 +225,7 @@ test("an NPC note can be submitted for review", async ({ page }) => {
 });
 
 test("the menu opens an overlay and does not 404", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   const menu = page.getByRole("button", { name: "Menu" });
   await expect(menu).toHaveAttribute("type", "button");
@@ -238,7 +239,7 @@ test("the menu opens an overlay and does not 404", async ({ page }) => {
   await expect(overlay.getByRole("link", { name: "Notes" })).toHaveCount(0);
   await expect(overlay.getByRole("link", { name: "Help & FAQ" })).toHaveAttribute("href", "/codex#faq");
   const background = await overlay.evaluate((element) => getComputedStyle(element).backgroundColor);
-  expect(background).toBe("rgb(26, 22, 19)");
+  expect(background).toBe("rgb(233, 220, 192)");
   await page.goto("/menu");
   await expect(page).not.toHaveURL(/\/menu$/);
   await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
@@ -273,12 +274,13 @@ test("help mode outlines a term and the codex stays on the page", async ({ page 
 });
 
 test("a term sheet button stays readable on the cream sheet", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
   await page.getByRole("button", { name: "muster" }).first().click();
   const got = page.getByRole("button", { name: "Got it" });
   await expect(got).toBeVisible();
   const color = await got.evaluate((element) => getComputedStyle(element).color);
-  expect(color).toBe("rgb(33, 27, 21)");
+  expect(color).toBe("rgb(28, 25, 22)");
 });
 
 test("goals stays closed until a player opens a sheet", async ({ page }) => {

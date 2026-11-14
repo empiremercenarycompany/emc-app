@@ -170,7 +170,7 @@ export function SirathBook({
   const pane = (
     <aside className="sirath-pane" aria-label="In your book">
       <Find entries={view.entries} kind={kind} setKind={setKind} query={query} id="sirath-q-pane" />
-      <p className="sec-h" style={{ padding: "10px 12px 0", color: "#111" }}>
+      <p className="sec-h" style={{ padding: "10px 12px 0" }}>
         In your book
       </p>
       <ul>

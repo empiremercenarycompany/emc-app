@@ -10,6 +10,8 @@ export function Page({
   badge = false,
   hero = false,
   mark = false,
+  inWorld = false,
+  leading,
   children,
 }: {
   title?: string;
@@ -20,10 +22,14 @@ export function Page({
   hero?: boolean;
   /** The app header already carries the mark. Sign-in and About pass a badge instead. */
   mark?: boolean;
+  /** Ledger and other in-world pages use EB Garamond for their titles. */
+  inWorld?: boolean;
+  leading?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <main id="main" className="page-pad page-wrap px-4 pt-4">
+    <main id="main" className={`page-pad page-wrap px-4 pt-4${inWorld ? " in-world" : ""}`}>
+      {leading}
       {badge ? <CompanyBadge /> : mark ? <LogoSlot /> : null}
       {hero ? (
         <header className="hero-band">
@@ -84,7 +90,7 @@ export function ImpactCard({ impact }: { impact: Impact }) {
   } else if (impact.status === "none") headline = "Saved. Nothing new is ready to place.";
 
   return (
-    <div className="border border-steel bg-iron p-3" data-testid="impact">
+    <div className="impact-card" data-testid="impact">
       <p className="font-bold">{headline}</p>
       {impact.unspent_after ? (
         <p className="text-mute">

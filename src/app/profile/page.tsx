@@ -3,6 +3,7 @@ import { ResultForm } from "@/components/result-form";
 import { InstallHelp } from "@/components/install-help";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { TextSizeToggle } from "@/components/text-size-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Notice, Page, Panel } from "@/components/ui";
 import { saveDisplayName } from "@/lib/actions/character";
 import { saveIntake } from "@/lib/actions/intake";
@@ -41,6 +42,7 @@ export default async function ProfilePage() {
   return (
     <Page title="Profile" lede="Who the Company sees when you walk in.">
       {setup ? <Notice>{setup}</Notice> : null}
+      <ThemeToggle />
       <TextSizeToggle />
       <InstallHelp />
       {!viewer.userId ? <SignInPrompt /> : (

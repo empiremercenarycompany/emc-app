@@ -478,3 +478,117 @@
     display: none;
   }
 }
+
+/* The book sits on the journal page. Ink follows the theme. */
+
+html .sirath-sheet {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html .sirath-sheet :is(h1, h2, h3, .entry-name, .sec-h, p, li, a) {
+  color: var(--ink);
+}
+
+html .sirath-sheet .subtitle {
+  display: table;
+  margin-inline: auto;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+html .sirath-sheet :is(.sirath-caption, .kind-tag, .scouts, .sirath-how, .count-line),
+html .sirath-card dt,
+html .sirath-hero figcaption,
+html .sirath-voice cite,
+html .sirath-pull cite,
+html .sirath-sealed .meta {
+  color: var(--ink-dim);
+}
+
+html .sirath-rule {
+  background: repeating-linear-gradient(90deg, var(--ink-dim) 0 8px, transparent 8px 12px);
+}
+
+html .sirath-find,
+html .sirath-pane {
+  background: var(--raised);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+html .sirath-find input,
+html .sirath-notes textarea {
+  background: var(--field);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html .sirath-find input::placeholder {
+  color: var(--ink-dim);
+}
+
+html .sirath-chip {
+  color: var(--ink);
+  border-color: var(--line);
+  background: transparent;
+}
+
+html .sirath-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+html .sirath-results,
+html .sirath-results a,
+html .sirath-results p,
+html .sirath-index a,
+html .sirath-pane a,
+html .sirath-crumbs,
+html .sirath-crumbs a {
+  background: var(--field);
+  color: var(--ink);
+}
+
+html .sirath-index a,
+html .sirath-pane a,
+html .sirath-crumbs,
+html .sirath-crumbs a {
+  background: transparent;
+}
+
+html .sirath-pane a[aria-current="page"] {
+  background: var(--leather);
+  color: var(--chrome-ink);
+}
+
+html .sirath-card,
+html .sirath-connected li,
+html .sirath-index a {
+  border-color: var(--line);
+}
+
+html .sirath-voice,
+html .sirath-pull {
+  border-left-color: var(--accent);
+}
+
+html .sirath-leather,
+html .sirath-leather h2,
+html .sirath-leather h3,
+html .sirath-leather p,
+html .sirath-leather a,
+html .sirath-from,
+html .sirath-new {
+  background: var(--leather);
+  color: var(--chrome-ink);
+  border-color: #3a2418;
+}
+
+html .sirath-new .t,
+html .sirath-queue .status {
+  color: var(--chrome-ink);
+}
