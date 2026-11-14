@@ -8,11 +8,11 @@ export type ResolvedTheme = "light" | "dark";
 
 /**
  * Browser chrome behind the status bar.
- * Light stays the main charcoal #1A1613. Dark matches the night ledger page.
+ * Light matches the tan header strip. Dark matches the night ledger page.
  * The manifest stays Iron Black #111111.
  */
 export const THEME_COLOR: Record<ResolvedTheme, string> = {
-  light: "#1A1613",
+  light: "#C6B08A",
   dark: "#1C1916",
 };
 
@@ -22,9 +22,10 @@ export const DARK_RAISED = "#26211C";
 export const DARK_INK = "#D9CBA8";
 export const DARK_CAPTION = "#A89880";
 
-/** Day field journal. The page is warm paper. The ink is the night page color. */
+/** Day field journal. Warm paper, not retired parchment white #F4F1E8. */
 export const LIGHT_PAGE = "#F4EBD8";
 export const LIGHT_RAISED = "#E9DCC0";
+export const LIGHT_FIELD = "#FFF9EE";
 export const LIGHT_INK = "#1C1916";
 export const LIGHT_CAPTION = "#5C4632";
 

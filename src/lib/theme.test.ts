@@ -12,6 +12,7 @@ import {
   HEADER_STRIP,
   LEATHER,
   LIGHT_CAPTION,
+  LIGHT_FIELD,
   LIGHT_INK,
   LIGHT_PAGE,
   LIGHT_RAISED,
@@ -112,6 +113,7 @@ describe("theme toggle", () => {
     context.window = { matchMedia: () => ({ matches: true }) };
     vm.runInNewContext(themeBootScript(), context);
     expect(document.documentElement.dataset.theme).toBe("light");
+    expect(created[0].attrs.content).toBe("#C6B08A");
 
     store.delete(THEME_KEY);
     vm.runInNewContext(themeBootScript(), context);
@@ -132,6 +134,8 @@ describe("theme contrast", () => {
     { name: "light caption", fg: LIGHT_CAPTION, bg: LIGHT_PAGE, min: 4.5 },
     { name: "light caption on a raised card", fg: LIGHT_CAPTION, bg: LIGHT_RAISED, min: 4.5 },
     { name: "light body on a raised card", fg: LIGHT_INK, bg: LIGHT_RAISED, min: 4.5 },
+    { name: "light body on a field", fg: LIGHT_INK, bg: LIGHT_FIELD, min: 4.5 },
+    { name: "light caption on a field", fg: LIGHT_CAPTION, bg: LIGHT_FIELD, min: 4.5 },
     { name: "parchment on the brand red fill", fg: PARCHMENT_ON_RED, bg: BRAND_RED, min: 4.5 },
   ];
 
@@ -145,17 +149,37 @@ describe("theme contrast", () => {
     expect(BRAND_RED).toBe("#B11217");
   });
 
-  it("paints the stylesheet with the same pairs", () => {
+  it("paints refined A in light and leaves the night ledger in dark", () => {
     const css = readFileSync(path.join(process.cwd(), "src/app/globals.css"), "utf8");
-    for (const hex of [DARK_PAGE, DARK_INK, DARK_CAPTION, LEATHER, HEADER_STRIP, BRAND_RED]) {
-      expect(css.toLowerCase()).toContain(hex.toLowerCase());
-    }
-    const root = css.slice(0, css.indexOf('html[data-theme="dark"]'));
+    const sirath = readFileSync(path.join(process.cwd(), "src/components/sirath/sirath.css"), "utf8");
+    const darkAt = css.indexOf('html[data-theme="dark"]');
+    const lightComment = css.indexOf("Refined A.");
+    const lightAt = css.indexOf('html[data-theme="light"]');
+    expect(darkAt).toBeGreaterThan(-1);
+    expect(lightComment).toBeGreaterThan(darkAt);
+    expect(lightAt).toBeGreaterThan(lightComment);
+    const root = css.slice(0, darkAt);
+    const dark = css.slice(darkAt, lightComment);
+    const light = css.slice(lightAt);
     expect(root).toContain("background-color: var(--color-char)");
     expect(root.toLowerCase()).not.toContain("#f4ebd8");
-    expect(root.toLowerCase()).not.toContain("#4a2e1e");
+    for (const hex of [DARK_PAGE, DARK_INK, DARK_CAPTION, LEATHER, HEADER_STRIP, BRAND_RED]) {
+      expect(dark.toLowerCase()).toContain(hex.toLowerCase());
+    }
+    expect(dark).toMatch(/--page:\s*#1c1916/i);
+    expect(dark.toLowerCase()).not.toContain("#f4ebd8");
+    for (const hex of [LIGHT_PAGE, LIGHT_INK, LIGHT_CAPTION, LIGHT_RAISED, LIGHT_FIELD, LEATHER, HEADER_STRIP, BRAND_RED]) {
+      expect(light.toLowerCase()).toContain(hex.toLowerCase());
+    }
+    expect(light).toMatch(/--page:\s*#f4ebd8/i);
+    expect(light).not.toMatch(/--page:\s*#f4f1e8/i);
+    const redText = light.split("\n").filter((line) => /^\s*color:\s*(var\(--accent\)|#b11217)/i.test(line));
+    expect(redText).toEqual([]);
+    expect(sirath).toContain('html[data-theme="dark"] .sirath-sheet');
+    expect(sirath).toContain('html[data-theme="light"] .sirath-sheet');
     const manifest = readFileSync(path.join(process.cwd(), "src/app/manifest.ts"), "utf8");
     expect(manifest).toContain('"#111111"');
     expect(manifest).not.toContain(DARK_PAGE);
+    expect(manifest).not.toContain(LIGHT_PAGE);
   });
 });
