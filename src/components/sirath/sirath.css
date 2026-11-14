@@ -585,3 +585,123 @@ html[data-theme="dark"] .sirath-queue .status {
   color: var(--chrome-ink);
   border-color: #3a2418;
 }
+
+/* Day journal. Same book as the night ledger, on warm paper. */
+html[data-theme="light"] .sirath-sheet {
+  background: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+html[data-theme="light"] .sirath-sheet :is(h1, h2, h3, .entry-name, .sec-h, p, li, a) {
+  color: var(--ink);
+}
+
+html[data-theme="light"] .sirath-sheet .subtitle {
+  display: table;
+  margin-inline: auto;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+html[data-theme="light"] .sirath-sheet :is(.sirath-caption, .kind-tag, .scouts, .sirath-how, .count-line),
+html[data-theme="light"] .sirath-card dt,
+html[data-theme="light"] .sirath-hero figcaption,
+html[data-theme="light"] .sirath-voice cite,
+html[data-theme="light"] .sirath-pull cite,
+html[data-theme="light"] .sirath-sealed .meta {
+  color: var(--ink-dim);
+}
+
+html[data-theme="light"] .sirath-pane .sec-h {
+  color: var(--ink) !important;
+}
+
+html[data-theme="light"] .sirath-rule {
+  background: repeating-linear-gradient(90deg, var(--ink-dim) 0 8px, transparent 8px 12px);
+}
+
+html[data-theme="light"] .sirath-find,
+html[data-theme="light"] .sirath-pane {
+  background: var(--raised);
+  color: var(--ink);
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="light"] .sirath-find input,
+html[data-theme="light"] .sirath-notes textarea {
+  background: var(--field);
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+html[data-theme="light"] .sirath-find input::placeholder {
+  color: var(--ink-dim);
+}
+
+html[data-theme="light"] .sirath-chip {
+  color: var(--ink);
+  border-color: var(--line);
+  background: transparent;
+}
+
+html[data-theme="light"] .sirath-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+html[data-theme="light"] .sirath-results,
+html[data-theme="light"] .sirath-results a,
+html[data-theme="light"] .sirath-results p {
+  background: var(--field);
+  color: var(--ink);
+}
+
+html[data-theme="light"] .sirath-index a,
+html[data-theme="light"] .sirath-pane a,
+html[data-theme="light"] .sirath-crumbs,
+html[data-theme="light"] .sirath-crumbs a {
+  color: var(--ink);
+}
+
+html[data-theme="light"] .sirath-pane a[aria-current="page"] {
+  background: var(--leather);
+  color: var(--chrome-ink);
+}
+
+html[data-theme="light"] .sirath-card,
+html[data-theme="light"] .sirath-connected li,
+html[data-theme="light"] .sirath-index a {
+  border-color: var(--line);
+}
+
+html[data-theme="light"] .sirath-voice,
+html[data-theme="light"] .sirath-pull {
+  border-left-color: var(--accent);
+}
+
+html[data-theme="light"] .sirath-leather,
+html[data-theme="light"] .sirath-leather :is(h2, h3, p, a),
+html[data-theme="light"] .sirath-from,
+html[data-theme="light"] .sirath-new,
+html[data-theme="light"] .sirath-new .t,
+html[data-theme="light"] .sirath-queue .status {
+  background: var(--leather);
+  color: var(--chrome-ink);
+  border-color: #3a2418;
+}
+
+html[data-theme="light"] .sirath-sealed > p {
+  margin: 0.35rem 0 0.85rem;
+  text-align: center;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+html[data-theme="light"] .sirath-chips button.sirath-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
