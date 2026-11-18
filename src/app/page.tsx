@@ -379,6 +379,9 @@ export default async function BarracksPage({
         </Panel>
       ) : null}
       <Panel title="From the Company" paper wide>
+        <p>
+          <Link href="/documents">Signed notice</Link>
+        </p>
         {announcements.length === 0 ? <p className="text-mute">Nothing posted.</p> : null}
         {announcements.map((item) => {
           const squad = Array.isArray(item.squads) ? item.squads[0] : item.squads;

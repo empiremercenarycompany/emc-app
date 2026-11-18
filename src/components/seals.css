@@ -1,0 +1,52 @@
+.seal-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.signature {
+  align-self: stretch;
+  margin: 0;
+  max-width: 100%;
+  color: inherit;
+  font-family: var(--font-accent);
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.wax-seal {
+  display: block;
+  width: 5.75rem;
+  height: auto;
+  flex: none;
+}
+
+.wax-seal-reference {
+  width: 9.5rem;
+}
+
+.genuine-seal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.genuine-seal h2,
+.genuine-seal p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wax-seal,
+  .signature {
+    animation: none;
+    transition: none;
+  }
+}

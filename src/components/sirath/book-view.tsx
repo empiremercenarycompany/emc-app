@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
+import { GenuineSeal } from "@/components/genuine-seal";
 import type { LinkEnd, SirathEntry, SirathView, StoryKind } from "@/lib/sirath/types";
 
 const KINDS: [StoryKind | "all", string][] = [
@@ -382,6 +383,7 @@ function Entry({
           {entry.voice_line}
           <cite>From the Company&apos;s field notes</cite>
         </blockquote>
+        {entry.kind === "faction" ? <GenuineSeal factionId={entry.id} headingClass="sec-h" /> : null}
         {entry.kind === "person" ? (
           <dl className="sirath-card">
             <dt>Seen with</dt>
