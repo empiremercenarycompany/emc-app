@@ -2,8 +2,9 @@ import type { SealMotif } from "./types";
 
 /**
  * Wax color and impression for factions already named in player-facing data.
- * Empire Mercenary Company is the group the app names. Sample Company is the
- * Sirath fixture's faction entry. No other faction entry is player-facing.
+ * Empire Mercenary Company is the group the app names.
+ * The Sirath test book is not a player faction, so its entries are not listed
+ * and show no seal.
  *
  * TODO(lore): `color` and `motif` are neutral placeholders. Replace them when
  * the lore keeper sets the real wax color and impression. A real motif is a
@@ -15,7 +16,6 @@ import type { SealMotif } from "./types";
  */
 export const PLACEHOLDER_WAX = {
   "placeholder-stone": "#8C877F",
-  "placeholder-ash": "#6F6A63",
 } as const;
 
 export type PlaceholderWaxId = keyof typeof PLACEHOLDER_WAX;
@@ -34,12 +34,6 @@ export const FACTION_SEALS = {
     id: "company",
     name: "Empire Mercenary Company",
     color: { id: "placeholder-stone", hex: PLACEHOLDER_WAX["placeholder-stone"] },
-    motif: RING,
-  },
-  "sample-company": {
-    id: "sample-company",
-    name: "Sample Company",
-    color: { id: "placeholder-ash", hex: PLACEHOLDER_WAX["placeholder-ash"] },
     motif: RING,
   },
 } as const satisfies Record<string, FactionSeal>;

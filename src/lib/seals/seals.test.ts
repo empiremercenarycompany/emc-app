@@ -19,20 +19,21 @@ const species = [
 ];
 
 describe("faction seals", () => {
-  it("uses only factions already named for players, with placeholder color and motif", () => {
+  it("seals the Company and skips the Sirath fixture faction", () => {
     const factions = FIXTURE_SOURCE.entries.filter((entry) => entry.kind === "faction");
     expect(factions.map((entry) => entry.id)).toEqual(["sample-company"]);
-    expect(factionSeal("sample-company")?.name).toBe("Sample Company");
+    expect(factionSeal("sample-company")).toBeNull();
     expect(factionSeal("company")?.name).toBe("Empire Mercenary Company");
-    expect(Object.keys(FACTION_SEALS).sort()).toEqual(["company", "sample-company"]);
+    expect(Object.keys(FACTION_SEALS)).toEqual(["company"]);
     for (const faction of Object.values(FACTION_SEALS)) {
       expect(Object.values(PLACEHOLDER_WAX)).toContain(faction.color.hex);
       expect(faction.color.id.startsWith("placeholder-")).toBe(true);
       expect(faction.motif).toEqual({ kind: "placeholder", id: "ring" });
     }
-    expect(FACTION_SEALS.company.color.hex).not.toBe(FACTION_SEALS["sample-company"].color.hex);
     const source = readFileSync(path.join(process.cwd(), "src/lib/seals/factions.ts"), "utf8");
     expect(source).toContain("TODO(lore)");
+    expect(source).not.toContain("Sample Company");
+    expect(source).not.toContain("sample-company");
     expect(factionSeal("invented-faction")).toBeNull();
   });
 
@@ -80,13 +81,14 @@ describe("faction seals", () => {
     expect(ignored).not.toContain("M2 2 H20 V20 H2 Z");
 
     const junk = resolveSeal({
-      factionId: "sample-company",
+      factionId: "company",
       makerId: "valthar",
       genuine: false,
       deviations: { shade: "red", impression: { kind: "symbol", id: "not-a-real-motif" } },
     });
-    expect(junk?.wax).toBe(FACTION_SEALS["sample-company"].color.hex);
+    expect(junk?.wax).toBe(FACTION_SEALS.company.color.hex);
     expect(junk?.impression).toEqual({ kind: "ring" });
+    expect(resolveSeal({ factionId: "sample-company", makerId: "valthar" })).toBeNull();
   });
 });
 
@@ -120,11 +122,13 @@ describe("signed papers", () => {
     expect(html).toContain("font-size:2.4rem");
     expect(html).toContain("Wax seal of Empire Mercenary Company");
     expect(html).not.toMatch(/genuine|forged|false seal/i);
-    const reference = renderToStaticMarkup(createElement(GenuineSeal, { factionId: "sample-company" }));
+    const reference = renderToStaticMarkup(createElement(GenuineSeal, { factionId: "company" }));
     expect(reference).toContain("What a genuine seal looks like");
-    expect(reference).toContain("Wax seal of Sample Company");
+    expect(reference).toContain("Wax seal of Empire Mercenary Company");
     expect(reference).toContain("data-size=\"reference\"");
     expect(reference).not.toContain("M100 28");
+    expect(renderToStaticMarkup(createElement(GenuineSeal, { factionId: "sample-company" }))).toBe("");
+    expect(html).not.toContain("Sample Company");
   });
 
   it("seals the recruitment review with the company press", () => {
