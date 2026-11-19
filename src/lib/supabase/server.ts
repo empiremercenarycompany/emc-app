@@ -1,3 +1,4 @@
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { publicEnv } from "./env";
@@ -20,6 +21,23 @@ export async function createClient() {
           // A Server Component cannot write cookies. Middleware refreshes the session.
         }
       },
+    },
+  });
+}
+
+/**
+ * A user client for after(). The access token was read during the request.
+ * This does not call cookies() and does not use the service role.
+ */
+export function createClientWithAccessToken(accessToken: string) {
+  const env = publicEnv();
+  if (!env) return null;
+  return createSupabaseClient(env.url, env.key, {
+    accessToken: async () => accessToken,
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   });
 }

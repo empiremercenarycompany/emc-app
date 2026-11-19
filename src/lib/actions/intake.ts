@@ -63,12 +63,14 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       backstory: backstory ?? "",
       reminders: formData.get("reminders") === "on",
     });
-    after(() => {
-      void import("@/lib/notify/staff-notice")
-        .then(({ sendStaffNotice }) => sendStaffNotice("Enlist details", noticeFields(record)))
-        .catch(() => {
-          console.error("Staff notice was not sent.");
-        });
+    const enlistNotice = noticeFields(record);
+    after(async () => {
+      try {
+        const { sendStaffNotice } = await import("@/lib/notify/staff-notice");
+        await sendStaffNotice("Enlist details", enlistNotice);
+      } catch {
+        console.error(JSON.stringify({ status: "failed", messageId: null }));
+      }
     });
   }
 
