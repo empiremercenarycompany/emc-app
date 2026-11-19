@@ -2802,3 +2802,8 @@ html[data-theme="light"] .theme-toggle button[role="radio"][aria-checked="true"]
   border-color: var(--accent);
   box-shadow: inset 0 -3px 0 var(--accent);
 }
+
+/* Gear background (Nov 19, 2026, John pick: yard scene). Open page area only; logged-out Home keeps its hero scene (no gear). */
+html[data-theme="dark"] main:not(:has(.hero-band)){background-image:linear-gradient(rgba(28,25,22,.72),rgba(28,25,22,.72)),url("/art/gear-yard-dark.webp"),var(--grain);background-size:auto,100% auto,auto;background-repeat:no-repeat,no-repeat,repeat;background-position:0 0,center top,0 0}
+html[data-theme="light"] main:not(:has(.hero-band)){background-image:url("/art/gear-yard-light.webp"),var(--grain);background-size:100% auto,auto;background-repeat:no-repeat,repeat;background-position:center top,0 0}
+@media(max-width:700px){html[data-theme="dark"] main:not(:has(.hero-band)){background-size:auto,auto 620px,auto;background-position:0 0,60% 0,0 0}html[data-theme="light"] main:not(:has(.hero-band)){background-size:auto 620px,auto;background-position:60% 0,0 0}}
