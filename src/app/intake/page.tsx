@@ -18,11 +18,11 @@ export default async function IntakePage() {
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
 
   return (
-    <Page title="About you" lede="This is you, not your character. Four short answers.">
+    <Page title="About you" lede="This is you, not your character.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <SignInPrompt /> : null}
-      {viewer.userId ? (
+      {!viewer.userId ? <SignInPrompt label="Sign in to save" /> : null}
       <IntakeForm
+        canSave={Boolean(viewer.userId)}
         slots={slots}
         initial={
           viewer.intake
@@ -32,11 +32,15 @@ export default async function IntakePage() {
                 goals: viewer.intake.goals,
                 timeslot: viewer.intake.timeslotId ?? slots[0]?.id ?? "morning",
                 reminders: viewer.intake.reminders,
+                phone: viewer.intake.phone ?? "",
+                species: viewer.intake.speciesIdea ?? "",
+                classIdea: viewer.intake.classIdea ?? "",
+                fitness: viewer.intake.fitnessExperience ?? "",
+                backstory: viewer.intake.backstoryIdea ?? "",
               }
             : undefined
         }
       />
-      ) : null}
     </Page>
   );
 }

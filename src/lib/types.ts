@@ -168,6 +168,11 @@ export type Viewer = {
     goals: string[];
     timeslotId: string | null;
     reminders: boolean;
+    phone: string | null;
+    speciesIdea: string | null;
+    classIdea: string | null;
+    fitnessExperience: string | null;
+    backstoryIdea: string | null;
   } | null;
 };
 

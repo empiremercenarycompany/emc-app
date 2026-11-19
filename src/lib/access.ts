@@ -11,8 +11,9 @@ export function isDmPath(path: string): boolean {
   return DM_PATHS.some((route) => path === route || path.startsWith(`${route}/`));
 }
 
-/** Players never open Table Muster, Trainer, or Notes. The table screen is the DM and admin. Trainer also allows an approver. */
+/** Players never open Table Muster, Trainer, or Notes. The table screen is the DM and admin. Trainer also allows an approver. Sign-ups are staff. */
 export function roleMayOpen(role: AppRole | null, path: string): boolean {
+  if (path === "/dm/signups" || path.startsWith("/dm/signups/")) return isStaff(role);
   if (isDmPath(path)) return isDmOrAdmin(role);
   if (!isStaffPath(path)) return true;
   if (path === "/trainer" || path.startsWith("/trainer/")) return isLogApprover(role);

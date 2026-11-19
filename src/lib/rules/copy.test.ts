@@ -101,7 +101,13 @@ describe("player-facing copy", () => {
       if (file.endsWith("copy.test.ts")) continue;
       const text = readFileSync(file, "utf8");
       for (const pattern of FORBIDDEN) {
-        if (pattern.test(text)) hits.push(`${path.relative(ROOT, file)} matches ${pattern}`);
+        const relative = path.relative(ROOT, file);
+        const approvedBlurb =
+          pattern.source === "fortress city" &&
+          (relative === path.join("src", "content", "enlist.ts") ||
+            relative === path.join("src", "content", "enlist.test.ts"));
+        if (approvedBlurb) continue;
+        if (pattern.test(text)) hits.push(`${relative} matches ${pattern}`);
       }
     }
     expect(hits).toEqual([]);

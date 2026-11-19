@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { ENLIST_BACKSTORY_PROMPT, ENLIST_CITY_BLURB } from "../src/content/enlist";
 
 test("barracks shows the company lines", async ({ page }) => {
   await page.goto("/");
@@ -330,6 +331,31 @@ test("larger text holds on a full load of another page", async ({ page }) => {
   await page.goto("/missions", { waitUntil: "domcontentloaded" });
   await expect(page.locator("html")).toHaveAttribute("data-font", "large");
   await expect.poll(async () => page.locator("body").evaluate((el) => getComputedStyle(el).fontSize)).toBe("20px");
+});
+
+test("about you shows enlist details", async ({ page }) => {
+  await page.goto("/intake");
+  await expect(page.getByRole("heading", { name: "Enlist details" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "About you" })).toBeVisible();
+  await expect(page.getByLabel("Phone")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Training slot" })).toBeVisible();
+  await expect(page.getByLabel("Species idea")).toBeVisible();
+  await expect(page.getByLabel("Class idea")).toBeVisible();
+  await expect(page.getByText("Fitness goals and experience")).toBeVisible();
+  await expect(page.getByRole("group", { name: "D&D experience" })).toBeVisible();
+  await expect(page.getByText(ENLIST_CITY_BLURB)).toBeVisible();
+  await expect(page.getByText(ENLIST_BACKSTORY_PROMPT)).toBeVisible();
+  await expect(page.getByLabel("Life before you enlisted")).toBeVisible();
+  const body = (await page.locator("body").innerText()).toLowerCase();
+  expect(body).not.toContain("personal training");
+  expect(body).not.toContain("battle master");
+});
+
+test("sign-ups stay closed until someone signs in", async ({ page }) => {
+  await page.goto("/dm/signups");
+  await expect(page).toHaveURL(/\/sign-in$/);
+  await page.goto("/dm/signups/export");
+  await expect(page).toHaveURL(/\/sign-in$/);
 });
 
 test("the manifest names the company", async ({ request }) => {
