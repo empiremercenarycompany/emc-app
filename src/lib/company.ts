@@ -1,14 +1,19 @@
 import { after } from "next/server";
 import { cache } from "react";
+import { recordVisit } from "@/lib/notify/record-visit";
+import { shouldNotifyNewAccount } from "@/lib/notify/signup-notice";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { beginnerHints, displaySlot, dndLabel, gymLabel } from "@/lib/rules/intake";
 import { MISSING_ENV } from "@/lib/supabase/env";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createClientWithAccessToken } from "@/lib/supabase/server";
 import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@/lib/types";
 
 const INTAKE_FULL =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
+const PROFILE_WITH_NOTICE =
+  "display_name, avatar_url, app_role, can_approve_lore, last_seen_at, created_at, signup_notified_at";
+const PROFILE_BASE = "display_name, avatar_url, app_role, can_approve_lore, last_seen_at, created_at";
 
 function missingColumn(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
@@ -66,8 +71,8 @@ async function loadViewerOnce(): Promise<Viewer> {
     return { ...EMPTY, configured: true };
   }
 
-  const [profile, membership, character, config, todayResult, intakeResult] = await Promise.all([
-    supabase.from("profiles").select("display_name, avatar_url, app_role, can_approve_lore, last_seen_at, created_at").eq("id", user.id).maybeSingle(),
+  const [profileResult, membership, character, config, todayResult, intakeResult] = await Promise.all([
+    supabase.from("profiles").select(PROFILE_WITH_NOTICE).eq("id", user.id).maybeSingle(),
     supabase.from("guild_memberships").select("guild_id, rank").eq("user_id", user.id).maybeSingle(),
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
@@ -114,46 +119,59 @@ async function loadViewerOnce(): Promise<Viewer> {
       }
     : null;
 
+  let profile = profileResult;
+  let signupColumnReady = true;
+  if (missingColumn(profile.error)) {
+    signupColumnReady = false;
+    profile = await supabase.from("profiles").select(PROFILE_BASE).eq("id", user.id).maybeSingle();
+  }
+
+  const notify = shouldNotifyNewAccount({
+    authCreatedAt: user.created_at ?? null,
+    profileCreatedAt: profile.data?.created_at ? String(profile.data.created_at) : null,
+    signupNotifiedAt: signupColumnReady ? (profile.data?.signup_notified_at ?? null) : undefined,
+    hasCharacter: Boolean(character.error || character.data),
+    hasIntake: Boolean(intakeQuery.error || intake),
+  });
+  let notice = null;
+  if (notify) {
+    const account: SignupRecord = {
+      userId: user.id,
+      email: user.email ?? "",
+      displayName: profile.data?.display_name ? String(profile.data.display_name) : "",
+      role: profile.data?.app_role ? String(profile.data.app_role) : "player",
+      joined: profile.data?.created_at ? String(profile.data.created_at) : "",
+      phone: intake?.phone ?? "",
+      trainingSlot: intake?.timeslotId ?? "",
+      speciesIdea: intake?.speciesIdea ?? "",
+      classIdea: intake?.classIdea ?? "",
+      fitnessGoals: intake?.goals.join(", ") ?? "",
+      gymExperience: intake ? gymLabel(intake.gym) : "",
+      fitnessExperience: intake?.fitnessExperience ?? "",
+      dndExperience: intake ? dndLabel(intake.dnd) : "",
+      sessionReminders: intake ? (intake.reminders ? "yes" : "no") : "",
+      backstory: intake?.backstoryIdea ?? "",
+    };
+    if (account.trainingSlot) {
+      const slot = await supabase.from("session_timeslots").select("label, adults_only").eq("id", account.trainingSlot).maybeSingle();
+      if (!slot.error && slot.data?.label) {
+        account.trainingSlot = displaySlot(String(slot.data.label), Boolean(slot.data.adults_only));
+      }
+    }
+    notice = noticeFields(account);
+  }
+
   const seenUserId = user.id;
-  const firstSight = !profile.data?.last_seen_at;
-  const newAccount: SignupRecord | null = firstSight
-    ? {
-        userId: user.id,
-        email: user.email ?? "",
-        displayName: profile.data?.display_name ? String(profile.data.display_name) : "",
-        role: profile.data?.app_role ? String(profile.data.app_role) : "player",
-        joined: profile.data?.created_at ? String(profile.data.created_at) : "",
-        phone: intake?.phone ?? "",
-        trainingSlot: intake?.timeslotId ?? "",
-        speciesIdea: intake?.speciesIdea ?? "",
-        classIdea: intake?.classIdea ?? "",
-        fitnessGoals: intake?.goals.join(", ") ?? "",
-        gymExperience: intake ? gymLabel(intake.gym) : "",
-        fitnessExperience: intake?.fitnessExperience ?? "",
-        dndExperience: intake ? dndLabel(intake.dnd) : "",
-        sessionReminders: intake ? (intake.reminders ? "yes" : "no") : "",
-        backstory: intake?.backstoryIdea ?? "",
-      }
-    : null;
+  const { data: sessionData } = await supabase.auth.getSession();
+  const accessToken = sessionData.session?.user.id === user.id ? sessionData.session.access_token : null;
+  const visitClient = accessToken ? createClientWithAccessToken(accessToken) : null;
+  // The session is read before after(). after() cannot call cookies(), which was skipping last_seen.
   after(async () => {
-    const client = await createClient();
-    if (client) {
-      await client.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", seenUserId);
+    if (!visitClient) {
+      console.error("last_seen was not updated.");
+      return;
     }
-    if (!newAccount) return;
-    try {
-      let trainingSlot = newAccount.trainingSlot;
-      if (client && trainingSlot) {
-        const slot = await client.from("session_timeslots").select("label, adults_only").eq("id", trainingSlot).maybeSingle();
-        if (!slot.error && slot.data?.label) {
-          trainingSlot = displaySlot(String(slot.data.label), Boolean(slot.data.adults_only));
-        }
-      }
-      const { sendStaffNotice } = await import("@/lib/notify/staff-notice");
-      await sendStaffNotice("New account", noticeFields({ ...newAccount, trainingSlot }));
-    } catch {
-      console.error("Staff notice was not sent.");
-    }
+    await recordVisit(visitClient, seenUserId, notice);
   });
 
   return {
