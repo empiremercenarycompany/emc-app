@@ -72,6 +72,9 @@ export default async function ProfilePage() {
           </Panel>
           {viewer.intake ? (
             <Panel title="Reminders">
+              <p>
+                <Link href="/intake">Enlist details</Link>
+              </p>
               <p className="text-mute">The Company keeps this preference. This app does not send mail.</p>
               <ResultForm action={saveIntake} submit="Save reminders">
                 <input type="hidden" name="dnd" value={viewer.intake.dnd} />

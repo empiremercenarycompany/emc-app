@@ -83,6 +83,53 @@ body {
   text-transform: none;
 }
 
+.enlist-copy {
+  margin: 0;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
+  font-weight: 300;
+  letter-spacing: 0;
+  text-transform: none;
+  line-height: 1.55;
+  color: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.signup-fields {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+}
+
+.signup-fields dt,
+.signup-fields dd {
+  margin: 0;
+  color: inherit;
+}
+
+.signup-fields dt {
+  font-family: var(--font-condensed), "Bebas Neue", sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.signup-fields dd {
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
+  font-weight: 300;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .signup-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 h1,
 h2,
 h3,

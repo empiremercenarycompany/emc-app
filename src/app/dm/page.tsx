@@ -42,6 +42,8 @@ export default async function DmPage({
       <p className="mt-2">For the DM and admins. Players do not see this page.</p>
       <p className="mt-2">
         <Link href="/dm/sirath">Sirath review queue</Link>
+        {" · "}
+        <Link href="/dm/signups">Sign-ups</Link>
       </p>
       <DmBoard action={saveDmSessionNote} {...table} />
     </main>

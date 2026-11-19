@@ -303,7 +303,7 @@ export default async function BarracksPage({
           </Link>
           {!viewer.intake ? (
             <p className="text-center">
-              <Link href="/intake">Tell us about you</Link> when you have a minute. Four short answers.
+              <Link href="/intake">Tell us about you</Link> when you have a minute.
             </p>
           ) : null}
           <p className="text-center text-mute">

@@ -23,6 +23,7 @@ type Item = { href: string; label: string };
 function menuGroups(role: AppRole | null, sirathNew = 0): { title: string; items: Item[] }[] {
   const staff: Item[] = [];
   if (isDmOrAdmin(role)) staff.push({ href: "/dm", label: "Table" });
+  if (isStaff(role)) staff.push({ href: "/dm/signups", label: "Sign-ups" });
   if (isStaff(role)) staff.push({ href: "/muster", label: "Table Muster" });
   if (isLogApprover(role)) staff.push({ href: "/trainer", label: "Trainer" });
   if (isStaff(role)) staff.push({ href: "/notes", label: "Notes" });

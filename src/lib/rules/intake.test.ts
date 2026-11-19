@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginnerHints, displaySlot, intakeError } from "./intake";
+import { beginnerHints, displaySlot, enlistError, intakeError } from "./intake";
 
 const ready = {
   dnd: "never",
@@ -23,6 +23,17 @@ describe("player intake", () => {
     expect(displaySlot("2–5", false)).toBe("2–5 PM");
     expect(displaySlot("7–10 PM", true)).toBe("7–10 PM (18+)");
     expect(displaySlot("9 AM–12 PM", false)).toBe("9 AM–12 PM");
+  });
+
+  it("lets enlist details stay blank and rejects a bad phone", () => {
+    const blank = { phone: "", species: "", classIdea: "", fitness: "", backstory: "" };
+    expect(enlistError(blank)).toBeNull();
+    expect(enlistError({ ...blank, phone: "208-555-0100" })).toBeNull();
+    expect(enlistError({ ...blank, phone: "call me" })).toMatch(/phone/);
+    expect(enlistError({ ...blank, species: "x".repeat(81) })).toMatch(/species/);
+    expect(enlistError({ ...blank, classIdea: "x".repeat(81) })).toMatch(/class/);
+    expect(enlistError({ ...blank, fitness: "x".repeat(601) })).toMatch(/fitness/);
+    expect(enlistError({ ...blank, backstory: "x".repeat(2001) })).toMatch(/backstory/);
   });
 
   it("turns beginner hints on for a first-timer", () => {
