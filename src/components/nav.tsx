@@ -48,6 +48,7 @@ function menuGroups(role: AppRole | null, sirathNew = 0): { title: string; items
       title: "Company",
       items: [
         { href: "/squad", label: "Squad" },
+        { href: "/documents", label: "Notice" },
         { href: "/sirath", label: sirathNew > 0 ? `The Sirath (${sirathNew} new)` : "The Sirath" },
         { href: "/library", label: "Library" },
         { href: "/about", label: "About" },

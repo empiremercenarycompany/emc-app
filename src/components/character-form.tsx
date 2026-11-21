@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { ResultForm } from "@/components/result-form";
+import { Signature } from "@/components/signature";
 import { Term } from "@/components/term";
+import { WaxSeal } from "@/components/wax-seal";
 import { createCharacter } from "@/lib/actions/character";
 import {
   BACKGROUND_BLURB,
@@ -399,6 +401,10 @@ export function CharacterForm({
             ))}
           </ul>
           <p>When you sign, the Company welcomes you to Bleakspire.</p>
+          <div className="seal-row">
+            <Signature signerId="recruit" name={name} />
+            <WaxSeal factionId="company" makerId="company" />
+          </div>
           {missing.length > 0 ? (
             <ul>
               {missing.map((item) => (
