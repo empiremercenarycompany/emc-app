@@ -1,4 +1,6 @@
 -- Future weeks are refused. Filing the same week replaces the row. Disposable database only.
+-- A player check-in closes Friday night. The replacement is filed by a log approver
+-- so this suite does not depend on the weekday.
 
 insert into auth.users (id, email) values
   ('66666666-6666-4666-8666-666666666661', 'checkin@example.test');
@@ -13,6 +15,12 @@ values (
   'Checkin Recruit'
 );
 commit;
+
+select set_config('emc.profile_admin', 'on', false);
+update public.profiles
+set app_role = 'dm'
+where id = '66666666-6666-4666-8666-666666666661';
+select set_config('emc.profile_admin', 'off', false);
 
 select set_config('request.jwt.claim.sub', '66666666-6666-4666-8666-666666666661', false);
 set role authenticated;
