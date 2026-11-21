@@ -107,6 +107,13 @@ create policy billing_events_staff_select on public.billing_events
   for select to authenticated
   using (public.is_staff());
 
+-- The write secret is not an API read. This policy matches no rows. It exists
+-- because every public table needs a policy, and a missing policy would leave
+-- the default-deny intent implicit.
+create policy billing_runtime_none on public.billing_runtime
+  for select to authenticated
+  using (false);
+
 revoke all on public.billing_customers from public, anon, authenticated, service_role;
 revoke all on public.billing_subscriptions from public, anon, authenticated, service_role;
 revoke all on public.billing_events from public, anon, authenticated, service_role;

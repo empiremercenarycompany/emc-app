@@ -475,6 +475,8 @@ describe("billing migration", () => {
 
   it("is staff-select only, idempotent on event id, and has no payout", () => {
     expect(sql).toContain("using (public.is_staff())");
+    expect(sql).toContain("create policy billing_runtime_none");
+    expect(sql).toContain("using (false)");
     expect(sql).toContain("grant select on public.billing_customers to authenticated");
     expect(sql).toContain("grant select on public.billing_subscriptions to authenticated");
     expect(sql).toContain("grant select on public.billing_events to authenticated");
