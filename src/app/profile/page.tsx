@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { InstallHelp } from "@/components/install-help";
+import { MembershipPanel } from "@/components/membership-panel";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { TextSizeToggle } from "@/components/text-size-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,15 +9,26 @@ import { Notice, Page, Panel } from "@/components/ui";
 import { saveDisplayName } from "@/lib/actions/character";
 import { saveIntake } from "@/lib/actions/intake";
 import { signOut } from "@/lib/actions/staff";
+import { billingFlags } from "@/lib/billing/flags";
+import { billingQueryNotice } from "@/lib/billing/notices";
+import { loadOwnBilling } from "@/lib/billing/own-billing";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import { recruitName } from "@/lib/recruit-name";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ billing?: string }>;
+}) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
+  const params = searchParams ? await searchParams : {};
+  const billingNotice = billingQueryNotice(params.billing);
+  const flags = billingFlags();
   const supabase = await createClient();
+  const membership = viewer.userId && supabase ? await loadOwnBilling(supabase) : null;
   const squadName =
     supabase && viewer.character?.squad_id
       ? (await supabase.from("squads").select("name").eq("id", viewer.character.squad_id).maybeSingle()).data?.name ?? null
@@ -95,6 +107,12 @@ export default async function ProfilePage() {
               <Link href="/intake">Tell us about you</Link>
             </Panel>
           )}
+          {billingNotice ? <Notice>{billingNotice}</Notice> : null}
+          <MembershipPanel
+            billing={membership}
+            wanderlustEnabled={flags.wanderlust}
+            couponEnabled={flags.coupon}
+          />
           <form action={signOut}>
             <button className="secondary" type="submit">
               Sign out

@@ -41,3 +41,19 @@ export function createClientWithAccessToken(accessToken: string) {
     },
   });
 }
+
+/**
+ * Server jobs that are not a signed-in user. The anon key only.
+ * The service role never belongs in this app.
+ */
+export function createAnonClient() {
+  const env = publicEnv();
+  if (!env) return null;
+  return createSupabaseClient(env.url, env.key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
