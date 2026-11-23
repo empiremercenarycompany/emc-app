@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
-import { SHIELDMATE_COUPON_ID, WANDERLUST_ADDON, isBasePlan, type BasePlan } from "@/lib/billing/plans";
+import { WANDERLUST_ADDON, isBasePlan, type BasePlan } from "@/lib/billing/plans";
 import { isMissingResource, isStripeCheckoutUrl, isStripePortalUrl, portalFailureReason } from "@/lib/billing/stripe";
+import { shieldmateCheckoutCoupon } from "@/lib/rules/shieldmate-coupon";
 
 export type CheckoutSelection = {
   plan: BasePlan;
@@ -10,13 +11,14 @@ export type CheckoutSelection = {
 
 /**
  * Wanderlust is an extra line, never the base plan.
- * The Shieldmate coupon is applied only when its flag is on. John has not narrowed who is eligible.
+ * shieldmate_20x2 applies only for a confirmed Shieldmate pair, and only when the coupon flag is on.
  */
 export function checkoutSelection(input: {
   plan: string;
   wanderlustRequested: boolean;
   wanderlustEnabled: boolean;
   couponEnabled: boolean;
+  pairConfirmed: boolean;
 }): CheckoutSelection | null {
   if (!isBasePlan(input.plan)) return null;
   const lookupKeys: string[] = [input.plan];
@@ -24,7 +26,7 @@ export function checkoutSelection(input: {
   return {
     plan: input.plan,
     lookupKeys,
-    coupon: input.couponEnabled ? SHIELDMATE_COUPON_ID : null,
+    coupon: input.couponEnabled ? shieldmateCheckoutCoupon(input.pairConfirmed) : null,
   };
 }
 
@@ -76,6 +78,7 @@ export async function buildMembershipCheckout(
     wanderlustRequested: boolean;
     wanderlustEnabled: boolean;
     couponEnabled: boolean;
+    pairConfirmed: boolean;
     userId: string;
     email: string | null;
     customerId: string | null;

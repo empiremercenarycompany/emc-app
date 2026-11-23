@@ -99,6 +99,7 @@ describe("billing flags and checkout", () => {
       wanderlustRequested: true,
       wanderlustEnabled: false,
       couponEnabled: false,
+      pairConfirmed: true,
     });
     expect(off).toEqual({ plan: "emc_monthly", lookupKeys: ["emc_monthly"], coupon: null });
 
@@ -107,6 +108,7 @@ describe("billing flags and checkout", () => {
       wanderlustRequested: true,
       wanderlustEnabled: false,
       couponEnabled: false,
+      pairConfirmed: true,
       userId: USER,
       email: "member@example.test",
       customerId: "cus_existing",
@@ -126,7 +128,7 @@ describe("billing flags and checkout", () => {
     expect(JSON.stringify(params)).not.toContain("shieldmate");
   });
 
-  it("adds wanderlust as an extra line and applies the coupon when the flags are on", async () => {
+  it("adds wanderlust as an extra line and applies the coupon only for a confirmed pair", async () => {
     const stripe = {
       prices: {
         list: async ({ lookup_keys }: { lookup_keys: string[] }) => ({
@@ -134,11 +136,26 @@ describe("billing flags and checkout", () => {
         }),
       },
     } as unknown as Stripe;
+    const open = await buildMembershipCheckout(stripe, {
+      plan: "emc_gym_monthly",
+      wanderlustRequested: true,
+      wanderlustEnabled: true,
+      couponEnabled: true,
+      pairConfirmed: false,
+      userId: USER,
+      email: "member@example.test",
+      customerId: null,
+      origin: "https://preview.example",
+    });
+    expect(open?.discounts).toBeUndefined();
+    expect(JSON.stringify(open)).not.toContain("shieldmate");
+
     const params = await buildMembershipCheckout(stripe, {
       plan: "emc_gym_monthly",
       wanderlustRequested: true,
       wanderlustEnabled: true,
       couponEnabled: true,
+      pairConfirmed: true,
       userId: USER,
       email: "member@example.test",
       customerId: null,
@@ -164,6 +181,7 @@ describe("billing flags and checkout", () => {
       wanderlustRequested: true,
       wanderlustEnabled: true,
       couponEnabled: true,
+      pairConfirmed: true,
       userId: USER,
       email: null,
       customerId: null,

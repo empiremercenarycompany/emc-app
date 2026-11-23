@@ -3,6 +3,7 @@ import { billingFlags } from "@/lib/billing/flags";
 import { appOrigin } from "@/lib/billing/origin";
 import { buildMembershipCheckout, createHostedCheckout } from "@/lib/billing/checkout";
 import { loadOwnBilling } from "@/lib/billing/own-billing";
+import { confirmedShieldmatePair } from "@/lib/billing/shieldmate-pair";
 import { getStripe, isStripeCheckoutUrl, safeBillingMessage } from "@/lib/billing/stripe";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const flags = billingFlags();
   const billing = await loadOwnBilling(supabase);
+  const pairConfirmed = flags.coupon ? await confirmedShieldmatePair(supabase, user.id) : false;
   let params;
   try {
     params = await buildMembershipCheckout(stripe, {
@@ -32,6 +34,7 @@ export async function POST(request: Request) {
       wanderlustRequested: form.get("wanderlust") === "1",
       wanderlustEnabled: flags.wanderlust,
       couponEnabled: flags.coupon,
+      pairConfirmed,
       userId: user.id,
       email: user.email ?? null,
       customerId: billing?.customer?.stripe_customer_id ?? null,
