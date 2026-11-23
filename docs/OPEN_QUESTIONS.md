@@ -20,8 +20,8 @@ John has the final say. Decided lines record the 10/28 lock. Open lines are stil
 - Sign-in is magic link. Discord and Google buttons are present and off.
 - One Company for now. The guild tables can hold another company later.
 - Bleakspire is a fortress with a small city around it. No other place description is written.
-- Next adventure starts Saturday 2027-01-02. Posters launch 2027-01-04. Saturday 2026-10-31 is skipped. Times are 9–12, 2–5, and 7–10 PM America/Denver. The 7–10 slot is adults only. Location: 1539 E Piper St, Idaho Falls, ID 83401.
-- Pricing is display only: Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No payments.
+- Next adventure starts Saturday 2027-01-02. Posters launch 2027-01-04. Saturday 2026-10-31 is skipped. Times are 9–12, 2–5, and 7–10 PM America/Denver. The 7–10 PM slot is 18+. Players who are 16 or 17 enlist themselves, with no guardian, and can choose 9 AM–12 PM or 2–5 PM only. Under 16 joins the teen waitlist. Location: 1539 E Piper St, Idaho Falls, ID 83401.
+- Pricing: Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No payments are taken in the app. Once a seat is confirmed, staff send a payment link through EMC's Stripe.
 - Weekly check-in is compliance, not a second attribute bank. Score is 2/1/0. Cutoff is Friday 11:59 PM America/Denver. Discord formatters exist and do not send.
 - A refund returns to the bank that paid: workouts, nutrition and sleep, mental, social, or attendance. A placement is provisional until a DM or trainer finalizes it in person. Only a finalized placement locks, and only once the next session starts. Provisional placements never lock. What you have not placed never locks.
 - A player's own weekly check-in does not finalize anything. Only the in-person DM or trainer check-in does.

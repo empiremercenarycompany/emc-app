@@ -1,3 +1,4 @@
+import { johnChoices } from "@/config/johnChoices";
 import raw from "./codex-terms.json";
 
 export type CodexStatus = "ready" | "confirm" | "john_to_fill";
@@ -49,8 +50,41 @@ export function isCodexVisible(term: CodexTerm): boolean {
   return true;
 }
 
+const COST_FAQ =
+  "For existing Empire Strength and Fitness members, the Founding Recruit Rate is $60 a month, added to the membership you already have. That covers workout programming from a coach, a seat at the table every other Saturday, and your mini, character sheet, and dice at the first session. Nothing is charged when you ENLIST. Once your seat is confirmed, staff send you a payment link through EMC's Stripe.";
+
+const COST_120 =
+  "If you are not already a member, $120 a month covers EMC and gym membership at Empire Strength and Fitness.";
+
+const EVERY_SATURDAY_FAQ =
+  "No. The table is every other Saturday. Workout programming from a coach happens during the week, on your schedule. You pick the Saturday time slot that fits: 9 AM to 12 PM, 2 to 5 PM, or 7 to 10 PM (ages 18 and up).";
+
+/** John's open FAQ choices. Off until the matching flag in johnChoices is flipped. */
+export function gatedFaqs(): CodexTerm[] {
+  const terms: CodexTerm[] = [];
+  if (johnChoices.faqShowCostQuestion) {
+    terms.push({
+      id: "faq-cost",
+      term: "What does it cost?",
+      group: "faq",
+      plain: johnChoices.faqShow120 ? `${COST_FAQ} ${COST_120}` : COST_FAQ,
+      status: "ready",
+    });
+  }
+  if (johnChoices.faqShowEverySaturday) {
+    terms.push({
+      id: "faq-every-saturday",
+      term: "Is it every Saturday?",
+      group: "faq",
+      plain: EVERY_SATURDAY_FAQ,
+      status: "ready",
+    });
+  }
+  return terms;
+}
+
 export function visibleCodex(): CodexTerm[] {
-  return TERMS.filter(isCodexVisible);
+  return TERMS.filter(isCodexVisible).concat(gatedFaqs());
 }
 
 export function visibleTerm(id: string): CodexTerm | null {

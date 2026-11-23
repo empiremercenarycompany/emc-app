@@ -155,7 +155,7 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
-  await expect(page.locator("img[src='/portraits/fallback.svg']").first()).toBeVisible();
+  await expect(page.locator("img[src='/art/header-band-placeholder.jpg']").first()).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
   await expect(page.getByText("Not final yet: see your DM or coach to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();

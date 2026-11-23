@@ -173,6 +173,8 @@ export type Viewer = {
     classIdea: string | null;
     fitnessExperience: string | null;
     backstoryIdea: string | null;
+    ageBand: string | null;
+    teenWaitlist: boolean;
   } | null;
 };
 
