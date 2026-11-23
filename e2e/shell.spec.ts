@@ -181,9 +181,10 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in to continue" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Sign in to see the calendar" })).toHaveCount(1);
-  await expect(page.getByText("9 AM–12 PM")).toBeVisible();
-  await expect(page.getByText("2–5 PM")).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)")).toBeVisible();
+  await expect(page.getByText("9 AM–12 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("2–5 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toBeVisible();
+  await expect(page.getByText(/The 7–10 PM slot is for ages 18 and up/)).toBeVisible();
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
