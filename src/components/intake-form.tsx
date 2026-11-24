@@ -4,7 +4,14 @@ import { useActionState, useState } from "react";
 import { ENLIST_BACKSTORY_PROMPT, ENLIST_CITY_BLURB } from "@/content/enlist";
 import { Choice } from "@/components/choice";
 import { saveIntake } from "@/lib/actions/intake";
-import { AGE_RULE, APP_PAYMENT_COPY } from "@/lib/rules/public-copy";
+import {
+  AGE_RULE,
+  GYM_MEMBER_HELPER,
+  GYM_MEMBER_OPTIONS,
+  PRICE_ONE_LINE,
+  gamegridLead,
+  type GymMember,
+} from "@/lib/rules/public-copy";
 import {
   AGE_BANDS,
   DND_LEVELS,
@@ -20,16 +27,19 @@ import type { ActionResult } from "@/lib/types";
 export function IntakeForm({
   slots,
   canSave = true,
+  signupSrc = "",
   initial,
 }: {
   slots: { id: string; label: string; adultsOnly: boolean }[];
   canSave?: boolean;
+  signupSrc?: string;
   initial?: {
     dnd: string;
     gym: string;
     goals: string[];
     timeslot: string;
     age?: string;
+    gymMember?: string;
     reminders: boolean;
     phone: string;
     species: string;
@@ -43,6 +53,11 @@ export function IntakeForm({
   const [goals, setGoals] = useState<string[]>(initial?.goals ?? ["Sleep 7 hours"]);
   const [custom, setCustom] = useState("");
   const [age, setAge] = useState(initial?.age ?? "");
+  const [gymMember, setGymMember] = useState<GymMember | "">(
+    initial?.gymMember === "current" || initial?.gymMember === "former" || initial?.gymMember === "not_yet"
+      ? initial.gymMember
+      : "",
+  );
   const openSlots = slotsForAge(age, slots);
   const [timeslot, setTimeslot] = useState(
     openSlots.some((slot) => slot.id === initial?.timeslot) ? (initial?.timeslot ?? "") : (openSlots[0]?.id ?? ""),
@@ -54,7 +69,8 @@ export function IntakeForm({
   );
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
   const chosenSlot = slots.find((slot) => slot.id === timeslot);
-  const problem = intakeError({
+  const rateProblem = gymMember ? null : "Say which rate is yours.";
+  const problem = rateProblem ?? intakeError({
     dnd,
     gym,
     goals: chosen,
@@ -128,7 +144,25 @@ export function IntakeForm({
               ))}
             </div>
           )}
-          <p className="text-mute">{APP_PAYMENT_COPY}</p>
+        </fieldset>
+        <fieldset className="score-card">
+          <legend>Which rate is yours?</legend>
+          {gamegridLead(signupSrc) ? <p>{PRICE_ONE_LINE}</p> : null}
+          {GYM_MEMBER_OPTIONS.map((option) => (
+            <label key={option.id} className="choice">
+              <input
+                type="radio"
+                name="gym_member"
+                value={option.id}
+                checked={gymMember === option.id}
+                onChange={() => setGymMember(option.id)}
+                required
+              />
+              <span className="choice-mark radio" aria-hidden="true" />
+              <span className="choice-label">{option.label}</span>
+            </label>
+          ))}
+          <p className="text-mute">{GYM_MEMBER_HELPER}</p>
         </fieldset>
         <label>
           Species idea
@@ -225,6 +259,7 @@ export function IntakeForm({
       <input type="hidden" name="dnd" value={dnd} />
       <input type="hidden" name="gym" value={gym} />
       <input type="hidden" name="age" value={age} />
+      <input type="hidden" name="signup_src" value={signupSrc.slice(0, 80)} />
       <input type="hidden" name="timeslot" value={age === "under_16" ? "" : timeslot} />
       {chosen.map((goal) => (
         <input key={goal} type="hidden" name="goal" value={goal} />

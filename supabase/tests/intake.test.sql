@@ -56,14 +56,14 @@ begin
   end if;
   if has_function_privilege(
     'anon',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text)',
     'execute'
   ) then
     raise exception 'anon can save intake';
   end if;
   if not has_function_privilege(
     'authenticated',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text)',
     'execute'
   ) then
     raise exception 'authenticated cannot save intake';
@@ -321,5 +321,110 @@ begin
     raise exception '18+ could not keep the evening slot';
   end if;
 end $$;
+
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true,
+  null, null, null, null, null, '18_plus', 'current', 'gamegrid-writ'
+);
+
+do $$
+declare
+  v_member text;
+  v_verified boolean;
+  v_src text;
+begin
+  select gym_member, membership_verified, signup_src
+    into v_member, v_verified, v_src
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_member is distinct from 'current' or v_verified is distinct from false or v_src is distinct from 'gamegrid-writ' then
+    raise exception 'membership answer was not stored';
+  end if;
+end $$;
+
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true
+);
+
+do $$
+declare
+  v_member text;
+  v_src text;
+begin
+  select gym_member, signup_src into v_member, v_src
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_member is distinct from 'current' or v_src is distinct from 'gamegrid-writ' then
+    raise exception 'a short save wiped the membership answer';
+  end if;
+end $$;
+
+do $$
+begin
+  perform public.set_checkout_plan(auth.uid(), 'member');
+  raise exception 'a player set the $60 price';
+exception
+  when others then
+    if sqlerrm ilike '%player set the $60 price%' then raise; end if;
+    if sqlerrm not ilike '%Staff only%' then raise; end if;
+end $$;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222222', false);
+
+do $$
+begin
+  perform public.set_checkout_plan('22222222-2222-4222-8222-222222222221', 'member');
+  raise exception 'unverified current member took the $60 price';
+exception
+  when others then
+    if sqlerrm ilike '%unverified current member%' then raise; end if;
+    if sqlerrm not ilike '%Verify membership%' then raise; end if;
+end $$;
+
+select public.set_membership_verification('22222222-2222-4222-8222-222222222221', true);
+
+do $$
+declare
+  v_by uuid;
+  v_at timestamptz;
+begin
+  select membership_verified_by, membership_verified_at into v_by, v_at
+  from public.player_intake
+  where user_id = '22222222-2222-4222-8222-222222222221';
+  if v_by is distinct from auth.uid() or v_at is null then
+    raise exception 'verification did not record who and when';
+  end if;
+end $$;
+
+select public.set_checkout_plan('22222222-2222-4222-8222-222222222221', 'member');
+
+do $$
+declare
+  v_plan text;
+begin
+  select checkout_plan into v_plan
+  from public.player_intake
+  where user_id = '22222222-2222-4222-8222-222222222221';
+  if v_plan is distinct from 'member' then
+    raise exception 'staff could not switch a verified current member to $60';
+  end if;
+end $$;
+
+select public.save_player_intake(
+  'never', 'new', array['Sleep 7 hours'], 'morning', false,
+  null, null, null, null, null, '18_plus', 'former', null
+);
+
+do $$
+begin
+  perform public.set_checkout_plan(auth.uid(), 'member');
+  raise exception 'a former member took the $60 price';
+exception
+  when others then
+    if sqlerrm ilike '%former member took%' then raise; end if;
+    if sqlerrm not ilike '%Verify membership%' then raise; end if;
+end $$;
+
+select set_config('request.jwt.claim.sub', '22222222-2222-4222-8222-222222222221', false);
 
 reset role;

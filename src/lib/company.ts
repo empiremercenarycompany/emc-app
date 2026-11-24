@@ -4,10 +4,13 @@ import { recordVisit } from "@/lib/notify/record-visit";
 import { shouldNotifyNewAccount } from "@/lib/notify/signup-notice";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { beginnerHints, displaySlot, dndLabel, gymLabel } from "@/lib/rules/intake";
+import { gymMemberLabel, parseGymMember } from "@/lib/rules/public-copy";
 import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient, createClientWithAccessToken } from "@/lib/supabase/server";
 import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@/lib/types";
 
+const INTAKE_MEMBER =
+  "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist, gym_member, membership_verified, checkout_plan, signup_src";
 const INTAKE_FULL =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
@@ -77,7 +80,7 @@ async function loadViewerOnce(): Promise<Viewer> {
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
     supabase.rpc("company_today"),
-    supabase.from("player_intake").select(INTAKE_FULL).eq("user_id", user.id).maybeSingle(),
+    supabase.from("player_intake").select(INTAKE_MEMBER).eq("user_id", user.id).maybeSingle(),
   ]);
 
   const today = typeof todayResult.data === "string" ? todayResult.data : null;
@@ -101,6 +104,9 @@ async function loadViewerOnce(): Promise<Viewer> {
 
   let intakeQuery = intakeResult;
   if (missingColumn(intakeQuery.error)) {
+    intakeQuery = await supabase.from("player_intake").select(INTAKE_FULL).eq("user_id", user.id).maybeSingle();
+  }
+  if (missingColumn(intakeQuery.error)) {
     intakeQuery = await supabase.from("player_intake").select(INTAKE_BASE).eq("user_id", user.id).maybeSingle();
   }
   const intakeRow = intakeQuery.error ? null : intakeQuery.data;
@@ -118,6 +124,10 @@ async function loadViewerOnce(): Promise<Viewer> {
         backstoryIdea: textOrNull(intakeRow.backstory_idea),
         ageBand: textOrNull(intakeRow.age_band),
         teenWaitlist: Boolean(intakeRow.teen_waitlist),
+        gymMember: parseGymMember(textOrNull(intakeRow.gym_member)),
+        membershipVerified: intakeRow.membership_verified === true,
+        checkoutPlan: intakeRow.checkout_plan === "member" || intakeRow.checkout_plan === "standard" ? intakeRow.checkout_plan : null,
+        signupSrc: textOrNull(intakeRow.signup_src),
       }
     : null;
 
@@ -153,6 +163,11 @@ async function loadViewerOnce(): Promise<Viewer> {
       dndExperience: intake ? dndLabel(intake.dnd) : "",
       sessionReminders: intake ? (intake.reminders ? "yes" : "no") : "",
       backstory: intake?.backstoryIdea ?? "",
+      empireMembership: gymMemberLabel(intake?.gymMember ?? null),
+      membershipVerified: intake ? (intake.membershipVerified ? "yes" : "no") : "",
+      verifiedBy: "",
+      verifiedAt: "",
+      signupSrc: intake?.signupSrc ?? "",
     };
     if (account.trainingSlot) {
       const slot = await supabase.from("session_timeslots").select("label, adults_only").eq("id", account.trainingSlot).maybeSingle();

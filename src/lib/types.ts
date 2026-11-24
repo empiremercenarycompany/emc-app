@@ -175,6 +175,10 @@ export type Viewer = {
     backstoryIdea: string | null;
     ageBand: string | null;
     teenWaitlist: boolean;
+    gymMember: "current" | "former" | "not_yet" | null;
+    membershipVerified: boolean;
+    checkoutPlan: "member" | "standard" | null;
+    signupSrc: string | null;
   } | null;
 };
 

@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { formatPeriodEnd } from "@/lib/billing/display";
+import { isCheckoutPlan, type CheckoutPlan } from "@/lib/billing/price";
 import { SIGNUP_COLUMNS, type SignupRecord } from "@/lib/notify/signup-fields";
 import { displaySlot, dndLabel, gymLabel } from "@/lib/rules/intake";
+import { gymMemberLabel, parseGymMember, type GymMember } from "@/lib/rules/public-copy";
 
 function clean(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -44,23 +47,46 @@ type IntakeRow = {
   gym_experience?: unknown;
   timeslot_id?: unknown;
   session_reminders?: unknown;
+  gym_member?: unknown;
+  membership_verified?: unknown;
+  membership_verified_by?: unknown;
+  membership_verified_at?: unknown;
+  checkout_plan?: unknown;
+  signup_src?: unknown;
+};
+
+const INTAKE_COLUMNS =
+  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+const INTAKE_BASE =
+  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders";
+
+export type SignupBilling = {
+  gymMember: GymMember | null;
+  membershipVerified: boolean;
+  verifiedBy: string;
+  verifiedAt: string;
+  staffPlan: CheckoutPlan | null;
 };
 
 type SlotRow = { id?: unknown; label?: unknown; adults_only?: unknown };
 
+function missingColumn(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === "42703" || error.code === "PGRST204" || /column .+ does not exist/i.test(error.message ?? "");
+}
+
 export async function loadSignups(
   supabase: SupabaseClient,
-): Promise<{ rows: SignupRecord[]; error: string | null }> {
-  const [profiles, intake, slots] = await Promise.all([
+): Promise<{ rows: SignupRecord[]; billing: Record<string, SignupBilling>; error: string | null }> {
+  const [profiles, intakeFirst, slots] = await Promise.all([
     supabase.from("profiles").select("id, email, display_name, app_role, created_at").order("created_at", { ascending: false }),
-    supabase
-      .from("player_intake")
-      .select(
-        "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders",
-      ),
+    supabase.from("player_intake").select(INTAKE_COLUMNS),
     supabase.from("session_timeslots").select("id, label, adults_only"),
   ]);
-  if (profiles.error || intake.error) return { rows: [], error: "Sign-ups could not be loaded." };
+  const intake = missingColumn(intakeFirst.error)
+    ? await supabase.from("player_intake").select(INTAKE_BASE)
+    : intakeFirst;
+  if (profiles.error || intake.error) return { rows: [], billing: {}, error: "Sign-ups could not be loaded." };
 
   const slotById = new Map<string, { label: string; adultsOnly: boolean }>();
   for (const slot of (slots.data ?? []) as SlotRow[]) {
@@ -70,11 +96,25 @@ export async function loadSignups(
   }
 
   const intakeByUser = new Map<string, IntakeRow>();
+  const verifierIds = new Set<string>();
   for (const row of (intake.data ?? []) as IntakeRow[]) {
     const id = clean(row.user_id);
-    if (id) intakeByUser.set(id, row);
+    if (!id) continue;
+    intakeByUser.set(id, row);
+    const verifier = clean(row.membership_verified_by);
+    if (verifier) verifierIds.add(verifier);
   }
 
+  const names = new Map<string, string>();
+  if (verifierIds.size > 0) {
+    const verifiers = await supabase.from("profiles").select("id, display_name").in("id", [...verifierIds]);
+    for (const profile of (verifiers.data ?? []) as ProfileRow[]) {
+      const id = clean(profile.id);
+      if (id) names.set(id, clean(profile.display_name));
+    }
+  }
+
+  const billing: Record<string, SignupBilling> = {};
   const rows = ((profiles.data ?? []) as ProfileRow[]).map((profile) => {
     const userId = clean(profile.id);
     const details = intakeByUser.get(userId);
@@ -82,6 +122,19 @@ export async function loadSignups(
     const slot = timeslotId ? slotById.get(timeslotId) : undefined;
     const dnd = clean(details?.dnd_experience);
     const gym = clean(details?.gym_experience);
+    const gymMember = parseGymMember(clean(details?.gym_member));
+    const verified = details?.membership_verified === true;
+    const verifierId = clean(details?.membership_verified_by);
+    const verifiedAt = formatPeriodEnd(clean(details?.membership_verified_at) || null) ?? "";
+    const planText = clean(details?.checkout_plan);
+    const staffPlan = isCheckoutPlan(planText) ? planText : null;
+    billing[userId] = {
+      gymMember,
+      membershipVerified: verified,
+      verifiedBy: names.get(verifierId) || verifierId,
+      verifiedAt,
+      staffPlan,
+    };
     return {
       userId,
       email: clean(profile.email),
@@ -98,8 +151,13 @@ export async function loadSignups(
       dndExperience: dnd ? dndLabel(dnd) : "",
       sessionReminders: details ? (details.session_reminders ? "yes" : "no") : "",
       backstory: clean(details?.backstory_idea),
+      empireMembership: gymMemberLabel(gymMember),
+      membershipVerified: details ? (verified ? "yes" : "no") : "",
+      verifiedBy: names.get(verifierId) || "",
+      verifiedAt,
+      signupSrc: clean(details?.signup_src),
     };
   });
 
-  return { rows, error: null };
+  return { rows, billing, error: null };
 }

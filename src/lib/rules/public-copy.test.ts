@@ -2,7 +2,16 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { johnChoices } from "@/config/johnChoices";
-import { AGE_RULE, APP_PAYMENT_COPY } from "./public-copy";
+import {
+  AGE_RULE,
+  FAQ_COST_COPY,
+  GYM_MEMBER_OPTIONS,
+  PRICE_ONE_LINE,
+  SCHEDULE_PRICE_COPY,
+  confirmationRateLine,
+  gamegridLead,
+  gamegridWritLine,
+} from "./public-copy";
 
 const ROOT = path.resolve(__dirname, "../../..");
 
@@ -12,18 +21,33 @@ function read(relative: string): string {
 
 describe("public payment and age copy", () => {
   it("uses the schedule payment line and the age rule", () => {
-    expect(APP_PAYMENT_COPY).toContain("$60/mo");
-    expect(APP_PAYMENT_COPY).toContain("$120/mo");
-    expect(APP_PAYMENT_COPY).toContain("payment link through EMC's Stripe");
-    expect(APP_PAYMENT_COPY).not.toMatch(/pay on the Empire/i);
+    expect(SCHEDULE_PRICE_COPY.startsWith("Founding Recruit Rate: $120/month")).toBe(true);
+    expect(SCHEDULE_PRICE_COPY.indexOf("$120/month")).toBeLessThan(SCHEDULE_PRICE_COPY.indexOf("$60/month"));
+    expect(SCHEDULE_PRICE_COPY).toContain("No payments are taken in the app.");
+    expect(PRICE_ONE_LINE).toBe("$120/month with gym membership included. Current Empire members: $60/month.");
+    expect(FAQ_COST_COPY).not.toMatch(/shieldmate/i);
+    expect(GYM_MEMBER_OPTIONS.map((option) => option.id)).toEqual(["not_yet", "former", "current"]);
+    expect(confirmationRateLine("former")).toContain("$120 a month");
+    expect(confirmationRateLine("current")).toContain("$60 a month");
+    expect(confirmationRateLine(null)).toContain("Staff will confirm which applies");
+    expect(gamegridLead("gamegrid-writ")).toBe(true);
+    expect(gamegridLead("friend")).toBe(false);
+    expect(gamegridWritLine("gamegrid-writ")).toContain("Enlistment Writ");
+    expect(gamegridWritLine("gamegrid-poster")).toBeNull();
+    expect(SCHEDULE_PRICE_COPY).not.toMatch(/pay on the Empire/i);
+    expect(SCHEDULE_PRICE_COPY).not.toMatch(/shieldmate/i);
     expect(AGE_RULE).toContain("16 and up");
     expect(AGE_RULE).toContain("No guardian is needed");
     expect(AGE_RULE).toContain("7–10 PM slot is for ages 18 and up");
     expect(AGE_RULE).toContain("teen waitlist");
-    for (const file of ["src/app/schedule/page.tsx", "src/components/intake-form.tsx"]) {
-      const text = read(file);
-      expect(text).toContain("APP_PAYMENT_COPY");
-      expect(text).toContain("AGE_RULE");
+    const schedule = read("src/app/schedule/page.tsx");
+    const intake = read("src/components/intake-form.tsx");
+    expect(schedule).toContain("SCHEDULE_PRICE_COPY");
+    expect(schedule).toContain("AGE_RULE");
+    expect(intake).toContain("Which rate is yours?");
+    expect(intake).toContain("GYM_MEMBER_OPTIONS");
+    expect(intake).not.toMatch(/shieldmate/i);
+    for (const text of [schedule, intake]) {
       expect(text).not.toMatch(/pay on the Empire/i);
       expect(text).not.toMatch(/Empire Gym/i);
       expect(text).not.toMatch(/Scottie/i);

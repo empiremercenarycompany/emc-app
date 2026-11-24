@@ -1,3 +1,4 @@
+import { priceFailureMessage } from "@/lib/billing/price";
 import type { NoticeField } from "@/lib/notify/signup-fields";
 import { sendStaffNotice } from "@/lib/notify/staff-notice";
 import type { StaffPaymentNotice } from "@/lib/billing/types";
@@ -32,6 +33,10 @@ export function billingQueryNotice(flag: string | undefined): string | null {
       return "The billing portal is not set up in Stripe yet. Staff can add a Customer Portal configuration, then this link will open.";
     case "unavailable":
       return "Billing is not available right now.";
+    case "price-standard":
+      return priceFailureMessage("standard", "missing");
+    case "price-member":
+      return priceFailureMessage("member", "missing");
     default:
       return null;
   }

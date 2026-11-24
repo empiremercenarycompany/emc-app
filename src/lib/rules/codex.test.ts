@@ -41,11 +41,11 @@ describe("company codex", () => {
   it("shows the cost and Saturday questions only when those flags are on", () => {
     johnChoices.faqShowCostQuestion = true;
     const cost = visibleCodex().find((term) => term.id === "faq-cost");
-    expect(cost?.plain).toMatch(/\$60 a month/);
-    expect(cost?.plain).not.toMatch(/\$120/);
-    expect(cost?.plain).toMatch(/payment link through EMC's Stripe/);
-    johnChoices.faqShow120 = true;
-    expect(visibleCodex().find((term) => term.id === "faq-cost")?.plain).toMatch(/\$120 a month/);
+    expect(cost?.plain).toBe(
+      "$120 a month with your Empire Strength and Fitness membership included, or $60 a month if you're a current Empire member. Month to month, cancel anytime.",
+    );
+    expect(cost?.plain).not.toMatch(/shieldmate/i);
+    expect(cost?.plain.indexOf("$120")).toBeLessThan(cost!.plain.indexOf("$60"));
     expect(visibleCodex().some((term) => term.id === "faq-every-saturday")).toBe(false);
     johnChoices.faqShowEverySaturday = true;
     expect(visibleCodex().find((term) => term.id === "faq-every-saturday")?.plain).toMatch(/7 to 10 PM \(ages 18 and up\)/);

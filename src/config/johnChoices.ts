@@ -11,7 +11,7 @@ export const johnChoices: {
   termsEffectiveDate: string;
   /** Codex question "What does it cost?" stays hidden until John wants it. */
   faqShowCostQuestion: boolean;
-  /** The $120 sentence in that cost answer stays hidden until John confirms it. */
+  /** Nov 24, 2026: the cost answer always states both prices, $120 first. This flag no longer hides $120. */
   faqShow120: boolean;
   /** Codex question "Is it every Saturday?" stays hidden until John wants it. */
   faqShowEverySaturday: boolean;

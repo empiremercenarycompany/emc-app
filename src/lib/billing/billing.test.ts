@@ -73,6 +73,10 @@ function deps(overrides: Partial<BillingWebhookDeps> = {}): BillingWebhookDeps {
 }
 
 describe("billing flags and checkout", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("treats only true and 1 as on", () => {
     expect(billingFlagEnabled(undefined)).toBe(false);
     expect(billingFlagEnabled("")).toBe(false);
@@ -101,7 +105,7 @@ describe("billing flags and checkout", () => {
       couponEnabled: false,
       pairConfirmed: true,
     });
-    expect(off).toEqual({ plan: "emc_monthly", lookupKeys: ["emc_monthly"], coupon: null });
+    expect(off).toMatchObject({ plan: "member", lookupKey: "emc_monthly", lookupKeys: [], coupon: null });
 
     const params = await buildMembershipCheckout(stripe, {
       plan: "emc_monthly",
@@ -119,7 +123,12 @@ describe("billing flags and checkout", () => {
     expect(params?.customer).toBe("cus_existing");
     expect(params?.customer_email).toBeUndefined();
     expect(params?.client_reference_id).toBe(USER);
-    expect(params?.metadata).toMatchObject({ surface: "app", plan: "emc_monthly", user_id: USER });
+    expect(params?.metadata).toMatchObject({
+      surface: "app",
+      plan: "emc_monthly",
+      product_name: "EMC Founding Recruit Rate, current Empire members",
+      user_id: USER,
+    });
     expect(params?.discounts).toBeUndefined();
     expect(params?.line_items).toEqual([{ price: "price_for_emc_monthly", quantity: 1 }]);
     expect(params?.success_url).toBe("https://preview.example/profile?billing=success");
@@ -169,9 +178,11 @@ describe("billing flags and checkout", () => {
     expect(params?.customer_email).toBe("member@example.test");
     expect(params?.subscription_data?.metadata).toMatchObject({
       plan: "emc_gym_monthly",
+      product_name: "EMC Founding Recruit Rate, gym included",
       wanderlust: "true",
       coupon: "shieldmate_20x2",
     });
+    expect(params?.subscription_data?.description).toBe("EMC Founding Recruit Rate, gym included");
   });
 
   it("does not sell wanderlust as the base plan", async () => {
@@ -401,13 +412,17 @@ describe("membership copy and portal", () => {
   it("names the plans, the venue, and the staff mail without banned words", () => {
     const panel = read("src/components/membership-panel.tsx");
     const plans = read("src/lib/billing/plans.ts");
+    const copy = read("src/lib/rules/public-copy.ts");
     const profile = read("src/app/profile/page.tsx");
-    expect(plans).toContain("Empire Strength and Fitness");
-    expect(plans).toContain("$60 a month");
-    expect(plans).toContain("$120 a month");
-    expect(panel).toContain("PLAN_CHOICES");
+    expect(copy).toContain("Gym included: $120/month");
+    expect(copy).toContain("Current Empire member: $60/month");
+    expect(copy).toContain("Empire Strength and Fitness");
+    expect(plans).toContain("PLAN_LABEL_STANDARD");
+    expect(plans).toContain("PLAN_LABEL_MEMBER");
+    expect(plans.indexOf("$120/month")).toBeLessThan(plans.indexOf("$60/month"));
+    expect(panel).toContain("PRICE_ONE_LINE");
     expect(panel).toContain("wanderlustEnabled");
-    expect(panel).toContain("couponEnabled");
+    expect(panel).not.toMatch(/shieldmate/i);
     const signedIn = profile.slice(profile.indexOf("!viewer.userId"));
     expect(signedIn.indexOf("<SignInPrompt />")).toBeLessThan(signedIn.indexOf("<MembershipPanel"));
     expect(signedIn.indexOf("<MembershipPanel")).toBeGreaterThan(-1);
@@ -517,6 +532,7 @@ describe("billing migration", () => {
     const files = [
       "src/lib/billing/checkout.ts",
       "src/lib/billing/normalize.ts",
+      "src/lib/billing/price.ts",
       "src/lib/billing/stripe.ts",
       "src/lib/billing/record.ts",
       "src/lib/billing/webhook.ts",
@@ -528,6 +544,8 @@ describe("billing migration", () => {
     expect(source).not.toMatch(/(?<![A-Z_])STRIPE_SECRET_KEY/);
     expect(source).toContain("EMC_STRIPE_SECRET_KEY");
     expect(source).toContain("EMC_STRIPE_WEBHOOK_SECRET");
+    expect(source).toContain("EMC_STRIPE_PRICE_MEMBER");
+    expect(source).toContain("EMC_STRIPE_PRICE_STANDARD");
     expect(source).not.toContain("transfer_data");
     expect(source).not.toMatch(/price_1[A-Za-z0-9]/);
     expect(source).not.toMatch(/\breferral\b/i);

@@ -1,4 +1,10 @@
 import { johnChoices } from "@/config/johnChoices";
+import {
+  PAYMENT_STEP,
+  confirmationRateLine,
+  gamegridWritLine,
+  type GymMember,
+} from "@/lib/rules/public-copy";
 
 /**
  * PLAYER CONFIRMATION EMAIL
@@ -17,6 +23,8 @@ export type PlayerConfirmationInput = {
   email: string;
   friendName?: string | null;
   invitedBy?: string | null;
+  gymMember?: GymMember | null;
+  signupSrc?: string | null;
 };
 
 export function confirmationFirstName(displayName: string | null | undefined): string {
@@ -66,6 +74,8 @@ export function renderPlayerConfirmation(input: PlayerConfirmationInput): {
   const firstName = input.firstName.trim() || "Recruit";
   const slot = input.preferredSlot.trim() || "the session time you choose";
   const email = input.email.trim();
+  const rate = confirmationRateLine(input.gymMember ?? null);
+  const writ = gamegridWritLine(input.signupSrc);
   const lines = [
     `${firstName},`,
     "",
@@ -73,10 +83,13 @@ export function renderPlayerConfirmation(input: PlayerConfirmationInput): {
     "",
     `You asked for: ${slot}, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. The Company is for ages 16 and up. The 7 to 10 PM slot is for ages 18 and up.`,
     "",
+    rate,
+    ...(writ ? ["", writ] : []),
+    "",
     "Nothing is charged when you ENLIST. Here's what happens next:",
     "",
     `1. Staff will confirm your seat and time slot. ${fullSlotSentence(shieldmatePair(input))}`,
-    "2. Once your seat is confirmed, staff send you a payment link through EMC's Stripe. Nothing has been charged yet.",
+    `2. ${PAYMENT_STEP} Nothing has been charged yet.`,
     `3. You get your invite to the EMC app. Use this same email (${email}). The app signs you in with a link we email you, so there's no password to remember.`,
     "",
     "Depending on your slot, your first session is Saturday, January 2 or Saturday, January 9, 2027. Staff will confirm your date.",

@@ -42,7 +42,10 @@ describe("player confirmation template", () => {
     expect(message.text).toContain("The 7 to 10 PM slot is for ages 18 and up.");
     expect(message.text).toContain("Nothing is charged when you ENLIST.");
     expect(message.text).toContain(
-      "Once your seat is confirmed, staff send you a payment link through EMC's Stripe. Nothing has been charged yet.",
+      "Once staff confirm your seat, they'll send you a payment link. Nothing has been charged yet.",
+    );
+    expect(message.text).toContain(
+      "Your rate: $120 a month with your Empire Strength and Fitness membership included, or $60 a month if you're a current Empire member. Staff will confirm which applies when they confirm your seat.",
     );
     expect(message.text).toContain("you go on the waitlist for it with today's rate locked in.");
     expect(message.text).toContain("Use this same email (recruit@example.test).");
@@ -70,6 +73,22 @@ describe("player confirmation template", () => {
     expect(moved.text).toContain('You listed A friend under "Who invited you?"');
     expect(moved.text).toContain("you and your Shieldmate are offered the next slot together.");
     expect(renderPlayerConfirmation(input).text).toContain("you go on the waitlist for it");
+  });
+
+  it("states the answered rate, and the writ line only for gamegrid-writ", () => {
+    const current = renderPlayerConfirmation({ ...input, gymMember: "current", signupSrc: "gamegrid-writ" });
+    expect(current.text).toContain(
+      "Your rate: $60 a month, the Founding Recruit Rate for current Empire members, added to the membership you already have. Staff will check your membership when they confirm your seat.",
+    );
+    expect(current.text).toContain("You came in on an Enlistment Writ, so your first Game Grid paint night is on the Company. Bring your writ.");
+    const beforeBonus = current.text.split("Bring your Shieldmate.")[0] ?? "";
+    expect(beforeBonus).not.toMatch(/shieldmate/i);
+    const former = renderPlayerConfirmation({ ...input, gymMember: "former", signupSrc: "gamegrid-poster" });
+    expect(former.text).toContain(
+      "Your rate: $120 a month, the Founding Recruit Rate with your Empire Strength and Fitness membership included.",
+    );
+    expect(former.text).not.toContain("Enlistment Writ");
+    expect(renderPlayerConfirmation({ ...input, gymMember: "not_yet" }).text).toContain("$120 a month, the Founding Recruit Rate");
   });
 
   it("leaves the waiver out while that paragraph is empty", () => {
@@ -115,7 +134,7 @@ describe("player confirmation send", () => {
     expect(message.text.startsWith("Nothing is charged yet. Staff will confirm your seat and send a payment link.")).toBe(
       true,
     );
-    expect(message.text).toContain("payment link through EMC's Stripe");
+    expect(message.text).toContain("Once staff confirm your seat, they'll send you a payment link. Nothing has been charged yet.");
     expect(message.text).not.toContain("test-smtp-secret");
     const logged = vi.mocked(console.info).mock.calls.flat().join(" ");
     expect(logged).toBe(JSON.stringify({ status: "sent", messageId: "ok" }));

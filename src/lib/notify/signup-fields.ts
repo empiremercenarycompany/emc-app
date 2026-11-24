@@ -14,6 +14,11 @@ export type SignupRecord = {
   dndExperience: string;
   sessionReminders: string;
   backstory: string;
+  empireMembership: string;
+  membershipVerified: string;
+  verifiedBy: string;
+  verifiedAt: string;
+  signupSrc: string;
 };
 
 export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
@@ -32,6 +37,11 @@ export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
   { key: "dndExperience", label: "D&D experience" },
   { key: "sessionReminders", label: "Session reminders" },
   { key: "backstory", label: "Backstory" },
+  { key: "empireMembership", label: "Empire membership" },
+  { key: "membershipVerified", label: "Membership verified" },
+  { key: "verifiedBy", label: "Verified by" },
+  { key: "verifiedAt", label: "Verified at" },
+  { key: "signupSrc", label: "Signup source" },
 ];
 
 export type NoticeField = { label: string; value: string };

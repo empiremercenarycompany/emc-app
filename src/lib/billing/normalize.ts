@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
-import { EMC_GYM_MONTHLY, EMC_MONTHLY, SHIELDMATE_COUPON_ID, WANDERLUST_ADDON } from "@/lib/billing/plans";
+import { basePlanFromPrices } from "@/lib/billing/price";
+import { SHIELDMATE_COUPON_ID, WANDERLUST_ADDON } from "@/lib/billing/plans";
 import type {
   BillingCustomerWrite,
   BillingEventType,
@@ -52,12 +53,12 @@ export function normalizeSubscription(subscription: Stripe.Subscription): Billin
   if (!customerId) return null;
   const prices = (subscription.items?.data ?? []).map((item) => item.price);
   const wanderlust = prices.some((price) => price.lookup_key === WANDERLUST_ADDON);
+  const matched = basePlanFromPrices(prices);
   const base =
-    prices.find((price) => price.lookup_key === EMC_GYM_MONTHLY) ??
-    prices.find((price) => price.lookup_key === EMC_MONTHLY) ??
+    matched?.price ??
     prices.find((price) => price.lookup_key && price.lookup_key !== WANDERLUST_ADDON) ??
     null;
-  const plan = base?.lookup_key ?? "unknown";
+  const plan = matched?.lookupKey ?? base?.lookup_key ?? "unknown";
   const ends = (subscription.items?.data ?? [])
     .map((item) => item.current_period_end)
     .filter((value) => Number.isFinite(value));
@@ -74,8 +75,8 @@ export function normalizeSubscription(subscription: Stripe.Subscription): Billin
     current_period_end: ends.length ? new Date(Math.max(...ends) * 1000).toISOString() : null,
     cancel_at_period_end: subscription.cancel_at_period_end === true,
     wanderlust,
-    gym_share_cents: centsFromMetadata(base?.metadata),
-    gym_partner: partnerFromMetadata(base?.metadata),
+    gym_share_cents: centsFromMetadata(base && "metadata" in base ? base.metadata : null),
+    gym_partner: partnerFromMetadata(base && "metadata" in base ? base.metadata : null),
   };
 }
 

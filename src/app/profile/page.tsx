@@ -12,6 +12,7 @@ import { signOut } from "@/lib/actions/staff";
 import { billingFlags } from "@/lib/billing/flags";
 import { billingQueryNotice } from "@/lib/billing/notices";
 import { loadOwnBilling } from "@/lib/billing/own-billing";
+import { checkoutPlanFor } from "@/lib/billing/price";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
@@ -117,7 +118,12 @@ export default async function ProfilePage({
           <MembershipPanel
             billing={membership}
             wanderlustEnabled={flags.wanderlust}
-            couponEnabled={flags.coupon}
+            plan={checkoutPlanFor({
+              gymMember: viewer.intake?.gymMember ?? null,
+              membershipVerified: viewer.intake?.membershipVerified ?? false,
+              staffPlan: viewer.intake?.checkoutPlan ?? null,
+            })}
+            gymMember={viewer.intake?.gymMember ?? null}
           />
           <form action={signOut}>
             <button className="secondary" type="submit">

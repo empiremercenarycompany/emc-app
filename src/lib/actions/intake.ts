@@ -7,6 +7,7 @@ import { actionClient, dbError } from "@/lib/action-client";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { confirmationFirstName } from "@/lib/notify/player-confirmation-template";
 import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { gymMemberLabel, parseGymMember } from "@/lib/rules/public-copy";
 import type { ActionResult } from "@/lib/types";
 
 function providedText(formData: FormData, name: string): string | null {
@@ -38,6 +39,10 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     timeslot: String(formData.get("timeslot") ?? ""),
   };
   const age = providedText(formData, "age");
+  const enlisting = formData.get("enlist") === "1";
+  const gymMember = enlisting ? parseGymMember(providedText(formData, "gym_member")) : null;
+  if (enlisting && !gymMember) return { error: "Say which rate is yours." };
+  const signupSrc = providedText(formData, "signup_src");
   const waiting = age === "under_16";
   const adultsOnly = age !== null && !waiting ? await slotIsAdultsOnly(supabase, draft.timeslot) : false;
   const problem = intakeError({
@@ -62,6 +67,8 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     p_goals: draft.goals,
     p_timeslot: waiting ? null : draft.timeslot,
     ...(age !== null && isAgeBand(age) ? { p_age_band: age } : {}),
+    ...(gymMember ? { p_gym_member: gymMember } : {}),
+    ...(signupSrc !== null ? { p_signup_src: signupSrc } : {}),
     p_reminders: formData.get("reminders") === "on",
     p_phone: phone,
     p_species_idea: species,
@@ -80,6 +87,8 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       fitness: fitness ?? "",
       backstory: backstory ?? "",
       reminders: formData.get("reminders") === "on",
+      empireMembership: gymMemberLabel(gymMember),
+      signupSrc: (signupSrc ?? "").trim(),
     });
     if (waiting) record.trainingSlot = "Teen waitlist";
     const enlistNotice = noticeFields(record);
@@ -87,6 +96,8 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       firstName: confirmationFirstName(record.displayName),
       preferredSlot: record.trainingSlot,
       email: record.email,
+      gymMember,
+      signupSrc,
     };
     after(async () => {
       try {
@@ -117,7 +128,16 @@ async function enlistRecord(
   userId: string,
   email: string,
   draft: { dnd: string; gym: string; goals: string[]; timeslot: string },
-  enlist: { phone: string; species: string; classIdea: string; fitness: string; backstory: string; reminders: boolean },
+  enlist: {
+    phone: string;
+    species: string;
+    classIdea: string;
+    fitness: string;
+    backstory: string;
+    reminders: boolean;
+    empireMembership: string;
+    signupSrc: string;
+  },
 ): Promise<SignupRecord> {
   const [profile, slot] = await Promise.all([
     supabase.from("profiles").select("display_name, app_role, created_at").eq("id", userId).maybeSingle(),
@@ -140,5 +160,10 @@ async function enlistRecord(
     dndExperience: dndLabel(draft.dnd),
     sessionReminders: enlist.reminders ? "yes" : "no",
     backstory: enlist.backstory.trim(),
+    empireMembership: enlist.empireMembership,
+    membershipVerified: "",
+    verifiedBy: "",
+    verifiedAt: "",
+    signupSrc: enlist.signupSrc,
   };
 }

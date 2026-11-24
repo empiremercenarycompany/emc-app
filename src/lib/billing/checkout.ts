@@ -1,12 +1,16 @@
 import type Stripe from "stripe";
-import { WANDERLUST_ADDON, isBasePlan, type BasePlan } from "@/lib/billing/plans";
+import { WANDERLUST_ADDON } from "@/lib/billing/plans";
+import { PriceConfigError, checkoutPlanFromKey, planLookupKey, priceOverride, type CheckoutPlan } from "@/lib/billing/price";
 import { isMissingResource, isStripeCheckoutUrl, isStripePortalUrl, portalFailureReason } from "@/lib/billing/stripe";
+import { PRODUCT_NAME_MEMBER, PRODUCT_NAME_STANDARD } from "@/lib/rules/public-copy";
 import { shieldmateCheckoutCoupon } from "@/lib/rules/shieldmate-coupon";
 
 export type CheckoutSelection = {
-  plan: BasePlan;
+  plan: CheckoutPlan;
+  lookupKey: string;
   lookupKeys: string[];
   coupon: string | null;
+  productName: string;
 };
 
 /**
@@ -20,14 +24,28 @@ export function checkoutSelection(input: {
   couponEnabled: boolean;
   pairConfirmed: boolean;
 }): CheckoutSelection | null {
-  if (!isBasePlan(input.plan)) return null;
-  const lookupKeys: string[] = [input.plan];
+  const plan = checkoutPlanFromKey(input.plan);
+  if (!plan) return null;
+  const lookupKeys: string[] = [];
   if (input.wanderlustEnabled && input.wanderlustRequested) lookupKeys.push(WANDERLUST_ADDON);
   return {
-    plan: input.plan,
+    plan,
+    lookupKey: planLookupKey(plan),
     lookupKeys,
     coupon: input.couponEnabled ? shieldmateCheckoutCoupon(input.pairConfirmed) : null,
+    productName: plan === "member" ? PRODUCT_NAME_MEMBER : PRODUCT_NAME_STANDARD,
   };
+}
+
+/** Lookup key first. EMC_STRIPE_PRICE_MEMBER / EMC_STRIPE_PRICE_STANDARD override when set. */
+export async function resolvePlanPrice(stripe: Stripe, plan: CheckoutPlan): Promise<string> {
+  const override = priceOverride(plan);
+  if (override) return override;
+  const lookup = planLookupKey(plan);
+  const listed = await stripe.prices.list({ lookup_keys: [lookup], active: true, limit: 1 });
+  const price = listed.data.find((row) => row.lookup_key === lookup && row.active);
+  if (!price) throw new PriceConfigError(plan, "missing");
+  return price.id;
 }
 
 export async function resolveLookupPrices(stripe: Stripe, lookupKeys: string[]): Promise<string[]> {
@@ -50,7 +68,8 @@ export function membershipCheckoutParams(input: {
   const wanderlust = input.selection.lookupKeys.includes(WANDERLUST_ADDON);
   const metadata: Record<string, string> = {
     surface: "app",
-    plan: input.selection.plan,
+    plan: input.selection.lookupKey,
+    product_name: input.selection.productName,
     user_id: input.userId,
   };
   if (wanderlust) metadata.wanderlust = "true";
@@ -63,7 +82,7 @@ export function membershipCheckoutParams(input: {
     success_url: `${input.origin}/profile?billing=success`,
     cancel_url: `${input.origin}/profile?billing=cancel`,
     metadata,
-    subscription_data: { metadata },
+    subscription_data: { metadata, description: input.selection.productName },
   };
   if (input.customerId) params.customer = input.customerId;
   else if (input.email) params.customer_email = input.email;
@@ -87,10 +106,11 @@ export async function buildMembershipCheckout(
 ): Promise<Stripe.Checkout.SessionCreateParams | null> {
   const selection = checkoutSelection(input);
   if (!selection) return null;
-  const priceIds = await resolveLookupPrices(stripe, selection.lookupKeys);
+  const basePriceId = await resolvePlanPrice(stripe, selection.plan);
+  const extraIds = selection.lookupKeys.length ? await resolveLookupPrices(stripe, selection.lookupKeys) : [];
   return membershipCheckoutParams({
     selection,
-    priceIds,
+    priceIds: [basePriceId, ...extraIds],
     userId: input.userId,
     email: input.email,
     customerId: input.customerId,

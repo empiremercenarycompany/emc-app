@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { billingFlags } from "@/lib/billing/flags";
 import { appOrigin } from "@/lib/billing/origin";
 import { buildMembershipCheckout, createHostedCheckout } from "@/lib/billing/checkout";
+import { loadMembershipDecision } from "@/lib/billing/membership";
 import { loadOwnBilling } from "@/lib/billing/own-billing";
+import { checkoutPlanFor, PriceConfigError } from "@/lib/billing/price";
 import { confirmedShieldmatePair } from "@/lib/billing/shieldmate-pair";
 import { getStripe, isStripeCheckoutUrl, safeBillingMessage } from "@/lib/billing/stripe";
 import { createClient } from "@/lib/supabase/server";
@@ -26,11 +28,12 @@ export async function POST(request: Request) {
   const form = await request.formData();
   const flags = billingFlags();
   const billing = await loadOwnBilling(supabase);
+  const decision = await loadMembershipDecision(supabase, user.id);
   const pairConfirmed = flags.coupon ? await confirmedShieldmatePair(supabase, user.id) : false;
   let params;
   try {
     params = await buildMembershipCheckout(stripe, {
-      plan: String(form.get("plan") ?? ""),
+      plan: checkoutPlanFor(decision),
       wanderlustRequested: form.get("wanderlust") === "1",
       wanderlustEnabled: flags.wanderlust,
       couponEnabled: flags.coupon,
@@ -41,6 +44,7 @@ export async function POST(request: Request) {
       origin,
     });
   } catch (error) {
+    if (error instanceof PriceConfigError) return back(error.plan === "standard" ? "price-standard" : "price-member");
     console.error(JSON.stringify({ source: "checkout", result: "price", message: safeBillingMessage(error) }));
     return back("unavailable");
   }

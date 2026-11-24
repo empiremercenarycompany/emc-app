@@ -5,8 +5,15 @@ import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 
-export default async function IntakePage() {
+export default async function IntakePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ src?: string }>;
+}) {
   const viewer = await loadViewer();
+  const params = searchParams ? await searchParams : {};
+  const fromUrl = typeof params.src === "string" ? params.src.trim().slice(0, 80) : "";
+  const signupSrc = fromUrl || viewer.intake?.signupSrc || "";
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const rows = supabase
@@ -24,6 +31,7 @@ export default async function IntakePage() {
       <IntakeForm
         canSave={Boolean(viewer.userId)}
         slots={slots}
+        signupSrc={signupSrc}
         initial={
           viewer.intake
             ? {
@@ -32,6 +40,7 @@ export default async function IntakePage() {
                 goals: viewer.intake.goals,
                 timeslot: viewer.intake.timeslotId ?? slots[0]?.id ?? "morning",
                 age: viewer.intake.ageBand ?? "",
+                gymMember: viewer.intake.gymMember ?? "",
                 reminders: viewer.intake.reminders,
                 phone: viewer.intake.phone ?? "",
                 species: viewer.intake.speciesIdea ?? "",

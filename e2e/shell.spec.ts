@@ -84,6 +84,11 @@ test("the buff menu names the temporary awards", async ({ page }) => {
   await expect(page.getByText("Heroic inspiration")).toBeVisible();
   await expect(page.getByText("+2 damage on one attack")).toBeVisible();
   await expect(page.getByText("Advantage on one check")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. No payments are taken in the app.",
+    ),
+  ).toBeVisible();
 });
 
 test("logged-out pages offer a sign-in button", async ({ page }) => {
@@ -347,6 +352,18 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByText(ENLIST_CITY_BLURB)).toBeVisible();
   await expect(page.getByText(ENLIST_BACKSTORY_PROMPT)).toBeVisible();
   await expect(page.getByLabel("Life before you enlisted")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Which rate is yours?" })).toBeVisible();
+  const notYet = page.getByRole("radio", { name: "I'm not an Empire member yet: $120/month, gym membership included" });
+  const former = page.getByRole("radio", { name: "I used to be an Empire member: $120/month, gym membership included" });
+  const current = page.getByRole("radio", { name: "I'm a current Empire member: $60/month, added to my membership" });
+  await expect(notYet).not.toBeChecked();
+  await expect(former).not.toBeChecked();
+  await expect(current).not.toBeChecked();
+  const order = await page.locator("body").evaluate((el) => el.textContent ?? "");
+  expect(order.indexOf("I'm not an Empire member yet")).toBeLessThan(order.indexOf("I used to be an Empire member"));
+  expect(order.indexOf("I used to be an Empire member")).toBeLessThan(order.indexOf("I'm a current Empire member"));
+  await page.goto("/intake?src=gamegrid-writ");
+  await expect(page.getByText("$120/month with gym membership included. Current Empire members: $60/month.")).toBeVisible();
   const body = (await page.locator("body").innerText()).toLowerCase();
   expect(body).not.toContain("personal training");
   expect(body).not.toContain("battle master");
