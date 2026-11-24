@@ -13,6 +13,7 @@ import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from 
 import { attendanceOpen, nextPostedSession, nextSessionCopy } from "@/lib/rules/table-sessions";
 import { CATCHUP_PER_POOL_CAP, CATCHUP_START_WEEK, CATCHUP_WEEKLY_CAP, PER_POOL_WEEKLY_CAP, SESSION_FREE_POINTS, WEEKLY_CAP } from "@/lib/pacing-config";
 import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { AGE_RULE, SCHEDULE_PRICE_COPY } from "@/lib/rules/public-copy";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
@@ -174,6 +175,7 @@ export default async function SchedulePage() {
             );
           })}
         </ul>
+        <p className="text-mute">{AGE_RULE}</p>
         {yours ? <p>Your time is {slotText(yours)}.</p> : null}
         {viewer.userId && !yours ? (
           <p>
@@ -209,10 +211,7 @@ export default async function SchedulePage() {
           someone behind pace can count {CATCHUP_WEEKLY_CAP}, and {CATCHUP_PER_POOL_CAP} from one kind. A session you
           attend counts as {SESSION_FREE_POINTS} outside that.
         </p>
-        <p className="text-mute">
-          Founding Recruit Rate $60/mo added to a gym membership, or $120/mo for non-members with membership included. No
-          payments are taken in the app.
-        </p>
+        <p className="text-mute">{SCHEDULE_PRICE_COPY}</p>
       </Panel>
       <Panel title="Table sessions">
         {(tables ?? []).length === 0 ? <p className="text-mute">No table sessions yet.</p> : null}

@@ -38,11 +38,30 @@ const KNOWN_SLOTS: Record<string, string> = {
   "7-10 PM": "7–10 PM",
 };
 
-/** Spoken clock time. Does not add a teen-squad line; that wording is not set. */
+/** Spoken clock time. The evening slot keeps its 18+ label. Age rules sit beside the list. */
 export function displaySlot(label: string, adultsOnly: boolean): string {
   const stripped = label.replace(/\s*\(18\+\)\s*$/, "").trim();
   const base = KNOWN_SLOTS[stripped] ?? stripped;
   return adultsOnly && !base.includes("(18+)") ? `${base} (18+)` : base;
+}
+
+export const AGE_BANDS = [
+  { id: "under_16", label: "Under 16" },
+  { id: "16_17", label: "16 or 17" },
+  { id: "18_plus", label: "18 or older" },
+] as const;
+
+export type AgeBand = (typeof AGE_BANDS)[number]["id"];
+
+export function isAgeBand(value: string): value is AgeBand {
+  return AGE_BANDS.some((band) => band.id === value);
+}
+
+/** 18+ sees every slot. 16 or 17, and a blank age, see daytime only. Under 16 sees none. */
+export function slotsForAge<T extends { adultsOnly: boolean }>(age: string, slots: T[]): T[] {
+  if (age === "under_16") return [];
+  if (age === "18_plus") return slots;
+  return slots.filter((slot) => !slot.adultsOnly);
 }
 
 export type IntakeDraft = {
@@ -50,6 +69,9 @@ export type IntakeDraft = {
   gym: string;
   goals: string[];
   timeslot: string;
+  /** Omitted on the reminder save, which does not change age. */
+  age?: string;
+  adultsOnly?: boolean;
 };
 
 export function dndLabel(id: string): string {
@@ -89,7 +111,17 @@ export function intakeError(input: IntakeDraft): string | null {
   if (!GYM_LEVELS.some((row) => row.id === input.gym)) return "Say how the gym feels.";
   const goals = input.goals.map((goal) => goal.trim()).filter(Boolean);
   if (goals.length < 1) return "Pick at least one first goal.";
+  if (input.age === undefined) {
+    if (!input.timeslot) return "Pick a time.";
+    return null;
+  }
+  if (!isAgeBand(input.age)) return "Say your age.";
+  if (input.age === "under_16") {
+    if (input.timeslot) return "Under 16 joins the teen waitlist.";
+    return null;
+  }
   if (!input.timeslot) return "Pick a time.";
+  if (input.age === "16_17" && input.adultsOnly) return "The 7–10 PM slot is for ages 18 and up.";
   return null;
 }
 

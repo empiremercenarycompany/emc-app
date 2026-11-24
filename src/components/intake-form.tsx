@@ -4,21 +4,45 @@ import { useActionState, useState } from "react";
 import { ENLIST_BACKSTORY_PROMPT, ENLIST_CITY_BLURB } from "@/content/enlist";
 import { Choice } from "@/components/choice";
 import { saveIntake } from "@/lib/actions/intake";
-import { DND_LEVELS, ENLIST_LIMITS, GOAL_CHIPS, GYM_LEVELS, intakeError } from "@/lib/rules/intake";
+import {
+  AGE_RULE,
+  GYM_MEMBER_HELPER,
+  GYM_MEMBER_OPTIONS,
+  MEMBERSHIP_NUMBER_LABEL,
+  PRICE_ONE_LINE,
+  membershipNumberError,
+  gamegridLead,
+  type GymMember,
+} from "@/lib/rules/public-copy";
+import {
+  AGE_BANDS,
+  DND_LEVELS,
+  ENLIST_LIMITS,
+  GOAL_CHIPS,
+  GYM_LEVELS,
+  displaySlot,
+  intakeError,
+  slotsForAge,
+} from "@/lib/rules/intake";
 import type { ActionResult } from "@/lib/types";
 
 export function IntakeForm({
   slots,
   canSave = true,
+  signupSrc = "",
   initial,
 }: {
   slots: { id: string; label: string; adultsOnly: boolean }[];
   canSave?: boolean;
+  signupSrc?: string;
   initial?: {
     dnd: string;
     gym: string;
     goals: string[];
     timeslot: string;
+    age?: string;
+    gymMember?: string;
+    membershipNumber?: string;
     reminders: boolean;
     phone: string;
     species: string;
@@ -31,14 +55,40 @@ export function IntakeForm({
   const [gym, setGym] = useState(initial?.gym ?? "new");
   const [goals, setGoals] = useState<string[]>(initial?.goals ?? ["Sleep 7 hours"]);
   const [custom, setCustom] = useState("");
-  const [timeslot, setTimeslot] = useState(initial?.timeslot ?? slots[0]?.id ?? "morning");
+  const [age, setAge] = useState(initial?.age ?? "");
+  const [gymMember, setGymMember] = useState<GymMember | "">(
+    initial?.gymMember === "current" || initial?.gymMember === "former" || initial?.gymMember === "not_yet"
+      ? initial.gymMember
+      : "",
+  );
+  const [membershipNumber, setMembershipNumber] = useState(initial?.membershipNumber ?? "");
+  const openSlots = slotsForAge(age, slots);
+  const [timeslot, setTimeslot] = useState(
+    openSlots.some((slot) => slot.id === initial?.timeslot) ? (initial?.timeslot ?? "") : (openSlots[0]?.id ?? ""),
+  );
   const [reminders, setReminders] = useState(initial?.reminders ?? false);
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => saveIntake(formData),
     null,
   );
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
-  const problem = intakeError({ dnd, gym, goals: chosen, timeslot });
+  const chosenSlot = slots.find((slot) => slot.id === timeslot);
+  const rateProblem = gymMember ? null : "Say which rate is yours.";
+  const numberProblem = gymMember === "current" ? membershipNumberError(membershipNumber) : null;
+  const problem = rateProblem ?? numberProblem ?? intakeError({
+    dnd,
+    gym,
+    goals: chosen,
+    timeslot: age === "under_16" ? "" : timeslot,
+    age,
+    adultsOnly: Boolean(chosenSlot?.adultsOnly),
+  });
+
+  function chooseAge(next: string) {
+    setAge(next);
+    const open = slotsForAge(next, slots);
+    if (!open.some((slot) => slot.id === timeslot)) setTimeslot(open[0]?.id ?? "");
+  }
 
   function toggleGoal(goal: string) {
     setGoals((current) => (current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal]));
@@ -64,20 +114,73 @@ export function IntakeForm({
           Optional.
         </p>
         <fieldset className="score-card">
-          <legend>Training slot</legend>
-          <div className="score-taps" role="radiogroup" aria-label="Training slot">
-            {slots.map((slot) => (
+          <legend>Age</legend>
+          <p className="text-mute">{AGE_RULE}</p>
+          <div className="score-taps" role="radiogroup" aria-label="Age">
+            {AGE_BANDS.map((band) => (
               <button
-                key={slot.id}
+                key={band.id}
                 type="button"
-                className={timeslot === slot.id ? "primary" : "secondary"}
-                aria-pressed={timeslot === slot.id}
-                onClick={() => setTimeslot(slot.id)}
+                className={age === band.id ? "primary" : "secondary"}
+                aria-pressed={age === band.id}
+                onClick={() => chooseAge(band.id)}
               >
-                {slot.adultsOnly ? `${slot.label} (18+)` : slot.label}
+                {band.label}
               </button>
             ))}
           </div>
+        </fieldset>
+        <fieldset className="score-card">
+          <legend>Training slot</legend>
+          {age === "under_16" ? (
+            <p>If you are under 16, you can join a teen waitlist. A seat is not open yet.</p>
+          ) : (
+            <div className="score-taps" role="radiogroup" aria-label="Training slot">
+              {openSlots.map((slot) => (
+                <button
+                  key={slot.id}
+                  type="button"
+                  className={timeslot === slot.id ? "primary" : "secondary"}
+                  aria-pressed={timeslot === slot.id}
+                  onClick={() => setTimeslot(slot.id)}
+                >
+                  {displaySlot(slot.label, slot.adultsOnly)}
+                </button>
+              ))}
+            </div>
+          )}
+        </fieldset>
+        <fieldset className="score-card">
+          <legend>Which rate is yours?</legend>
+          {gamegridLead(signupSrc) ? <p>{PRICE_ONE_LINE}</p> : null}
+          {GYM_MEMBER_OPTIONS.map((option) => (
+            <label key={option.id} className="choice">
+              <input
+                type="radio"
+                name="gym_member"
+                value={option.id}
+                checked={gymMember === option.id}
+                onChange={() => setGymMember(option.id)}
+                required
+              />
+              <span className="choice-mark radio" aria-hidden="true" />
+              <span className="choice-label">{option.label}</span>
+            </label>
+          ))}
+          <p className="text-mute">{GYM_MEMBER_HELPER}</p>
+          {gymMember === "current" ? (
+            <label>
+              {MEMBERSHIP_NUMBER_LABEL}
+              <input
+                name="gym_membership_number"
+                value={membershipNumber}
+                onChange={(event) => setMembershipNumber(event.target.value)}
+                maxLength={40}
+                required
+                autoComplete="off"
+              />
+            </label>
+          ) : null}
         </fieldset>
         <label>
           Species idea
@@ -173,7 +276,9 @@ export function IntakeForm({
       <input type="hidden" name="enlist" value="1" />
       <input type="hidden" name="dnd" value={dnd} />
       <input type="hidden" name="gym" value={gym} />
-      <input type="hidden" name="timeslot" value={timeslot} />
+      <input type="hidden" name="age" value={age} />
+      <input type="hidden" name="signup_src" value={signupSrc.slice(0, 80)} />
+      <input type="hidden" name="timeslot" value={age === "under_16" ? "" : timeslot} />
       {chosen.map((goal) => (
         <input key={goal} type="hidden" name="goal" value={goal} />
       ))}

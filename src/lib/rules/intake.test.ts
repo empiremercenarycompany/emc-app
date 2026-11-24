@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { beginnerHints, displaySlot, enlistError, intakeError } from "./intake";
+import { beginnerHints, displaySlot, enlistError, intakeError, slotsForAge, TIMESLOT_FALLBACK } from "./intake";
 
 const ready = {
   dnd: "never",
   gym: "new",
   goals: ["Sleep 7 hours"],
   timeslot: "morning",
+  age: "18_plus",
 };
 
 describe("player intake", () => {
@@ -15,7 +16,21 @@ describe("player intake", () => {
     expect(intakeError({ ...ready, gym: "injured" })).toMatch(/gym/);
     expect(intakeError({ ...ready, goals: [] })).toMatch(/goal/);
     expect(intakeError({ ...ready, timeslot: "" })).toMatch(/time/);
-    expect(Object.keys(ready)).toEqual(["dnd", "gym", "goals", "timeslot"]);
+    expect(intakeError({ ...ready, age: "" })).toMatch(/age/);
+    expect(intakeError({ ...ready, age: "under_16", timeslot: "morning" })).toMatch(/waitlist/);
+    expect(intakeError({ ...ready, age: "under_16", timeslot: "" })).toBeNull();
+    expect(intakeError({ ...ready, age: "16_17", timeslot: "evening", adultsOnly: true })).toMatch(/18 and up/);
+    expect(intakeError({ ...ready, age: "16_17", timeslot: "morning", adultsOnly: false })).toBeNull();
+    expect(intakeError({ dnd: "never", gym: "new", goals: ["Sleep 7 hours"], timeslot: "" })).toMatch(/time/);
+    expect(Object.keys(ready)).toEqual(["dnd", "gym", "goals", "timeslot", "age"]);
+    expect(slotsForAge("18_plus", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual([
+      "morning",
+      "afternoon",
+      "evening",
+    ]);
+    expect(slotsForAge("16_17", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual(["morning", "afternoon"]);
+    expect(slotsForAge("", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual(["morning", "afternoon"]);
+    expect(slotsForAge("under_16", [...TIMESLOT_FALLBACK])).toEqual([]);
   });
 
   it("writes the session times with AM and PM", () => {

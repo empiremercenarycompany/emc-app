@@ -1,3 +1,5 @@
+import { johnChoices } from "@/config/johnChoices";
+import { FAQ_COST_COPY } from "@/lib/rules/public-copy";
 import raw from "./codex-terms.json";
 
 export type CodexStatus = "ready" | "confirm" | "john_to_fill";
@@ -49,8 +51,35 @@ export function isCodexVisible(term: CodexTerm): boolean {
   return true;
 }
 
+const EVERY_SATURDAY_FAQ =
+  "No. The table is every other Saturday. Workout programming from a coach happens during the week, on your schedule. You pick the Saturday time slot that fits: 9 AM to 12 PM, 2 to 5 PM, or 7 to 10 PM (ages 18 and up).";
+
+/** John's open FAQ choices. Off until the matching flag in johnChoices is flipped. */
+export function gatedFaqs(): CodexTerm[] {
+  const terms: CodexTerm[] = [];
+  if (johnChoices.faqShowCostQuestion) {
+    terms.push({
+      id: "faq-cost",
+      term: "What does it cost?",
+      group: "faq",
+      plain: FAQ_COST_COPY,
+      status: "ready",
+    });
+  }
+  if (johnChoices.faqShowEverySaturday) {
+    terms.push({
+      id: "faq-every-saturday",
+      term: "Is it every Saturday?",
+      group: "faq",
+      plain: EVERY_SATURDAY_FAQ,
+      status: "ready",
+    });
+  }
+  return terms;
+}
+
 export function visibleCodex(): CodexTerm[] {
-  return TERMS.filter(isCodexVisible);
+  return TERMS.filter(isCodexVisible).concat(gatedFaqs());
 }
 
 export function visibleTerm(id: string): CodexTerm | null {

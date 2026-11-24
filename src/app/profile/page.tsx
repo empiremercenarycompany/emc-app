@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { InstallHelp } from "@/components/install-help";
+import { MembershipPanel } from "@/components/membership-panel";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { TextSizeToggle } from "@/components/text-size-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,15 +9,27 @@ import { Notice, Page, Panel } from "@/components/ui";
 import { saveDisplayName } from "@/lib/actions/character";
 import { saveIntake } from "@/lib/actions/intake";
 import { signOut } from "@/lib/actions/staff";
+import { billingFlags } from "@/lib/billing/flags";
+import { billingQueryNotice } from "@/lib/billing/notices";
+import { loadOwnBilling } from "@/lib/billing/own-billing";
+import { checkoutPlanFor } from "@/lib/billing/price";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
-import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import { recruitName } from "@/lib/recruit-name";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ billing?: string }>;
+}) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
+  const params = searchParams ? await searchParams : {};
+  const billingNotice = billingQueryNotice(params.billing);
+  const flags = billingFlags();
   const supabase = await createClient();
+  const membership = viewer.userId && supabase ? await loadOwnBilling(supabase) : null;
   const squadName =
     supabase && viewer.character?.squad_id
       ? (await supabase.from("squads").select("name").eq("id", viewer.character.squad_id).maybeSingle()).data?.name ?? null
@@ -28,7 +41,12 @@ export default async function ProfilePage() {
     slots && slots.length > 0
       ? slots
       : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adults_only: slot.adultsOnly }));
-  const timeLabel = times.find((slot) => slot.id === viewer.intake?.timeslotId)?.label ?? "Not chosen";
+  const chosenSlot = times.find((slot) => slot.id === viewer.intake?.timeslotId);
+  const timeLabel = viewer.intake?.teenWaitlist
+    ? "Teen waitlist"
+    : chosenSlot
+      ? displaySlot(String(chosenSlot.label), Boolean(chosenSlot.adults_only))
+      : "Not chosen";
   const shownName = recruitName({
     characterName: viewer.character?.name,
     displayName: viewer.displayName,
@@ -79,7 +97,8 @@ export default async function ProfilePage() {
               <ResultForm action={saveIntake} submit="Save reminders">
                 <input type="hidden" name="dnd" value={viewer.intake.dnd} />
                 <input type="hidden" name="gym" value={viewer.intake.gym} />
-                <input type="hidden" name="timeslot" value={viewer.intake.timeslotId ?? ""} />
+                <input type="hidden" name="timeslot" value={viewer.intake.teenWaitlist ? "" : (viewer.intake.timeslotId ?? "")} />
+                {viewer.intake.ageBand ? <input type="hidden" name="age" value={viewer.intake.ageBand} /> : null}
                 {viewer.intake.goals.map((goal) => (
                   <input key={goal} type="hidden" name="goal" value={goal} />
                 ))}
@@ -95,6 +114,18 @@ export default async function ProfilePage() {
               <Link href="/intake">Tell us about you</Link>
             </Panel>
           )}
+          {billingNotice ? <Notice>{billingNotice}</Notice> : null}
+          <MembershipPanel
+            billing={membership}
+            wanderlustEnabled={flags.wanderlust}
+            plan={checkoutPlanFor({
+              gymMember: viewer.intake?.gymMember ?? null,
+              membershipVerified: viewer.intake?.membershipVerified ?? false,
+              membershipNumber: viewer.intake?.membershipNumber ?? null,
+              staffPlan: viewer.intake?.checkoutPlan ?? null,
+            })}
+            gymMember={viewer.intake?.gymMember ?? null}
+          />
           <form action={signOut}>
             <button className="secondary" type="submit">
               Sign out

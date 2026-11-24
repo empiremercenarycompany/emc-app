@@ -313,7 +313,7 @@
       "group": "emc",
       "plain": "One sitting of play, usually a few hours.",
       "inTheGame": "In D&D, one session is one stretch of the story.",
-      "emcNote": "[John to fill: what a session is at EMC and how players pick a time. The app shows slots 9-12, 2-5 and 7-10 (18+).]",
+      "emcNote": "[John to fill: what a session is at EMC and how players pick a time. Slots are 9 AM–12 PM, 2–5 PM, and 7–10 PM (18+). Ages 16 and 17 use the daytime slots only. Under 16 joins the teen waitlist.]",
       "status": "confirm"
     },
     {
@@ -522,15 +522,15 @@
       "id": "faq-played",
       "term": "Do I need to have played before?",
       "group": "faq",
-      "plain": "[John to fill]",
-      "status": "john_to_fill"
+      "plain": "No. Everybody starts as a recruit. A professional Dungeon Master teaches the game as you play, and the squads are only six people. You bring nothing to your first session. Your mini, character sheet, and dice are waiting for you there.",
+      "status": "ready"
     },
     {
       "id": "faq-gym",
       "term": "I have never been in a gym. Where do I start?",
       "group": "faq",
-      "plain": "[John to fill]",
-      "status": "john_to_fill"
+      "plain": "No. The Saturday table is still a D&D game. The weekday part is workout programming from a coach, not a test of how fit you are now. Your coach builds that programming around your needs, your abilities, and your progress. Everyone starts in the same place.",
+      "status": "ready"
     },
     {
       "id": "faq-muster",

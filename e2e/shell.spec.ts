@@ -84,6 +84,11 @@ test("the buff menu names the temporary awards", async ({ page }) => {
   await expect(page.getByText("Heroic inspiration")).toBeVisible();
   await expect(page.getByText("+2 damage on one attack")).toBeVisible();
   await expect(page.getByText("Advantage on one check")).toBeVisible();
+  await expect(
+    page.getByText(
+      "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. No payments are taken in the app.",
+    ),
+  ).toBeVisible();
 });
 
 test("logged-out pages offer a sign-in button", async ({ page }) => {
@@ -155,7 +160,7 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
-  await expect(page.locator("img[src='/portraits/fallback.svg']").first()).toBeVisible();
+  await expect(page.locator("img[src='/art/header-band-placeholder.jpg']").first()).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
   await expect(page.getByText("Not final yet: see your DM or coach to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
@@ -181,9 +186,10 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in to continue" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Sign in to see the calendar" })).toHaveCount(1);
-  await expect(page.getByText("9 AM–12 PM")).toBeVisible();
-  await expect(page.getByText("2–5 PM")).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)")).toBeVisible();
+  await expect(page.getByText("9 AM–12 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("2–5 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toBeVisible();
+  await expect(page.getByText(/The 7–10 PM slot is for ages 18 and up/)).toBeVisible();
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
@@ -346,6 +352,18 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByText(ENLIST_CITY_BLURB)).toBeVisible();
   await expect(page.getByText(ENLIST_BACKSTORY_PROMPT)).toBeVisible();
   await expect(page.getByLabel("Life before you enlisted")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Which rate is yours?" })).toBeVisible();
+  const notYet = page.getByRole("radio", { name: "I'm not an Empire member yet: $120/month, gym membership included" });
+  const former = page.getByRole("radio", { name: "I used to be an Empire member: $120/month, gym membership included" });
+  const current = page.getByRole("radio", { name: "I'm a current Empire member: $60/month, added to my membership" });
+  await expect(notYet).not.toBeChecked();
+  await expect(former).not.toBeChecked();
+  await expect(current).not.toBeChecked();
+  const order = await page.locator("body").evaluate((el) => el.textContent ?? "");
+  expect(order.indexOf("I'm not an Empire member yet")).toBeLessThan(order.indexOf("I used to be an Empire member"));
+  expect(order.indexOf("I used to be an Empire member")).toBeLessThan(order.indexOf("I'm a current Empire member"));
+  await page.goto("/intake?src=gamegrid-writ");
+  await expect(page.getByText("$120/month with gym membership included. Current Empire members: $60/month.")).toBeVisible();
   const body = (await page.locator("body").innerText()).toLowerCase();
   expect(body).not.toContain("personal training");
   expect(body).not.toContain("battle master");

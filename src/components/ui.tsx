@@ -43,7 +43,6 @@ export function Page({
         </>
       )}
       <div className="page-grid mt-4">{children}</div>
-      <p className="signoff">Go forth and conquer.</p>
     </main>
   );
 }

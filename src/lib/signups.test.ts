@@ -18,6 +18,12 @@ const row: SignupRecord = {
   dndExperience: "Never",
   sessionReminders: "yes",
   backstory: 'Raised near the docks.\nThey said "come along".',
+  empireMembership: "Current Empire member",
+  membershipNumber: "ESF-1001",
+  membershipVerified: "no",
+  verifiedBy: "",
+  verifiedAt: "",
+  signupSrc: "gamegrid-writ",
 };
 
 describe("sign-up export", () => {
