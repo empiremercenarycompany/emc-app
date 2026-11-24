@@ -9,7 +9,7 @@ import { createClient, createClientWithAccessToken } from "@/lib/supabase/server
 import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@/lib/types";
 
 const INTAKE_FULL =
-  "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience";
+  "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
 const PROFILE_WITH_NOTICE =
   "display_name, avatar_url, app_role, can_approve_lore, last_seen_at, created_at, signup_notified_at";
@@ -116,6 +116,8 @@ async function loadViewerOnce(): Promise<Viewer> {
         classIdea: textOrNull(intakeRow.class_idea),
         fitnessExperience: textOrNull(intakeRow.fitness_experience),
         backstoryIdea: textOrNull(intakeRow.backstory_idea),
+        ageBand: textOrNull(intakeRow.age_band),
+        teenWaitlist: Boolean(intakeRow.teen_waitlist),
       }
     : null;
 

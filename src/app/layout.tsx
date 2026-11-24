@@ -4,6 +4,7 @@ import { DisplayFace } from "@/components/display-face";
 import { FeedbackDock } from "@/components/feedback-dock";
 import { SiteNav } from "@/components/nav";
 import { RegisterSw } from "@/components/register-sw";
+import { SiteFooter } from "@/components/site-footer";
 import { ThemeSync } from "@/components/theme-toggle";
 import { themeBootScript } from "@/lib/theme";
 import { TEXT_SIZE_KEY } from "@/lib/text-size";
@@ -89,6 +90,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             sirathNew={sirathNew}
           />
           {children}
+          <SiteFooter />
           <FeedbackDock />
         </CodexProviders>
       </body>

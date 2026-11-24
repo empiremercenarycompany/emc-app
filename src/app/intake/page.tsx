@@ -31,6 +31,7 @@ export default async function IntakePage() {
                 gym: viewer.intake.gym,
                 goals: viewer.intake.goals,
                 timeslot: viewer.intake.timeslotId ?? slots[0]?.id ?? "morning",
+                age: viewer.intake.ageBand ?? "",
                 reminders: viewer.intake.reminders,
                 phone: viewer.intake.phone ?? "",
                 species: viewer.intake.speciesIdea ?? "",

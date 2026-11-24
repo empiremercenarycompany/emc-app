@@ -5,12 +5,22 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { actionClient, dbError } from "@/lib/action-client";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
-import { displaySlot, dndLabel, enlistError, gymLabel, intakeError } from "@/lib/rules/intake";
+import { confirmationFirstName } from "@/lib/notify/player-confirmation-template";
+import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 import type { ActionResult } from "@/lib/types";
 
 function providedText(formData: FormData, name: string): string | null {
   if (!formData.has(name)) return null;
   return String(formData.get(name) ?? "");
+}
+
+async function slotIsAdultsOnly(
+  supabase: NonNullable<Awaited<ReturnType<typeof actionClient>>["supabase"]>,
+  timeslot: string,
+): Promise<boolean> {
+  const { data } = await supabase.from("session_timeslots").select("adults_only").eq("id", timeslot).maybeSingle();
+  if (data) return Boolean(data.adults_only);
+  return TIMESLOT_FALLBACK.find((slot) => slot.id === timeslot)?.adultsOnly ?? false;
 }
 
 export async function saveIntake(formData: FormData): Promise<ActionResult> {
@@ -27,7 +37,14 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     goals: formData.getAll("goal").map((goal) => String(goal).trim()).filter(Boolean),
     timeslot: String(formData.get("timeslot") ?? ""),
   };
-  const problem = intakeError(draft);
+  const age = providedText(formData, "age");
+  const waiting = age === "under_16";
+  const adultsOnly = age !== null && !waiting ? await slotIsAdultsOnly(supabase, draft.timeslot) : false;
+  const problem = intakeError({
+    ...draft,
+    timeslot: waiting ? "" : draft.timeslot,
+    ...(age !== null ? { age, adultsOnly } : {}),
+  });
   if (problem) return { error: problem };
   if (phone !== null || species !== null || classIdea !== null || fitness !== null || backstory !== null) {
     const enlistProblem = enlistError({
@@ -43,7 +60,8 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     p_dnd: draft.dnd,
     p_gym: draft.gym,
     p_goals: draft.goals,
-    p_timeslot: draft.timeslot,
+    p_timeslot: waiting ? null : draft.timeslot,
+    ...(age !== null && isAgeBand(age) ? { p_age_band: age } : {}),
     p_reminders: formData.get("reminders") === "on",
     p_phone: phone,
     p_species_idea: species,
@@ -63,11 +81,24 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       backstory: backstory ?? "",
       reminders: formData.get("reminders") === "on",
     });
+    if (waiting) record.trainingSlot = "Teen waitlist";
     const enlistNotice = noticeFields(record);
+    const confirmation = {
+      firstName: confirmationFirstName(record.displayName),
+      preferredSlot: record.trainingSlot,
+      email: record.email,
+    };
     after(async () => {
       try {
         const { sendStaffNotice } = await import("@/lib/notify/staff-notice");
         await sendStaffNotice("Enlist details", enlistNotice);
+      } catch {
+        console.error(JSON.stringify({ status: "failed", messageId: null }));
+      }
+      if (waiting) return;
+      try {
+        const { sendPlayerConfirmation } = await import("@/lib/notify/player-confirmation");
+        await sendPlayerConfirmation(confirmation);
       } catch {
         console.error(JSON.stringify({ status: "failed", messageId: null }));
       }

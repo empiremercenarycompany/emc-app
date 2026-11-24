@@ -1,0 +1,125 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { johnChoices } from "@/config/johnChoices";
+import {
+  confirmationFirstName,
+  renderPlayerConfirmation,
+  type PlayerConfirmationInput,
+} from "./player-confirmation-template";
+
+const { sendMail, createTransport } = vi.hoisted(() => {
+  const sendMail = vi.fn();
+  const createTransport = vi.fn(() => ({ sendMail, close: vi.fn() }));
+  return { sendMail, createTransport };
+});
+
+vi.mock("nodemailer", () => ({
+  default: { createTransport },
+}));
+
+import { playerConfirmationEnabled, sendPlayerConfirmation } from "./player-confirmation";
+
+const input: PlayerConfirmationInput = {
+  firstName: "Recruit",
+  preferredSlot: "9 AM–12 PM",
+  email: "recruit@example.test",
+};
+
+describe("player confirmation template", () => {
+  afterEach(() => {
+    johnChoices.shieldmateFullSlot = "waitlist";
+    johnChoices.confirmationEmailIncludeWaiver = false;
+    vi.unstubAllEnvs();
+  });
+
+  it("renders the strategy subject, preheader, and body", () => {
+    const message = renderPlayerConfirmation(input);
+    expect(message.subject).toBe("We have your enlistment, Recruit");
+    expect(message.preheader).toBe("Nothing is charged yet. Staff will confirm your seat and send a payment link.");
+    expect(message.text).toContain("We've received your seat request for the Empire Mercenary Company.");
+    expect(message.text).toContain(
+      "You asked for: 9 AM–12 PM, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls.",
+    );
+    expect(message.text).toContain("The 7 to 10 PM slot is for ages 18 and up.");
+    expect(message.text).toContain("Nothing is charged when you ENLIST.");
+    expect(message.text).toContain(
+      "Once your seat is confirmed, staff send you a payment link through EMC's Stripe. Nothing has been charged yet.",
+    );
+    expect(message.text).toContain("you go on the waitlist for it with today's rate locked in.");
+    expect(message.text).toContain("Use this same email (recruit@example.test).");
+    expect(message.text).toContain("Bring your Shieldmate.");
+    expect(message.text).toContain("empiremercenarycompany.com/signup?src=friend");
+    expect(message.text).toContain("How it works: https://empiremercenarycompany.com/how-it-works");
+    expect(message.text).not.toMatch(/\breferral\b/i);
+    expect(message.text).not.toMatch(/pay on the Empire/i);
+    expect(message.text).not.toContain("TODO-STRATEGY");
+    expect(message.text).not.toContain("[PLACEHOLDER]");
+    expect(message.text).not.toMatch(/personal training/i);
+    expect(message.text).not.toMatch(/photo-release/i);
+    expect(confirmationFirstName("Ada")).toBe("Ada");
+    expect(confirmationFirstName("  ")).toBe("Recruit");
+    expect(confirmationFirstName("recruit@example.test")).toBe("Recruit");
+  });
+
+  it("uses the named Shieldmate block, and the next-slot line only when that flag is flipped", () => {
+    const paired = renderPlayerConfirmation({ ...input, friendName: "A friend" });
+    expect(paired.text).toContain("You're signing up as Shieldmates with A friend.");
+    expect(paired.text).toContain("you go on the waitlist for it");
+    expect(paired.text).not.toContain("Bring your Shieldmate.");
+    johnChoices.shieldmateFullSlot = "next-slot-together";
+    const moved = renderPlayerConfirmation({ ...input, invitedBy: "A friend" });
+    expect(moved.text).toContain('You listed A friend under "Who invited you?"');
+    expect(moved.text).toContain("you and your Shieldmate are offered the next slot together.");
+    expect(renderPlayerConfirmation(input).text).toContain("you go on the waitlist for it");
+  });
+
+  it("leaves the waiver out while that paragraph is empty", () => {
+    johnChoices.confirmationEmailIncludeWaiver = true;
+    expect(renderPlayerConfirmation(input).text).not.toMatch(/waiver/i);
+  });
+});
+
+describe("player confirmation send", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    sendMail.mockReset();
+    createTransport.mockClear();
+  });
+
+  it("stays off unless the flag is exactly true or 1", () => {
+    expect(playerConfirmationEnabled({})).toBe(false);
+    expect(playerConfirmationEnabled({ EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED: "false" })).toBe(false);
+    expect(playerConfirmationEnabled({ EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED: "TRUE" })).toBe(false);
+    expect(playerConfirmationEnabled({ EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED: "true" })).toBe(true);
+    expect(playerConfirmationEnabled({ EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED: "1" })).toBe(true);
+  });
+
+  it("does not open SMTP while the flag is off", async () => {
+    delete process.env.EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED;
+    vi.stubEnv("EMC_NOTIFY_SMTP_USER", "mailer@example.test");
+    vi.stubEnv("EMC_NOTIFY_SMTP_PASSWORD", "test-smtp-secret");
+    await sendPlayerConfirmation(input);
+    expect(createTransport).not.toHaveBeenCalled();
+  });
+
+  it("mails the rendered template when the flag is on and keeps the address out of the log", async () => {
+    vi.stubEnv("EMC_PLAYER_CONFIRMATION_EMAIL_ENABLED", "true");
+    vi.stubEnv("EMC_NOTIFY_SMTP_USER", "mailer@example.test");
+    vi.stubEnv("EMC_NOTIFY_SMTP_PASSWORD", "test-smtp-secret");
+    sendMail.mockResolvedValue({ messageId: "ok" });
+    vi.spyOn(console, "info").mockImplementation(() => {});
+    await sendPlayerConfirmation(input);
+    const message = sendMail.mock.calls[0]?.[0] as { from: string; to: string; subject: string; text: string };
+    expect(message.from).toBe("Empire Mercenary Company <mailer@example.test>");
+    expect(message.to).toBe("recruit@example.test");
+    expect(message.subject).toBe("We have your enlistment, Recruit");
+    expect(message.text.startsWith("Nothing is charged yet. Staff will confirm your seat and send a payment link.")).toBe(
+      true,
+    );
+    expect(message.text).toContain("payment link through EMC's Stripe");
+    expect(message.text).not.toContain("test-smtp-secret");
+    const logged = vi.mocked(console.info).mock.calls.flat().join(" ");
+    expect(logged).toBe(JSON.stringify({ status: "sent", messageId: "ok" }));
+    expect(logged).not.toContain("recruit@example.test");
+    expect(logged).not.toContain("test-smtp-secret");
+  });
+});

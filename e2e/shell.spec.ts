@@ -155,7 +155,7 @@ test("shieldmate choices stay hidden until asked", async ({ page }) => {
 test("the sheet asks you to sign in", async ({ page }) => {
   await page.goto("/character");
   await expect(page.getByText("Sign in to open your sheet.")).toBeVisible();
-  await expect(page.locator("img[src='/portraits/fallback.svg']").first()).toBeVisible();
+  await expect(page.locator("img[src='/art/header-band-placeholder.jpg']").first()).toBeVisible();
   await page.getByRole("tab", { name: "Progress" }).click();
   await expect(page.getByText("Not final yet: see your DM or coach to lock these in")).toBeVisible();
   await expect(page.getByText("Ready to move")).toBeVisible();
@@ -181,9 +181,10 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Company calendar" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Sign in to continue" })).toHaveCount(1);
   await expect(page.getByRole("link", { name: "Sign in to see the calendar" })).toHaveCount(1);
-  await expect(page.getByText("9 AM–12 PM")).toBeVisible();
-  await expect(page.getByText("2–5 PM")).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)")).toBeVisible();
+  await expect(page.getByText("9 AM–12 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("2–5 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toBeVisible();
+  await expect(page.getByText(/The 7–10 PM slot is for ages 18 and up/)).toBeVisible();
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);

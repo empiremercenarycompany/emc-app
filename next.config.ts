@@ -10,7 +10,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
   async redirects() {
-    return [{ source: "/calendar", destination: "/schedule", permanent: true }];
+    return [
+      { source: "/calendar", destination: "/schedule", permanent: true },
+      { source: "/privacy", destination: "https://empiremercenarycompany.com/privacy", permanent: true },
+      { source: "/terms", destination: "https://empiremercenarycompany.com/terms", permanent: true },
+    ];
   },
   async headers() {
     return [

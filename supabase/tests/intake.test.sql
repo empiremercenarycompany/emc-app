@@ -56,14 +56,14 @@ begin
   end if;
   if has_function_privilege(
     'anon',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text)',
     'execute'
   ) then
     raise exception 'anon can save intake';
   end if;
   if not has_function_privilege(
     'authenticated',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text)',
     'execute'
   ) then
     raise exception 'authenticated cannot save intake';
@@ -268,6 +268,57 @@ begin
   where user_id = auth.uid();
   if v_phone is not null or v_backstory is not null then
     raise exception 'a blank enlist field did not clear';
+  end if;
+end $$;
+
+do $$
+begin
+  perform public.save_player_intake(
+    'lots', 'regular', array['Call a friend'], 'evening', true,
+    null, null, null, null, null, '16_17'
+  );
+  raise exception 'a 16 year old took the evening slot';
+exception
+  when others then
+    if sqlerrm ilike '%evening slot%' then raise; end if;
+    if sqlerrm not ilike '%18+%' then raise; end if;
+end $$;
+
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], null, false,
+  null, null, null, null, null, 'under_16'
+);
+
+do $$
+declare
+  v_slot text;
+  v_wait boolean;
+  v_age text;
+begin
+  select timeslot_id, teen_waitlist, age_band
+    into v_slot, v_wait, v_age
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_slot is not null or v_wait is distinct from true or v_age is distinct from 'under_16' then
+    raise exception 'under 16 did not join the teen waitlist';
+  end if;
+end $$;
+
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true,
+  null, null, null, null, null, '18_plus'
+);
+
+do $$
+declare
+  v_slot text;
+  v_wait boolean;
+begin
+  select timeslot_id, teen_waitlist into v_slot, v_wait
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_slot is distinct from 'evening' or v_wait is distinct from false then
+    raise exception '18+ could not keep the evening slot';
   end if;
 end $$;
 
