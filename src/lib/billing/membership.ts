@@ -6,6 +6,7 @@ import { parseGymMember, type GymMember } from "@/lib/rules/public-copy";
 export type MembershipDecision = {
   gymMember: GymMember | null;
   membershipVerified: boolean;
+  membershipNumber: string | null;
   verifiedBy: string | null;
   verifiedAt: string | null;
   staffPlan: CheckoutPlan | null;
@@ -15,6 +16,7 @@ export type MembershipDecision = {
 const EMPTY: MembershipDecision = {
   gymMember: null,
   membershipVerified: false,
+  membershipNumber: null,
   verifiedBy: null,
   verifiedAt: null,
   staffPlan: null,
@@ -22,7 +24,7 @@ const EMPTY: MembershipDecision = {
 };
 
 const COLUMNS =
-  "gym_member, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+  "gym_member, membership_verified, gym_membership_number, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
 
 function textOrNull(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -37,6 +39,7 @@ export async function loadMembershipDecision(supabase: SupabaseClient, userId: s
   return {
     gymMember: parseGymMember(typeof data.gym_member === "string" ? data.gym_member : null),
     membershipVerified: data.membership_verified === true,
+    membershipNumber: textOrNull(data.gym_membership_number),
     verifiedBy: textOrNull(data.membership_verified_by),
     verifiedAt: textOrNull(data.membership_verified_at),
     staffPlan: isCheckoutPlan(typeof data.checkout_plan === "string" ? data.checkout_plan : null)

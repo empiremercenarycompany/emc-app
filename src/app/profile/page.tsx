@@ -121,6 +121,7 @@ export default async function ProfilePage({
             plan={checkoutPlanFor({
               gymMember: viewer.intake?.gymMember ?? null,
               membershipVerified: viewer.intake?.membershipVerified ?? false,
+              membershipNumber: viewer.intake?.membershipNumber ?? null,
               staffPlan: viewer.intake?.checkoutPlan ?? null,
             })}
             gymMember={viewer.intake?.gymMember ?? null}

@@ -32,7 +32,20 @@ export const PRODUCT_NAME_MEMBER = "EMC Founding Recruit Rate, current Empire me
 
 export const GAMEGRID_WRIT_SRC = "gamegrid-writ";
 export const GAMEGRID_WRIT_LINE =
-  "You came in on an Enlistment Writ, so your first Game Grid paint night is on the Company. Bring your writ.";
+  "You came in on an Enlistment Writ. Your first Game Grid paint night is on the Company after your first paid month. Bring your writ.";
+
+export const MEMBERSHIP_NUMBER_LABEL = "Empire Strength and Fitness membership number";
+export const MEMBERSHIP_NUMBER_REQUIRED = "Enter your Empire Strength and Fitness membership number.";
+export const MEMBERSHIP_NUMBER_STAFF = "A membership number is required before the $60 price.";
+
+const MEMBERSHIP_NUMBER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 -]{0,39}$/;
+
+export function membershipNumberError(value: string): string | null {
+  const text = value.trim();
+  if (!text) return MEMBERSHIP_NUMBER_REQUIRED;
+  if (!MEMBERSHIP_NUMBER_PATTERN.test(text)) return "Use the membership number from Empire Strength and Fitness.";
+  return null;
+}
 
 /** Final age rule. The 7–10 PM slot stays 18+. */
 export const AGE_RULE =

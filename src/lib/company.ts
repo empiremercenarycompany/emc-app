@@ -10,7 +10,7 @@ import { createClient, createClientWithAccessToken } from "@/lib/supabase/server
 import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@/lib/types";
 
 const INTAKE_MEMBER =
-  "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist, gym_member, membership_verified, checkout_plan, signup_src";
+  "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist, gym_member, gym_membership_number, membership_verified, checkout_plan, signup_src";
 const INTAKE_FULL =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
@@ -125,6 +125,7 @@ async function loadViewerOnce(): Promise<Viewer> {
         ageBand: textOrNull(intakeRow.age_band),
         teenWaitlist: Boolean(intakeRow.teen_waitlist),
         gymMember: parseGymMember(textOrNull(intakeRow.gym_member)),
+        membershipNumber: textOrNull(intakeRow.gym_membership_number),
         membershipVerified: intakeRow.membership_verified === true,
         checkoutPlan: intakeRow.checkout_plan === "member" || intakeRow.checkout_plan === "standard" ? intakeRow.checkout_plan : null,
         signupSrc: textOrNull(intakeRow.signup_src),
@@ -164,6 +165,7 @@ async function loadViewerOnce(): Promise<Viewer> {
       sessionReminders: intake ? (intake.reminders ? "yes" : "no") : "",
       backstory: intake?.backstoryIdea ?? "",
       empireMembership: gymMemberLabel(intake?.gymMember ?? null),
+      membershipNumber: intake?.membershipNumber ?? "",
       membershipVerified: intake ? (intake.membershipVerified ? "yes" : "no") : "",
       verifiedBy: "",
       verifiedAt: "",

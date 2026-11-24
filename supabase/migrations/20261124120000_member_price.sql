@@ -1,18 +1,30 @@
 -- Current Empire membership, staff verification, and the checkout price.
 -- gym_member matches the site sign-up: current, former, not_yet.
 -- Former members and people who are not members yet pay $120.
--- $60 is used only when gym_member is current, staff have verified it,
--- and staff have switched the checkout price to member.
+-- $60 is used only when gym_member is current, a membership number is stored,
+-- staff have verified it, and staff have switched the checkout price to member.
 -- signup_src keeps the arrival tag, including gamegrid-writ.
 -- Review and apply this by hand. Do not point it at a database you have not chosen.
 
 alter table public.player_intake
   add column if not exists gym_member text,
+  add column if not exists gym_membership_number text,
   add column if not exists membership_verified boolean not null default false,
   add column if not exists membership_verified_by uuid references public.profiles (id) on delete set null,
   add column if not exists membership_verified_at timestamptz,
   add column if not exists checkout_plan text,
   add column if not exists signup_src text;
+
+alter table public.player_intake drop constraint if exists player_intake_membership_number_len;
+alter table public.player_intake
+  add constraint player_intake_membership_number_len
+  check (
+    gym_membership_number is null
+    or (
+      char_length(gym_membership_number) between 1 and 40
+      and gym_membership_number ~ '^[A-Za-z0-9][A-Za-z0-9 -]*$'
+    )
+  );
 
 alter table public.player_intake drop constraint if exists player_intake_gym_member_check;
 alter table public.player_intake
@@ -30,7 +42,10 @@ alter table public.player_intake
   check (signup_src is null or char_length(signup_src) <= 80);
 
 comment on column public.player_intake.gym_member is
-  'Site field gym_member. current may become the $60 price after staff verify and switch. former and not_yet stay at $120.';
+  'Site field gym_member. current may become the $60 price after a membership number, staff verification, and a staff switch. former and not_yet stay at $120.';
+
+comment on column public.player_intake.gym_membership_number is
+  'Empire Strength and Fitness membership number. Required before the $60 price. Null for every other rate.';
 
 comment on column public.player_intake.membership_verified is
   'Staff confirmed a current Empire Strength and Fitness membership. The player cannot set this.';
@@ -66,7 +81,8 @@ create function public.save_player_intake(
   p_fitness_experience text default null,
   p_age_band text default null,
   p_gym_member text default null,
-  p_signup_src text default null
+  p_signup_src text default null,
+  p_gym_membership_number text default null
 ) returns void
 language plpgsql
 security definer
@@ -76,6 +92,7 @@ declare
   v_slot text;
   v_gym text;
   v_src text;
+  v_number text;
 begin
   if auth.uid() is null then
     raise exception 'Sign in first';
@@ -95,6 +112,16 @@ begin
   v_gym := nullif(btrim(coalesce(p_gym_member, '')), '');
   if v_gym is not null and v_gym not in ('current', 'former', 'not_yet') then
     raise exception 'Say which rate is yours';
+  end if;
+  v_number := nullif(btrim(coalesce(p_gym_membership_number, '')), '');
+  if v_number is not null and (
+    char_length(v_number) > 40
+    or v_number !~ '^[A-Za-z0-9][A-Za-z0-9 -]*$'
+  ) then
+    raise exception 'Use the membership number from Empire Strength and Fitness';
+  end if;
+  if v_gym = 'current' and v_number is null then
+    raise exception 'Enter your Empire Strength and Fitness membership number';
   end if;
   v_src := nullif(left(btrim(coalesce(p_signup_src, '')), 80), '');
 
@@ -145,6 +172,7 @@ begin
     age_band,
     teen_waitlist,
     gym_member,
+    gym_membership_number,
     signup_src,
     updated_at
   ) values (
@@ -162,6 +190,7 @@ begin
     p_age_band,
     coalesce(p_age_band = 'under_16', false),
     v_gym,
+    case when p_gym_membership_number is null then null else v_number end,
     case when p_signup_src is null then null else v_src end,
     now()
   )
@@ -179,16 +208,20 @@ begin
       age_band = case when p_age_band is null then player_intake.age_band else excluded.age_band end,
       teen_waitlist = case when p_age_band is null then player_intake.teen_waitlist else excluded.teen_waitlist end,
       gym_member = case when p_gym_member is null then player_intake.gym_member else excluded.gym_member end,
+      gym_membership_number = case
+        when p_gym_membership_number is null then player_intake.gym_membership_number
+        else excluded.gym_membership_number
+      end,
       signup_src = case when p_signup_src is null then player_intake.signup_src else excluded.signup_src end,
       updated_at = now();
 end;
 $$;
 
-revoke all on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text) from public, anon;
-grant execute on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text) to authenticated;
+revoke all on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text, text) from public, anon;
+grant execute on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text, text) to authenticated;
 
-comment on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text) is
-  'Saves the signed-in recruit''s intake. A null age, membership answer, or src keeps the stored value. Verification is not touched.';
+comment on function public.save_player_intake(text, text, text[], text, boolean, text, text, text, text, text, text, text, text, text) is
+  'Saves the signed-in recruit''s intake. A null age, membership answer, number, or src keeps the stored value. The current-member rate requires a membership number. Verification is not touched.';
 
 create or replace function public.set_membership_verification(p_user_id uuid, p_verified boolean)
 returns void
@@ -253,7 +286,17 @@ begin
     where user_id = p_user_id
       and gym_member = 'current'
       and membership_verified
+      and gym_membership_number is not null
+      and btrim(gym_membership_number) <> ''
   ) then
+    if exists (
+      select 1 from public.player_intake
+      where user_id = p_user_id
+        and gym_member = 'current'
+        and membership_verified
+    ) then
+      raise exception 'A membership number is required before the $60 price';
+    end if;
     raise exception 'Verify membership before sending the $60 link';
   end if;
   update public.player_intake
@@ -270,4 +313,39 @@ revoke all on function public.set_checkout_plan(uuid, text) from public, anon;
 grant execute on function public.set_checkout_plan(uuid, text) to authenticated;
 
 comment on function public.set_checkout_plan(uuid, text) is
-  'Staff choose the payment-link price. member is allowed only for a verified current member.';
+  'Staff choose the payment-link price. member is allowed only for a verified current member with a membership number.';
+
+create or replace function public.lapse_gym_membership(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in first';
+  end if;
+  if not public.is_staff() then
+    raise exception 'Staff only';
+  end if;
+  if p_user_id is null then
+    raise exception 'Choose a player';
+  end if;
+  update public.player_intake
+  set checkout_plan = 'standard',
+      membership_verified = false,
+      membership_verified_by = null,
+      membership_verified_at = null,
+      updated_at = now()
+  where user_id = p_user_id;
+  if not found then
+    raise exception 'No enlistment for that player';
+  end if;
+end;
+$$;
+
+revoke all on function public.lapse_gym_membership(uuid) from public, anon;
+grant execute on function public.lapse_gym_membership(uuid) to authenticated;
+
+comment on function public.lapse_gym_membership(uuid) is
+  'Staff move a lapsed gym membership to the $120 price and clear verification. The membership number stays on file.';

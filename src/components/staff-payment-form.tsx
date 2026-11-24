@@ -1,13 +1,20 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveCheckoutPlan, setMembershipVerified } from "@/lib/actions/membership";
+import { lapseGymMembership, saveCheckoutPlan, setMembershipVerified } from "@/lib/actions/membership";
 import type { CheckoutPlan } from "@/lib/billing/price";
-import { PLAN_LABEL_MEMBER, PLAN_LABEL_STANDARD, VERIFY_MEMBERSHIP_NOTE } from "@/lib/rules/public-copy";
+import {
+  MEMBERSHIP_NUMBER_LABEL,
+  MEMBERSHIP_NUMBER_STAFF,
+  PLAN_LABEL_MEMBER,
+  PLAN_LABEL_STANDARD,
+  VERIFY_MEMBERSHIP_NOTE,
+} from "@/lib/rules/public-copy";
 import type { ActionResult } from "@/lib/types";
 
 export function StaffPaymentForm({
   userId,
+  membershipNumber,
   verified,
   verifiedBy,
   verifiedAt,
@@ -16,6 +23,7 @@ export function StaffPaymentForm({
   staffPlan,
 }: {
   userId: string;
+  membershipNumber: string;
   verified: boolean;
   verifiedBy: string;
   verifiedAt: string;
@@ -29,6 +37,10 @@ export function StaffPaymentForm({
   );
   const [priceState, priceAction, pricePending] = useActionState(
     async (_previous: (ActionResult & { url?: string }) | null, formData: FormData) => saveCheckoutPlan(formData),
+    null,
+  );
+  const [lapseState, lapseAction, lapsePending] = useActionState(
+    async (_previous: ActionResult | null, formData: FormData) => lapseGymMembership(formData),
     null,
   );
   const memberChecked = canChooseMember && staffPlan === "member";
@@ -56,6 +68,18 @@ export function StaffPaymentForm({
         {verifiedState && "error" in verifiedState ? <p role="alert">{verifiedState.error}</p> : null}
         {verifiedState && "ok" in verifiedState ? <p>Saved.</p> : null}
       </form>
+      <p>
+        {MEMBERSHIP_NUMBER_LABEL}: {membershipNumber || "None on file"}
+      </p>
+      <form action={lapseAction}>
+        <input type="hidden" name="user_id" value={userId} />
+        <button type="submit" disabled={lapsePending}>
+          {lapsePending ? "Saving" : "Move to $120"}
+        </button>
+        <p className="text-mute">Use this when a gym membership lapses. The $60 price comes off.</p>
+        {lapseState && "error" in lapseState ? <p role="alert">{lapseState.error}</p> : null}
+        {lapseState && "ok" in lapseState ? <p>Moved to $120.</p> : null}
+      </form>
       <form action={priceAction} className="flex flex-col gap-3">
         <input type="hidden" name="user_id" value={userId} />
         <fieldset>
@@ -72,6 +96,7 @@ export function StaffPaymentForm({
           </label>
         </fieldset>
         {needsVerify ? <p role="note">{VERIFY_MEMBERSHIP_NOTE}</p> : null}
+        {!membershipNumber ? <p role="note">{MEMBERSHIP_NUMBER_STAFF}</p> : null}
         <button name="intent" value="save" type="submit" disabled={pricePending}>
           Save price
         </button>

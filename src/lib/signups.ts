@@ -48,6 +48,7 @@ type IntakeRow = {
   timeslot_id?: unknown;
   session_reminders?: unknown;
   gym_member?: unknown;
+  gym_membership_number?: unknown;
   membership_verified?: unknown;
   membership_verified_by?: unknown;
   membership_verified_at?: unknown;
@@ -56,12 +57,13 @@ type IntakeRow = {
 };
 
 const INTAKE_COLUMNS =
-  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
 const INTAKE_BASE =
   "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders";
 
 export type SignupBilling = {
   gymMember: GymMember | null;
+  membershipNumber: string;
   membershipVerified: boolean;
   verifiedBy: string;
   verifiedAt: string;
@@ -123,6 +125,7 @@ export async function loadSignups(
     const dnd = clean(details?.dnd_experience);
     const gym = clean(details?.gym_experience);
     const gymMember = parseGymMember(clean(details?.gym_member));
+    const membershipNumber = clean(details?.gym_membership_number);
     const verified = details?.membership_verified === true;
     const verifierId = clean(details?.membership_verified_by);
     const verifiedAt = formatPeriodEnd(clean(details?.membership_verified_at) || null) ?? "";
@@ -130,6 +133,7 @@ export async function loadSignups(
     const staffPlan = isCheckoutPlan(planText) ? planText : null;
     billing[userId] = {
       gymMember,
+      membershipNumber,
       membershipVerified: verified,
       verifiedBy: names.get(verifierId) || verifierId,
       verifiedAt,
@@ -152,6 +156,7 @@ export async function loadSignups(
       sessionReminders: details ? (details.session_reminders ? "yes" : "no") : "",
       backstory: clean(details?.backstory_idea),
       empireMembership: gymMemberLabel(gymMember),
+      membershipNumber,
       membershipVerified: details ? (verified ? "yes" : "no") : "",
       verifiedBy: names.get(verifierId) || "",
       verifiedAt,

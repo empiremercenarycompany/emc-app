@@ -29,20 +29,57 @@ describe("member and standard prices", () => {
   });
 
   it("maps current to $60 only after staff switch, and former or not-yet to $120", () => {
+    const number = "ESF-1001";
     expect(parseGymMember("not-yet")).toBe("not_yet");
-    expect(checkoutPlanFor({ gymMember: "current", membershipVerified: true, staffPlan: "member" })).toBe("member");
-    expect(checkoutPlanFor({ gymMember: "current", membershipVerified: true, staffPlan: null })).toBe("standard");
-    expect(checkoutPlanFor({ gymMember: "current", membershipVerified: false, staffPlan: "member" })).toBe("standard");
-    expect(checkoutPlanFor({ gymMember: "former", membershipVerified: true, staffPlan: "member" })).toBe("standard");
-    expect(checkoutPlanFor({ gymMember: parseGymMember("not-yet"), membershipVerified: true, staffPlan: "member" })).toBe(
-      "standard",
-    );
-    expect(checkoutPlanFor({ gymMember: null, membershipVerified: false, staffPlan: null })).toBe("standard");
     expect(
-      staffPlanError({ gymMember: "current", membershipVerified: false, staffPlan: "member" }),
+      checkoutPlanFor({ gymMember: "current", membershipVerified: true, membershipNumber: number, staffPlan: "member" }),
+    ).toBe("member");
+    expect(
+      checkoutPlanFor({ gymMember: "current", membershipVerified: true, membershipNumber: number, staffPlan: null }),
+    ).toBe("standard");
+    expect(
+      checkoutPlanFor({ gymMember: "current", membershipVerified: false, membershipNumber: number, staffPlan: "member" }),
+    ).toBe("standard");
+    expect(
+      checkoutPlanFor({ gymMember: "current", membershipVerified: true, membershipNumber: null, staffPlan: "member" }),
+    ).toBe("standard");
+    expect(
+      checkoutPlanFor({ gymMember: "former", membershipVerified: true, membershipNumber: number, staffPlan: "member" }),
+    ).toBe("standard");
+    expect(
+      checkoutPlanFor({
+        gymMember: parseGymMember("not-yet"),
+        membershipVerified: true,
+        membershipNumber: null,
+        staffPlan: "member",
+      }),
+    ).toBe("standard");
+    expect(
+      checkoutPlanFor({ gymMember: null, membershipVerified: false, membershipNumber: null, staffPlan: null }),
+    ).toBe("standard");
+    expect(
+      staffPlanError({ gymMember: "current", membershipVerified: false, membershipNumber: number, staffPlan: "member" }),
     ).toMatch(/Verify membership before sending the \$60 link/);
-    expect(staffPlanError({ gymMember: "current", membershipVerified: true, staffPlan: "member" })).toBeNull();
-    expect(staffPlanError({ gymMember: "former", membershipVerified: true, staffPlan: "standard" })).toBeNull();
+    expect(
+      staffPlanError({ gymMember: "current", membershipVerified: true, membershipNumber: "  ", staffPlan: "member" }),
+    ).toMatch(/membership number is required/i);
+    expect(
+      staffPlanError({ gymMember: "current", membershipVerified: true, membershipNumber: number, staffPlan: "member" }),
+    ).toBeNull();
+    expect(
+      staffPlanError({ gymMember: "former", membershipVerified: true, membershipNumber: number, staffPlan: "standard" }),
+    ).toBeNull();
+  });
+
+  it("moves a lapsed member back to $120", () => {
+    expect(
+      checkoutPlanFor({
+        gymMember: "current",
+        membershipVerified: false,
+        membershipNumber: "ESF-1001",
+        staffPlan: "standard",
+      }),
+    ).toBe("standard");
   });
 
   it("charges a member pair $40 each for 2 months, then $60", () => {

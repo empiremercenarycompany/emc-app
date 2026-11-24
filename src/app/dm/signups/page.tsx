@@ -42,6 +42,7 @@ export default async function SignupsPage() {
               <StaffPaymentForm
                 key={`${row.userId}-${billing.membershipVerified}-${billing.staffPlan ?? "standard"}`}
                 userId={row.userId}
+                membershipNumber={billing.membershipNumber}
                 verified={billing.membershipVerified}
                 verifiedBy={billing.verifiedBy}
                 verifiedAt={billing.verifiedAt}

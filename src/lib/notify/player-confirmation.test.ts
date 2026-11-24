@@ -80,7 +80,9 @@ describe("player confirmation template", () => {
     expect(current.text).toContain(
       "Your rate: $60 a month, the Founding Recruit Rate for current Empire members, added to the membership you already have. Staff will check your membership when they confirm your seat.",
     );
-    expect(current.text).toContain("You came in on an Enlistment Writ, so your first Game Grid paint night is on the Company. Bring your writ.");
+    expect(current.text).toContain(
+      "You came in on an Enlistment Writ. Your first Game Grid paint night is on the Company after your first paid month. Bring your writ.",
+    );
     const beforeBonus = current.text.split("Bring your Shieldmate.")[0] ?? "";
     expect(beforeBonus).not.toMatch(/shieldmate/i);
     const former = renderPlayerConfirmation({ ...input, gymMember: "former", signupSrc: "gamegrid-poster" });

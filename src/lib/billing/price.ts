@@ -1,5 +1,6 @@
 import { EMC_GYM_MONTHLY, EMC_MONTHLY } from "@/lib/billing/plans";
 import {
+  MEMBERSHIP_NUMBER_STAFF,
   VERIFY_MEMBERSHIP_NOTE,
   type GymMember,
   parseGymMember,
@@ -52,21 +53,37 @@ export function planLookupKey(plan: CheckoutPlan): string {
   return plan === "member" ? EMC_MONTHLY : EMC_GYM_MONTHLY;
 }
 
+export function hasMembershipNumber(value: string | null | undefined): boolean {
+  return Boolean(value?.trim());
+}
+
 /**
- * $60 only after staff switch a verified current member.
- * Everyone else, including a self-reported current member, stays on $120.
+ * $60 only after staff switch a verified current member who has a membership number.
+ * A lapse clears that switch. Everyone else stays on $120.
  */
 export function checkoutPlanFor(input: {
   gymMember: GymMember | null;
   membershipVerified: boolean;
+  membershipNumber: string | null;
   staffPlan: CheckoutPlan | null;
 }): CheckoutPlan {
-  if (input.staffPlan === "member" && input.gymMember === "current" && input.membershipVerified) return "member";
+  if (
+    input.staffPlan === "member" &&
+    input.gymMember === "current" &&
+    input.membershipVerified &&
+    hasMembershipNumber(input.membershipNumber)
+  ) {
+    return "member";
+  }
   return "standard";
 }
 
-export function staffCanChooseMember(input: { gymMember: GymMember | null; membershipVerified: boolean }): boolean {
-  return input.gymMember === "current" && input.membershipVerified;
+export function staffCanChooseMember(input: {
+  gymMember: GymMember | null;
+  membershipVerified: boolean;
+  membershipNumber: string | null;
+}): boolean {
+  return input.gymMember === "current" && input.membershipVerified && hasMembershipNumber(input.membershipNumber);
 }
 
 export function needsMembershipVerification(input: {
@@ -79,9 +96,14 @@ export function needsMembershipVerification(input: {
 export function staffPlanError(input: {
   gymMember: GymMember | null;
   membershipVerified: boolean;
+  membershipNumber: string | null;
   staffPlan: CheckoutPlan;
 }): string | null {
-  if (input.staffPlan === "member" && !staffCanChooseMember(input)) return VERIFY_MEMBERSHIP_NOTE;
+  if (input.staffPlan !== "member") return null;
+  if (input.gymMember === "current" && input.membershipVerified && !hasMembershipNumber(input.membershipNumber)) {
+    return MEMBERSHIP_NUMBER_STAFF;
+  }
+  if (!staffCanChooseMember(input)) return VERIFY_MEMBERSHIP_NOTE;
   return null;
 }
 

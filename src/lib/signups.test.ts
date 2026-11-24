@@ -19,6 +19,7 @@ const row: SignupRecord = {
   sessionReminders: "yes",
   backstory: 'Raised near the docks.\nThey said "come along".',
   empireMembership: "Current Empire member",
+  membershipNumber: "ESF-1001",
   membershipVerified: "no",
   verifiedBy: "",
   verifiedAt: "",

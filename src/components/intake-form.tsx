@@ -8,7 +8,9 @@ import {
   AGE_RULE,
   GYM_MEMBER_HELPER,
   GYM_MEMBER_OPTIONS,
+  MEMBERSHIP_NUMBER_LABEL,
   PRICE_ONE_LINE,
+  membershipNumberError,
   gamegridLead,
   type GymMember,
 } from "@/lib/rules/public-copy";
@@ -40,6 +42,7 @@ export function IntakeForm({
     timeslot: string;
     age?: string;
     gymMember?: string;
+    membershipNumber?: string;
     reminders: boolean;
     phone: string;
     species: string;
@@ -58,6 +61,7 @@ export function IntakeForm({
       ? initial.gymMember
       : "",
   );
+  const [membershipNumber, setMembershipNumber] = useState(initial?.membershipNumber ?? "");
   const openSlots = slotsForAge(age, slots);
   const [timeslot, setTimeslot] = useState(
     openSlots.some((slot) => slot.id === initial?.timeslot) ? (initial?.timeslot ?? "") : (openSlots[0]?.id ?? ""),
@@ -70,7 +74,8 @@ export function IntakeForm({
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
   const chosenSlot = slots.find((slot) => slot.id === timeslot);
   const rateProblem = gymMember ? null : "Say which rate is yours.";
-  const problem = rateProblem ?? intakeError({
+  const numberProblem = gymMember === "current" ? membershipNumberError(membershipNumber) : null;
+  const problem = rateProblem ?? numberProblem ?? intakeError({
     dnd,
     gym,
     goals: chosen,
@@ -163,6 +168,19 @@ export function IntakeForm({
             </label>
           ))}
           <p className="text-mute">{GYM_MEMBER_HELPER}</p>
+          {gymMember === "current" ? (
+            <label>
+              {MEMBERSHIP_NUMBER_LABEL}
+              <input
+                name="gym_membership_number"
+                value={membershipNumber}
+                onChange={(event) => setMembershipNumber(event.target.value)}
+                maxLength={40}
+                required
+                autoComplete="off"
+              />
+            </label>
+          ) : null}
         </fieldset>
         <label>
           Species idea

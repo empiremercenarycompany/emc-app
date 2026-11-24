@@ -37,6 +37,21 @@ export async function setMembershipVerified(formData: FormData): Promise<ActionR
   return { ok: true };
 }
 
+/** A lapsed gym membership leaves the $60 price. The membership number stays for staff. */
+export async function lapseGymMembership(formData: FormData): Promise<ActionResult> {
+  const gate = await requireRole("staff");
+  if (gate) return gate;
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const userId = String(formData.get("user_id") ?? "");
+  if (!UUID.test(userId)) return { error: "Choose a player." };
+  const { error: rpcError } = await supabase.rpc("lapse_gym_membership", { p_user_id: userId });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  refresh();
+  return { ok: true };
+}
+
 export async function saveCheckoutPlan(formData: FormData): Promise<ActionResult & { url?: string }> {
   const gate = await requireRole("staff");
   if (gate) return gate;

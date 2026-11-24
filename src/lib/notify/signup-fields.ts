@@ -15,6 +15,7 @@ export type SignupRecord = {
   sessionReminders: string;
   backstory: string;
   empireMembership: string;
+  membershipNumber: string;
   membershipVerified: string;
   verifiedBy: string;
   verifiedAt: string;
@@ -38,6 +39,7 @@ export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
   { key: "sessionReminders", label: "Session reminders" },
   { key: "backstory", label: "Backstory" },
   { key: "empireMembership", label: "Empire membership" },
+  { key: "membershipNumber", label: "Empire Strength and Fitness membership number" },
   { key: "membershipVerified", label: "Membership verified" },
   { key: "verifiedBy", label: "Verified by" },
   { key: "verifiedAt", label: "Verified at" },

@@ -176,6 +176,7 @@ export type Viewer = {
     ageBand: string | null;
     teenWaitlist: boolean;
     gymMember: "current" | "former" | "not_yet" | null;
+    membershipNumber: string | null;
     membershipVerified: boolean;
     checkoutPlan: "member" | "standard" | null;
     signupSrc: string | null;

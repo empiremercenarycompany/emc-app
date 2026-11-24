@@ -32,7 +32,7 @@ describe("public payment and age copy", () => {
     expect(confirmationRateLine(null)).toContain("Staff will confirm which applies");
     expect(gamegridLead("gamegrid-writ")).toBe(true);
     expect(gamegridLead("friend")).toBe(false);
-    expect(gamegridWritLine("gamegrid-writ")).toContain("Enlistment Writ");
+    expect(gamegridWritLine("gamegrid-writ")).toContain("after your first paid month");
     expect(gamegridWritLine("gamegrid-poster")).toBeNull();
     expect(SCHEDULE_PRICE_COPY).not.toMatch(/pay on the Empire/i);
     expect(SCHEDULE_PRICE_COPY).not.toMatch(/shieldmate/i);
