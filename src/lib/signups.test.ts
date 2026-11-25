@@ -24,6 +24,11 @@ const row: SignupRecord = {
   verifiedBy: "",
   verifiedAt: "",
   signupSrc: "gamegrid-writ",
+  tableLabel: "Saturday mornings, 9 AM to 12 PM, first game Jan 2, 2027",
+  tableRequest: "Staff confirm every seat.",
+  tableSquad: "CCC",
+  withFriend: "no",
+  friendName: "",
 };
 
 describe("sign-up export", () => {

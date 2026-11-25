@@ -1,3 +1,5 @@
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
+
 export const DND_LEVELS = [
   { id: "never", label: "Never" },
   { id: "a_few", label: "A few times" },
@@ -38,7 +40,7 @@ const KNOWN_SLOTS: Record<string, string> = {
   "7-10 PM": "7–10 PM",
 };
 
-/** Spoken clock time. The evening slot keeps its 18+ label. Age rules sit beside the list. */
+/** Spoken clock time. An adults-only flag still adds the legacy evening mark for older screens. The Saturday table picker does not use this. */
 export function displaySlot(label: string, adultsOnly: boolean): string {
   const stripped = label.replace(/\s*\(18\+\)\s*$/, "").trim();
   const base = KNOWN_SLOTS[stripped] ?? stripped;
@@ -112,7 +114,7 @@ export function intakeError(input: IntakeDraft): string | null {
   const goals = input.goals.map((goal) => goal.trim()).filter(Boolean);
   if (goals.length < 1) return "Pick at least one first goal.";
   if (input.age === undefined) {
-    if (!input.timeslot) return "Pick a time.";
+    if (!input.timeslot) return SATURDAY_TABLE_COPY.heading;
     return null;
   }
   if (!isAgeBand(input.age)) return "Say your age.";
@@ -120,8 +122,7 @@ export function intakeError(input: IntakeDraft): string | null {
     if (input.timeslot) return "Under 16 joins the teen waitlist.";
     return null;
   }
-  if (!input.timeslot) return "Pick a time.";
-  if (input.age === "16_17" && input.adultsOnly) return "The 7–10 PM slot is for ages 18 and up.";
+  if (!input.timeslot) return SATURDAY_TABLE_COPY.heading;
   return null;
 }
 

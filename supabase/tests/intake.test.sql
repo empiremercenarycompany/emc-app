@@ -56,14 +56,14 @@ begin
   end if;
   if has_function_privilege(
     'anon',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
     'execute'
   ) then
     raise exception 'anon can save intake';
   end if;
   if not has_function_privilege(
     'authenticated',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
     'execute'
   ) then
     raise exception 'authenticated cannot save intake';
@@ -271,17 +271,21 @@ begin
   end if;
 end $$;
 
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true,
+  null, null, null, null, null, '16_17'
+);
+
 do $$
+declare
+  v_slot text;
 begin
-  perform public.save_player_intake(
-    'lots', 'regular', array['Call a friend'], 'evening', true,
-    null, null, null, null, null, '16_17'
-  );
-  raise exception 'a 16 year old took the evening slot';
-exception
-  when others then
-    if sqlerrm ilike '%evening slot%' then raise; end if;
-    if sqlerrm not ilike '%18+%' then raise; end if;
+  select timeslot_id into v_slot
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_slot is distinct from 'evening' then
+    raise exception '16 or 17 could not take an evening table';
+  end if;
 end $$;
 
 select public.save_player_intake(

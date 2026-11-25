@@ -15,13 +15,13 @@ describe("player intake", () => {
     expect(intakeError({ ...ready, dnd: "" })).toMatch(/played/);
     expect(intakeError({ ...ready, gym: "injured" })).toMatch(/gym/);
     expect(intakeError({ ...ready, goals: [] })).toMatch(/goal/);
-    expect(intakeError({ ...ready, timeslot: "" })).toMatch(/time/);
+    expect(intakeError({ ...ready, timeslot: "" })).toMatch(/Saturday table/);
     expect(intakeError({ ...ready, age: "" })).toMatch(/age/);
     expect(intakeError({ ...ready, age: "under_16", timeslot: "morning" })).toMatch(/waitlist/);
     expect(intakeError({ ...ready, age: "under_16", timeslot: "" })).toBeNull();
-    expect(intakeError({ ...ready, age: "16_17", timeslot: "evening", adultsOnly: true })).toMatch(/18 and up/);
+    expect(intakeError({ ...ready, age: "16_17", timeslot: "evening", adultsOnly: true })).toBeNull();
     expect(intakeError({ ...ready, age: "16_17", timeslot: "morning", adultsOnly: false })).toBeNull();
-    expect(intakeError({ dnd: "never", gym: "new", goals: ["Sleep 7 hours"], timeslot: "" })).toMatch(/time/);
+    expect(intakeError({ dnd: "never", gym: "new", goals: ["Sleep 7 hours"], timeslot: "" })).toMatch(/Saturday table/);
     expect(Object.keys(ready)).toEqual(["dnd", "gym", "goals", "timeslot", "age"]);
     expect(slotsForAge("18_plus", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual([
       "morning",

@@ -2,10 +2,11 @@
 
 import { useActionState, useState } from "react";
 import { ENLIST_BACKSTORY_PROMPT, ENLIST_CITY_BLURB } from "@/content/enlist";
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
 import { Choice } from "@/components/choice";
+import { SaturdayHall } from "@/components/saturday-hall";
 import { saveIntake } from "@/lib/actions/intake";
 import {
-  AGE_RULE,
   GYM_MEMBER_HELPER,
   GYM_MEMBER_OPTIONS,
   MEMBERSHIP_NUMBER_LABEL,
@@ -14,25 +15,17 @@ import {
   gamegridLead,
   type GymMember,
 } from "@/lib/rules/public-copy";
-import {
-  AGE_BANDS,
-  DND_LEVELS,
-  ENLIST_LIMITS,
-  GOAL_CHIPS,
-  GYM_LEVELS,
-  displaySlot,
-  intakeError,
-  slotsForAge,
-} from "@/lib/rules/intake";
+import { AGE_BANDS, DND_LEVELS, ENLIST_LIMITS, GOAL_CHIPS, GYM_LEVELS, intakeError } from "@/lib/rules/intake";
+import { tableRequest, type SaturdayTable } from "@/lib/rules/saturday-tables";
 import type { ActionResult } from "@/lib/types";
 
 export function IntakeForm({
-  slots,
+  tables,
   canSave = true,
   signupSrc = "",
   initial,
 }: {
-  slots: { id: string; label: string; adultsOnly: boolean }[];
+  tables: SaturdayTable[];
   canSave?: boolean;
   signupSrc?: string;
   initial?: {
@@ -40,6 +33,7 @@ export function IntakeForm({
     gym: string;
     goals: string[];
     timeslot: string;
+    tableKey?: string;
     age?: string;
     gymMember?: string;
     membershipNumber?: string;
@@ -49,6 +43,9 @@ export function IntakeForm({
     classIdea: string;
     fitness: string;
     backstory: string;
+    withFriend?: boolean;
+    friendName?: string;
+    anyOpen?: boolean;
   };
 }) {
   const [dnd, setDnd] = useState(initial?.dnd ?? "never");
@@ -62,60 +59,44 @@ export function IntakeForm({
       : "",
   );
   const [membershipNumber, setMembershipNumber] = useState(initial?.membershipNumber ?? "");
-  const openSlots = slotsForAge(age, slots);
-  const [timeslot, setTimeslot] = useState(
-    openSlots.some((slot) => slot.id === initial?.timeslot) ? (initial?.timeslot ?? "") : (openSlots[0]?.id ?? ""),
+  const [selectedKey, setSelectedKey] = useState(
+    tables.some((table) => table.key === initial?.tableKey) ? (initial?.tableKey ?? "") : "",
   );
+  const [withFriend, setWithFriend] = useState(initial?.withFriend ?? false);
+  const [friendName, setFriendName] = useState(initial?.friendName ?? "");
+  const [anyOpen, setAnyOpen] = useState(initial?.anyOpen ?? false);
   const [reminders, setReminders] = useState(initial?.reminders ?? false);
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => saveIntake(formData),
     null,
   );
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
-  const chosenSlot = slots.find((slot) => slot.id === timeslot);
+  const selected = tables.find((table) => table.key === selectedKey) ?? null;
+  const request = selected ? tableRequest(selected.seatsLeft, withFriend) : "";
+  const waiting = age === "under_16";
   const rateProblem = gymMember ? null : "Say which rate is yours.";
   const numberProblem = gymMember === "current" ? membershipNumberError(membershipNumber) : null;
-  const problem = rateProblem ?? numberProblem ?? intakeError({
-    dnd,
-    gym,
-    goals: chosen,
-    timeslot: age === "under_16" ? "" : timeslot,
-    age,
-    adultsOnly: Boolean(chosenSlot?.adultsOnly),
-  });
-
-  function chooseAge(next: string) {
-    setAge(next);
-    const open = slotsForAge(next, slots);
-    if (!open.some((slot) => slot.id === timeslot)) setTimeslot(open[0]?.id ?? "");
-  }
+  const problem =
+    rateProblem ??
+    numberProblem ??
+    intakeError({
+      dnd,
+      gym,
+      goals: chosen,
+      timeslot: waiting ? "" : (selected?.timeslotId ?? ""),
+      age,
+    });
 
   function toggleGoal(goal: string) {
     setGoals((current) => (current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal]));
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-4 span-all">
       <section id="enlist-details" aria-labelledby="enlist-heading" className="flex flex-col gap-4">
         <h2 id="enlist-heading">Enlist details</h2>
-        <label>
-          Phone
-          <input
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            maxLength={ENLIST_LIMITS.phone}
-            defaultValue={initial?.phone ?? ""}
-            aria-describedby="phone-optional"
-          />
-        </label>
-        <p className="text-mute" id="phone-optional">
-          Optional.
-        </p>
         <fieldset className="score-card">
           <legend>Age</legend>
-          <p className="text-mute">{AGE_RULE}</p>
           <div className="score-taps" role="radiogroup" aria-label="Age">
             {AGE_BANDS.map((band) => (
               <button
@@ -123,32 +104,14 @@ export function IntakeForm({
                 type="button"
                 className={age === band.id ? "primary" : "secondary"}
                 aria-pressed={age === band.id}
-                onClick={() => chooseAge(band.id)}
+                onClick={() => setAge(band.id)}
               >
                 {band.label}
               </button>
             ))}
           </div>
-        </fieldset>
-        <fieldset className="score-card">
-          <legend>Training slot</legend>
-          {age === "under_16" ? (
-            <p>If you are under 16, you can join a teen waitlist. A seat is not open yet.</p>
-          ) : (
-            <div className="score-taps" role="radiogroup" aria-label="Training slot">
-              {openSlots.map((slot) => (
-                <button
-                  key={slot.id}
-                  type="button"
-                  className={timeslot === slot.id ? "primary" : "secondary"}
-                  aria-pressed={timeslot === slot.id}
-                  onClick={() => setTimeslot(slot.id)}
-                >
-                  {displaySlot(slot.label, slot.adultsOnly)}
-                </button>
-              ))}
-            </div>
-          )}
+          {waiting ? <p>{SATURDAY_TABLE_COPY.under16}</p> : null}
+          {age === "16_17" ? <p>{SATURDAY_TABLE_COPY.waiver16}</p> : null}
         </fieldset>
         <fieldset className="score-card">
           <legend>Which rate is yours?</legend>
@@ -182,6 +145,50 @@ export function IntakeForm({
             </label>
           ) : null}
         </fieldset>
+        {waiting ? null : (
+          <>
+            <Choice checked={withFriend} onChange={setWithFriend}>
+              {SATURDAY_TABLE_COPY.friendAsk}
+            </Choice>
+            {withFriend ? (
+              <label>
+                {SATURDAY_TABLE_COPY.friendName}
+                <input
+                  name="friend_name_field"
+                  value={friendName}
+                  onChange={(event) => setFriendName(event.target.value)}
+                  maxLength={80}
+                  autoComplete="name"
+                />
+              </label>
+            ) : null}
+            <SaturdayHall
+              tables={tables}
+              mode="pick"
+              withFriend={withFriend}
+              selectedKey={selectedKey}
+              onSelect={setSelectedKey}
+            />
+            <Choice checked={anyOpen} onChange={setAnyOpen}>
+              {SATURDAY_TABLE_COPY.anyOpen}
+            </Choice>
+          </>
+        )}
+        <label>
+          Phone
+          <input
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            maxLength={ENLIST_LIMITS.phone}
+            defaultValue={initial?.phone ?? ""}
+            aria-describedby="phone-optional"
+          />
+        </label>
+        <p className="text-mute" id="phone-optional">
+          Optional.
+        </p>
         <label>
           Species idea
           <input name="species" maxLength={ENLIST_LIMITS.species} defaultValue={initial?.species ?? ""} />
@@ -278,7 +285,13 @@ export function IntakeForm({
       <input type="hidden" name="gym" value={gym} />
       <input type="hidden" name="age" value={age} />
       <input type="hidden" name="signup_src" value={signupSrc.slice(0, 80)} />
-      <input type="hidden" name="timeslot" value={age === "under_16" ? "" : timeslot} />
+      <input type="hidden" name="timeslot" value={waiting ? "" : (selected?.timeslotId ?? "")} />
+      <input type="hidden" name="starts_on" value={waiting ? "" : (selected?.startsOn ?? "")} />
+      <input type="hidden" name="squad_id" value={waiting ? "" : (selected?.squadId ?? "")} />
+      <input type="hidden" name="table_request" value={waiting ? "" : request} />
+      <input type="hidden" name="with_friend" value={!waiting && withFriend ? "1" : "0"} />
+      <input type="hidden" name="friend_name" value={!waiting && withFriend ? friendName : ""} />
+      <input type="hidden" name="any_open" value={!waiting && anyOpen ? "1" : "0"} />
       {chosen.map((goal) => (
         <input key={goal} type="hidden" name="goal" value={goal} />
       ))}

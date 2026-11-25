@@ -15,7 +15,8 @@ import { loadOwnBilling } from "@/lib/billing/own-billing";
 import { checkoutPlanFor } from "@/lib/billing/price";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
-import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { tableKey, yourTableLine } from "@/lib/rules/saturday-tables";
+import { loadSaturdayHall } from "@/lib/saturday-board";
 import { recruitName } from "@/lib/recruit-name";
 
 export default async function ProfilePage({
@@ -34,18 +35,12 @@ export default async function ProfilePage({
     supabase && viewer.character?.squad_id
       ? (await supabase.from("squads").select("name").eq("id", viewer.character.squad_id).maybeSingle()).data?.name ?? null
       : null;
-  const slots = supabase
-    ? (await supabase.from("session_timeslots").select("id, label, adults_only").order("start_time")).data
-    : null;
-  const times =
-    slots && slots.length > 0
-      ? slots
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adults_only: slot.adultsOnly }));
-  const chosenSlot = times.find((slot) => slot.id === viewer.intake?.timeslotId);
+  const hall = supabase && viewer.userId ? await loadSaturdayHall(supabase, true) : [];
+  const table = hall.find((item) => item.key === tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "")) ?? null;
   const timeLabel = viewer.intake?.teenWaitlist
     ? "Teen waitlist"
-    : chosenSlot
-      ? displaySlot(String(chosenSlot.label), Boolean(chosenSlot.adults_only))
+    : table
+      ? yourTableLine(table.label)
       : "Not chosen";
   const shownName = recruitName({
     characterName: viewer.character?.name,
@@ -78,7 +73,8 @@ export default async function ProfilePage({
               <span className="recruit-name">{shownName}</span>
             </div>
             <p>{squadName ?? "No squad yet"}</p>
-            <p>Preferred time {timeLabel}</p>
+            <p>{timeLabel}</p>
+            {table?.squadLine ? <p>{table.squadLine}</p> : null}
           </Panel>
           <Panel title="Your name">
             <ResultForm action={saveDisplayName} submit="Save name">

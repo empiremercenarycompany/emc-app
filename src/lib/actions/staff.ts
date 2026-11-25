@@ -116,6 +116,24 @@ export async function setSubclass(formData: FormData): Promise<ActionResult> {
   return { ok: true };
 }
 
+export async function setSquadTable(formData: FormData): Promise<ActionResult> {
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const timeslot = String(formData.get("timeslot") ?? "");
+  const starts = String(formData.get("starts_on") ?? "");
+  const clear = !timeslot || !starts;
+  const { error: rpcError } = await supabase.rpc("set_squad_table", {
+    p_squad_id: String(formData.get("squad_id") ?? ""),
+    p_timeslot: clear ? null : timeslot,
+    p_starts_on: clear ? null : starts,
+  });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  revalidatePath("/schedule");
+  revalidatePath("/intake");
+  return { ok: true };
+}
+
 export async function createSquad(formData: FormData): Promise<ActionResult> {
   const { supabase, error } = await actionClient();
   if (!supabase || error) return { error: error ?? "Sign in first." };

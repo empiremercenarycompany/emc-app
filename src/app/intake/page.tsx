@@ -2,13 +2,14 @@ import { IntakeForm } from "@/components/intake-form";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { Notice, Page } from "@/components/ui";
 import { loadViewer, setupMessage } from "@/lib/company";
+import { hallForApp, normalizeTimeslotId, tableKey } from "@/lib/rules/saturday-tables";
+import { loadSaturdayHall } from "@/lib/saturday-board";
 import { createClient } from "@/lib/supabase/server";
-import { TIMESLOT_FALLBACK } from "@/lib/rules/intake";
 
 export default async function IntakePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ src?: string }>;
+  searchParams?: Promise<{ src?: string; table?: string; start?: string }>;
 }) {
   const viewer = await loadViewer();
   const params = searchParams ? await searchParams : {};
@@ -16,13 +17,13 @@ export default async function IntakePage({
   const signupSrc = fromUrl || viewer.intake?.signupSrc || "";
   const setup = setupMessage(viewer);
   const supabase = await createClient();
-  const rows = supabase
-    ? (await supabase.from("session_timeslots").select("id, label, adults_only").order("start_time")).data
-    : null;
-  const slots =
-    rows && rows.length > 0
-      ? rows.map((row) => ({ id: row.id, label: row.label, adultsOnly: Boolean(row.adults_only) }))
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
+  const showNames = Boolean(viewer.userId);
+  const tables = supabase ? await loadSaturdayHall(supabase, showNames) : hallForApp([], showNames);
+  const requested = tableKey(
+    normalizeTimeslotId(typeof params.table === "string" ? params.table : "") ?? "",
+    typeof params.start === "string" ? params.start : "",
+  );
+  const stored = tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "");
 
   return (
     <Page title="About you" lede="This is you, not your character.">
@@ -30,7 +31,7 @@ export default async function IntakePage({
       {!viewer.userId ? <SignInPrompt label="Sign in to save" /> : null}
       <IntakeForm
         canSave={Boolean(viewer.userId)}
-        slots={slots}
+        tables={tables}
         signupSrc={signupSrc}
         initial={
           viewer.intake
@@ -38,7 +39,8 @@ export default async function IntakePage({
                 dnd: viewer.intake.dnd,
                 gym: viewer.intake.gym,
                 goals: viewer.intake.goals,
-                timeslot: viewer.intake.timeslotId ?? slots[0]?.id ?? "morning",
+                timeslot: viewer.intake.timeslotId ?? "",
+                tableKey: requested || stored || "",
                 age: viewer.intake.ageBand ?? "",
                 gymMember: viewer.intake.gymMember ?? "",
                 membershipNumber: viewer.intake.membershipNumber ?? "",
@@ -48,8 +50,25 @@ export default async function IntakePage({
                 classIdea: viewer.intake.classIdea ?? "",
                 fitness: viewer.intake.fitnessExperience ?? "",
                 backstory: viewer.intake.backstoryIdea ?? "",
+                withFriend: viewer.intake.withFriend,
+                friendName: viewer.intake.friendName ?? "",
+                anyOpen: viewer.intake.anyOpenTable,
               }
-            : undefined
+            : requested
+              ? {
+                  dnd: "never",
+                  gym: "new",
+                  goals: ["Sleep 7 hours"],
+                  timeslot: "",
+                  tableKey: requested,
+                  reminders: false,
+                  phone: "",
+                  species: "",
+                  classIdea: "",
+                  fitness: "",
+                  backstory: "",
+                }
+              : undefined
         }
       />
     </Page>
