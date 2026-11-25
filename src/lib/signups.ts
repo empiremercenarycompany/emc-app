@@ -76,7 +76,7 @@ export type SignupBilling = {
   staffPlan: CheckoutPlan | null;
 };
 
-type SlotRow = { id?: unknown; label?: unknown; adults_only?: unknown };
+type SlotRow = { id?: unknown; label?: unknown };
 
 function missingColumn(error: { code?: string; message?: string } | null): boolean {
   if (!error) return false;
@@ -89,7 +89,7 @@ export async function loadSignups(
   const [profiles, intakeFirst, slots, squadRows] = await Promise.all([
     supabase.from("profiles").select("id, email, display_name, app_role, created_at").order("created_at", { ascending: false }),
     supabase.from("player_intake").select(INTAKE_COLUMNS),
-    supabase.from("session_timeslots").select("id, label, adults_only"),
+    supabase.from("session_timeslots").select("id, label"),
     supabase.from("squads").select("id, name"),
   ]);
   const intake = missingColumn(intakeFirst.error)
@@ -103,11 +103,11 @@ export async function loadSignups(
     if (id) squadNameById.set(id, clean(squad.name));
   }
 
-  const slotById = new Map<string, { label: string; adultsOnly: boolean }>();
+  const slotById = new Map<string, { label: string }>();
   for (const slot of (slots.data ?? []) as SlotRow[]) {
     const id = clean(slot.id);
     if (!id) continue;
-    slotById.set(id, { label: clean(slot.label) || id, adultsOnly: Boolean(slot.adults_only) });
+    slotById.set(id, { label: clean(slot.label) || id });
   }
 
   const intakeByUser = new Map<string, IntakeRow>();
@@ -162,7 +162,7 @@ export async function loadSignups(
       role: clean(profile.app_role),
       joined: clean(profile.created_at),
       phone: clean(details?.phone),
-      trainingSlot: chosenTable || (slot ? displaySlot(slot.label, false) : timeslotId),
+      trainingSlot: chosenTable || (slot ? displaySlot(slot.label) : timeslotId),
       speciesIdea: clean(details?.species_idea),
       classIdea: clean(details?.class_idea),
       fitnessGoals: goalsText(details?.first_goals),

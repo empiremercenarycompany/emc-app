@@ -279,12 +279,15 @@ select public.save_player_intake(
 do $$
 declare
   v_slot text;
+  v_wait boolean;
+  v_age text;
 begin
-  select timeslot_id into v_slot
+  select timeslot_id, teen_waitlist, age_band
+    into v_slot, v_wait, v_age
   from public.player_intake
   where user_id = auth.uid();
-  if v_slot is distinct from 'evening' then
-    raise exception '16 or 17 could not take an evening table';
+  if v_slot is distinct from 'evening' or v_wait is distinct from false or v_age is distinct from '16_17' then
+    raise exception '16 or 17 could not keep the evening slot';
   end if;
 end $$;
 
@@ -322,7 +325,7 @@ begin
   from public.player_intake
   where user_id = auth.uid();
   if v_slot is distinct from 'evening' or v_wait is distinct from false then
-    raise exception '18+ could not keep the evening slot';
+    raise exception 'an 18 or older player could not keep the evening slot';
   end if;
 end $$;
 

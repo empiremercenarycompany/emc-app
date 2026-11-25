@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { johnChoices } from "@/config/johnChoices";
 import {
+  CONFIRMATION_WAIVER_PARAGRAPH,
   confirmationFirstName,
   renderPlayerConfirmation,
   type PlayerConfirmationInput,
@@ -39,7 +40,7 @@ describe("player confirmation template", () => {
     expect(message.text).toContain(
       "You asked for 9 AM–12 PM, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Staff will confirm your seat, then they'll send you a payment link.",
     );
-    expect(message.text).not.toContain("18 and up");
+    expect(message.text).not.toMatch(/18\+|18 and up|adults-only|adults only/i);
     expect(message.text).not.toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
     expect(message.text).toContain("Nothing is charged when you ENLIST.");
     expect(message.text).toContain(
@@ -97,9 +98,15 @@ describe("player confirmation template", () => {
     expect(renderPlayerConfirmation({ ...input, gymMember: "not_yet" }).text).toContain("$120 a month, the Founding Recruit Rate");
   });
 
-  it("leaves the waiver out while that paragraph is empty", () => {
+  it("leaves the extra waiver paragraph out while that paragraph is empty", () => {
+    const plain = renderPlayerConfirmation(input).text;
     johnChoices.confirmationEmailIncludeWaiver = true;
-    expect(renderPlayerConfirmation(input).text).not.toMatch(/waiver/i);
+    expect(CONFIRMATION_WAIVER_PARAGRAPH).toBe("");
+    expect(renderPlayerConfirmation(input).text).toBe(plain);
+    expect(plain).not.toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
+    expect(renderPlayerConfirmation({ ...input, ageBand: "16_17" }).text).toContain(
+      "If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.",
+    );
   });
 });
 

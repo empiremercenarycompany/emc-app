@@ -190,7 +190,7 @@ async function loadViewerOnce(): Promise<Viewer> {
     else if (account.trainingSlot) {
       const slot = await supabase.from("session_timeslots").select("label").eq("id", account.trainingSlot).maybeSingle();
       if (!slot.error && slot.data?.label) {
-        account.trainingSlot = displaySlot(String(slot.data.label), false);
+        account.trainingSlot = displaySlot(String(slot.data.label));
       }
     }
     notice = noticeFields(account);

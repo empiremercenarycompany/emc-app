@@ -141,7 +141,7 @@ export default async function SchedulePage() {
   const posted = nextPostedSession(postedRows, today, viewer.character?.squad_id ?? null);
   const cohort = cohortAdventure(adventureRows ?? [], viewer.config?.cohort_start ?? null);
   return (
-    <Page title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
+    <Page tour="schedule" title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
       <Panel title="Next session">
         <p>

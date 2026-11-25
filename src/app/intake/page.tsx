@@ -26,7 +26,7 @@ export default async function IntakePage({
   const stored = tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "");
 
   return (
-    <Page title="About you" lede="This is you, not your character.">
+    <Page tour="about-you" title="About you" lede="This is you, not your character.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt label="Sign in to save" /> : null}
       <IntakeForm

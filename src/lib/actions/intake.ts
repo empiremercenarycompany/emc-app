@@ -167,7 +167,7 @@ async function enlistRecord(
 ): Promise<SignupRecord> {
   const [profile, slot] = await Promise.all([
     supabase.from("profiles").select("display_name, app_role, created_at").eq("id", userId).maybeSingle(),
-    supabase.from("session_timeslots").select("label, adults_only").eq("id", draft.timeslot).maybeSingle(),
+    supabase.from("session_timeslots").select("label").eq("id", draft.timeslot).maybeSingle(),
   ]);
   const label = !slot.error && slot.data?.label ? String(slot.data.label) : "";
   return {
@@ -177,7 +177,7 @@ async function enlistRecord(
     role: profile.data?.app_role ? String(profile.data.app_role) : "",
     joined: profile.data?.created_at ? String(profile.data.created_at) : "",
     phone: enlist.phone.trim(),
-    trainingSlot: enlist.tableLabel || (label ? displaySlot(label, false) : draft.timeslot),
+    trainingSlot: enlist.tableLabel || (label ? displaySlot(label) : draft.timeslot),
     speciesIdea: enlist.species.trim(),
     classIdea: enlist.classIdea.trim(),
     fitnessGoals: draft.goals.join(", "),

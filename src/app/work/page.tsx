@@ -37,7 +37,7 @@ export default async function WorkPage() {
       : [];
 
   return (
-      <Page title="Work" lede="Record what you did. Staff confirm it before it is ready to assign.">
+      <Page tour="work" title="Work" lede="Record what you did. Staff confirm it before it is ready to assign.">
       {setup ? <Notice>{setup}</Notice> : null}
       {viewer.beginner ? (
         <Notice>Write what you did in plain words. The kind of work decides which ability it can raise.</Notice>

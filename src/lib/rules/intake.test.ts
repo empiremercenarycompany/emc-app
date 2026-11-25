@@ -19,8 +19,8 @@ describe("player intake", () => {
     expect(intakeError({ ...ready, age: "" })).toMatch(/age/);
     expect(intakeError({ ...ready, age: "under_16", timeslot: "morning" })).toMatch(/waitlist/);
     expect(intakeError({ ...ready, age: "under_16", timeslot: "" })).toBeNull();
-    expect(intakeError({ ...ready, age: "16_17", timeslot: "evening", adultsOnly: true })).toBeNull();
-    expect(intakeError({ ...ready, age: "16_17", timeslot: "morning", adultsOnly: false })).toBeNull();
+    expect(intakeError({ ...ready, age: "16_17", timeslot: "evening" })).toBeNull();
+    expect(intakeError({ ...ready, age: "16_17", timeslot: "morning" })).toBeNull();
     expect(intakeError({ dnd: "never", gym: "new", goals: ["Sleep 7 hours"], timeslot: "" })).toMatch(/Saturday table/);
     expect(Object.keys(ready)).toEqual(["dnd", "gym", "goals", "timeslot", "age"]);
     expect(slotsForAge("18_plus", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual([
@@ -28,16 +28,26 @@ describe("player intake", () => {
       "afternoon",
       "evening",
     ]);
-    expect(slotsForAge("16_17", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual(["morning", "afternoon"]);
-    expect(slotsForAge("", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual(["morning", "afternoon"]);
+    expect(slotsForAge("16_17", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual([
+      "morning",
+      "afternoon",
+      "evening",
+    ]);
+    expect(slotsForAge("", [...TIMESLOT_FALLBACK]).map((slot) => slot.id)).toEqual([
+      "morning",
+      "afternoon",
+      "evening",
+    ]);
     expect(slotsForAge("under_16", [...TIMESLOT_FALLBACK])).toEqual([]);
   });
 
   it("writes the session times with AM and PM", () => {
-    expect(displaySlot("9–12", false)).toBe("9 AM–12 PM");
-    expect(displaySlot("2–5", false)).toBe("2–5 PM");
-    expect(displaySlot("7–10 PM", true)).toBe("7–10 PM (18+)");
-    expect(displaySlot("9 AM–12 PM", false)).toBe("9 AM–12 PM");
+    expect(displaySlot("9–12")).toBe("9 AM–12 PM");
+    expect(displaySlot("2–5")).toBe("2–5 PM");
+    expect(displaySlot("7–10")).toBe("7–10 PM");
+    expect(displaySlot("7–10 PM")).toBe("7–10 PM");
+    expect(displaySlot("7–10 PM (18+)")).toBe("7–10 PM");
+    expect(displaySlot("9 AM–12 PM")).toBe("9 AM–12 PM");
   });
 
   it("lets enlist details stay blank and rejects a bad phone", () => {

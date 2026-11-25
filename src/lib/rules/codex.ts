@@ -52,7 +52,7 @@ export function isCodexVisible(term: CodexTerm): boolean {
 }
 
 const EVERY_SATURDAY_FAQ =
-  "No. The table is every other Saturday. Workout programming from a coach happens during the week, on your schedule. You pick the Saturday time slot that fits: 9 AM to 12 PM, 2 to 5 PM, or 7 to 10 PM (ages 18 and up).";
+  "No. The table is every other Saturday. Workout programming from a coach happens during the week, on your schedule. You pick the Saturday time slot that fits: 9 AM to 12 PM, 2 to 5 PM, or 7 to 10 PM. The Company is for ages 16 and up. If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.";
 
 /** John's open FAQ choices. Off until the matching flag in johnChoices is flipped. */
 export function gatedFaqs(): CodexTerm[] {

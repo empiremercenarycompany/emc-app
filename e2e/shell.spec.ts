@@ -189,11 +189,11 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Saturday mornings, 9 AM to 12 PM, first game Jan 2, 2027/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Saturday afternoons, 2 PM to 5 PM, first game Jan 2, 2027/ })).toBeVisible();
   await expect(page.getByRole("link", { name: /Saturday evenings, 7 PM to 10 PM, first game Jan 9, 2027/ })).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toHaveCount(0);
-  await expect(page.getByText(/ages 18 and up/)).toHaveCount(0);
   await expect(page.getByText("Every table is 16 and up.")).toBeVisible();
   await expect(page.getByText("Squad forming")).toHaveCount(0);
   await expect(page.getByText("CCC")).toHaveCount(0);
+  await expect(page.getByText("7–10 PM (18+)")).toHaveCount(0);
+  await expect(page.getByText(/18\+|18 and up|adults-only|adults only/i)).toHaveCount(0);
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
@@ -351,7 +351,8 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByRole("radiogroup", { name: "Pick your Saturday table" })).toBeVisible();
   await expect(page.getByRole("checkbox", { name: "Joining with a friend?" })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Saturday evenings, 7 PM to 10 PM, first game Jan 2, 2027/ })).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("7–10 PM (18+)")).toHaveCount(0);
+  await expect(page.getByText(/18\+|18 and up|adults-only|adults only/i)).toHaveCount(0);
   await expect(page.getByLabel("Species idea")).toBeVisible();
   await expect(page.getByLabel("Class idea")).toBeVisible();
   await expect(page.getByText("Fitness goals and experience")).toBeVisible();

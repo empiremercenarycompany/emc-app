@@ -2,7 +2,7 @@ import { Page, Panel } from "@/components/ui";
 
 export default function AboutPage() {
   return (
-    <Page badge title="About" lede="A squad, a story, and a reason to keep showing up.">
+    <Page badge tour="about" title="About" lede="A squad, a story, and a reason to keep showing up.">
       <Panel title="The Company">
         <p>Train. Record. Advance.</p>
         <p>Bleakspire is a fortress with a small city around it.</p>
