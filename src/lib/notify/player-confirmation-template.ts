@@ -81,7 +81,7 @@ export function renderPlayerConfirmation(input: PlayerConfirmationInput): {
     "",
     "We've received your seat request for the Empire Mercenary Company.",
     "",
-    `You asked for: ${slot}, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. The Company is for ages 16 and up. The 7 to 10 PM slot is for ages 18 and up.`,
+    `You asked for: ${slot}, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. The Company is for ages 16 and up. If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.`,
     "",
     rate,
     ...(writ ? ["", writ] : []),

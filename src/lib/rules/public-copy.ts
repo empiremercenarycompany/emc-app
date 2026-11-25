@@ -47,9 +47,9 @@ export function membershipNumberError(value: string): string | null {
   return null;
 }
 
-/** Final age rule. The 7–10 PM slot stays 18+. */
+/** Final age rule. Every Saturday slot is 16 and up. */
 export const AGE_RULE =
-  "The Company is for ages 16 and up. Players who are 16 or 17 enlist themselves. No guardian is needed on the form. They can choose the 9 AM–12 PM or 2–5 PM slot. The 7–10 PM slot is for ages 18 and up, until there is demand for a teen group. If you are under 16, you can join a teen waitlist. If enough younger players are interested, a teen squad may start later.";
+  "The Company is for ages 16 and up. Players who are 16 or 17 enlist themselves. No guardian is needed on the form. They can choose any Saturday slot, including 7–10 PM. If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver. If you are under 16, you can join a teen waitlist. Teen nights will not happen unless there is a teen waitlist.";
 
 export function isGymMember(value: string | null | undefined): value is GymMember {
   return value === "current" || value === "former" || value === "not_yet";

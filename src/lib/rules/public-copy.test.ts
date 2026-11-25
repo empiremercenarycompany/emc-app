@@ -38,8 +38,11 @@ describe("public payment and age copy", () => {
     expect(SCHEDULE_PRICE_COPY).not.toMatch(/shieldmate/i);
     expect(AGE_RULE).toContain("16 and up");
     expect(AGE_RULE).toContain("No guardian is needed");
-    expect(AGE_RULE).toContain("7–10 PM slot is for ages 18 and up");
-    expect(AGE_RULE).toContain("teen waitlist");
+    expect(AGE_RULE).toContain("any Saturday slot, including 7–10 PM");
+    expect(AGE_RULE).toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
+    expect(AGE_RULE).toContain("Teen nights will not happen unless there is a teen waitlist.");
+    expect(AGE_RULE).not.toMatch(/18\+|18 and up|adults-only|adults only/i);
+    expect(AGE_RULE).not.toMatch(/Empire Gym/);
     const schedule = read("src/app/schedule/page.tsx");
     const intake = read("src/components/intake-form.tsx");
     expect(schedule).toContain("SCHEDULE_PRICE_COPY");

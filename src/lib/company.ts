@@ -172,9 +172,9 @@ async function loadViewerOnce(): Promise<Viewer> {
       signupSrc: intake?.signupSrc ?? "",
     };
     if (account.trainingSlot) {
-      const slot = await supabase.from("session_timeslots").select("label, adults_only").eq("id", account.trainingSlot).maybeSingle();
+      const slot = await supabase.from("session_timeslots").select("label").eq("id", account.trainingSlot).maybeSingle();
       if (!slot.error && slot.data?.label) {
-        account.trainingSlot = displaySlot(String(slot.data.label), Boolean(slot.data.adults_only));
+        account.trainingSlot = displaySlot(String(slot.data.label));
       }
     }
     notice = noticeFields(account);

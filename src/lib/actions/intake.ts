@@ -6,22 +6,13 @@ import { redirect } from "next/navigation";
 import { actionClient, dbError } from "@/lib/action-client";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { confirmationFirstName } from "@/lib/notify/player-confirmation-template";
-import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
+import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand } from "@/lib/rules/intake";
 import { gymMemberLabel, membershipNumberError, parseGymMember } from "@/lib/rules/public-copy";
 import type { ActionResult } from "@/lib/types";
 
 function providedText(formData: FormData, name: string): string | null {
   if (!formData.has(name)) return null;
   return String(formData.get(name) ?? "");
-}
-
-async function slotIsAdultsOnly(
-  supabase: NonNullable<Awaited<ReturnType<typeof actionClient>>["supabase"]>,
-  timeslot: string,
-): Promise<boolean> {
-  const { data } = await supabase.from("session_timeslots").select("adults_only").eq("id", timeslot).maybeSingle();
-  if (data) return Boolean(data.adults_only);
-  return TIMESLOT_FALLBACK.find((slot) => slot.id === timeslot)?.adultsOnly ?? false;
 }
 
 export async function saveIntake(formData: FormData): Promise<ActionResult> {
@@ -49,11 +40,10 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
   }
   const signupSrc = providedText(formData, "signup_src");
   const waiting = age === "under_16";
-  const adultsOnly = age !== null && !waiting ? await slotIsAdultsOnly(supabase, draft.timeslot) : false;
   const problem = intakeError({
     ...draft,
     timeslot: waiting ? "" : draft.timeslot,
-    ...(age !== null ? { age, adultsOnly } : {}),
+    ...(age !== null ? { age } : {}),
   });
   if (problem) return { error: problem };
   if (phone !== null || species !== null || classIdea !== null || fitness !== null || backstory !== null) {
@@ -149,7 +139,7 @@ async function enlistRecord(
 ): Promise<SignupRecord> {
   const [profile, slot] = await Promise.all([
     supabase.from("profiles").select("display_name, app_role, created_at").eq("id", userId).maybeSingle(),
-    supabase.from("session_timeslots").select("label, adults_only").eq("id", draft.timeslot).maybeSingle(),
+    supabase.from("session_timeslots").select("label").eq("id", draft.timeslot).maybeSingle(),
   ]);
   const label = !slot.error && slot.data?.label ? String(slot.data.label) : "";
   return {
@@ -159,7 +149,7 @@ async function enlistRecord(
     role: profile.data?.app_role ? String(profile.data.app_role) : "",
     joined: profile.data?.created_at ? String(profile.data.created_at) : "",
     phone: enlist.phone.trim(),
-    trainingSlot: label ? displaySlot(label, Boolean(slot.data?.adults_only)) : draft.timeslot,
+    trainingSlot: label ? displaySlot(label) : draft.timeslot,
     speciesIdea: enlist.species.trim(),
     classIdea: enlist.classIdea.trim(),
     fitnessGoals: draft.goals.join(", "),

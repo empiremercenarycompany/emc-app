@@ -17,12 +17,12 @@ export default async function IntakePage({
   const setup = setupMessage(viewer);
   const supabase = await createClient();
   const rows = supabase
-    ? (await supabase.from("session_timeslots").select("id, label, adults_only").order("start_time")).data
+    ? (await supabase.from("session_timeslots").select("id, label").order("start_time")).data
     : null;
   const slots =
     rows && rows.length > 0
-      ? rows.map((row) => ({ id: row.id, label: row.label, adultsOnly: Boolean(row.adults_only) }))
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
+      ? rows.map((row) => ({ id: row.id, label: row.label }))
+      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label }));
 
   return (
     <Page title="About you" lede="This is you, not your character.">

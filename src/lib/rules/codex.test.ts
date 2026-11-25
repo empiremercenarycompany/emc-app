@@ -48,7 +48,10 @@ describe("company codex", () => {
     expect(cost?.plain.indexOf("$120")).toBeLessThan(cost!.plain.indexOf("$60"));
     expect(visibleCodex().some((term) => term.id === "faq-every-saturday")).toBe(false);
     johnChoices.faqShowEverySaturday = true;
-    expect(visibleCodex().find((term) => term.id === "faq-every-saturday")?.plain).toMatch(/7 to 10 PM \(ages 18 and up\)/);
+    const saturday = visibleCodex().find((term) => term.id === "faq-every-saturday")?.plain ?? "";
+    expect(saturday).toMatch(/7 to 10 PM/);
+    expect(saturday).toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
+    expect(saturday).not.toMatch(/18\+|18 and up|adults-only|adults only/i);
   });
 
   it("drops a ready row whose body is still flagged", () => {
