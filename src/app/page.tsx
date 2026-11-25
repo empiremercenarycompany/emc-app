@@ -206,7 +206,7 @@ export default async function BarracksPage({
     {sirathPeople.length && params.as ? <SirathProto as={params.as} path="/" people={sirathPeople} /> : null}
     <Page mark={false}>
       <SirathNewRows view={sirath} as={params.as} />
-      <header className="hero-band span-all">
+      <header className="hero-band span-all" data-tour="barracks">
         <p className="eyebrow hero-kicker">{viewer.firstVisit ? "Welcome" : "Welcome back"}</p>
         {viewer.character ? (
           <div className="hero-portrait">
