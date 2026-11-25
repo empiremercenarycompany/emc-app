@@ -4,6 +4,7 @@ import { recordVisit } from "@/lib/notify/record-visit";
 import { shouldNotifyNewAccount } from "@/lib/notify/signup-notice";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { beginnerHints, displaySlot, dndLabel, gymLabel } from "@/lib/rules/intake";
+import { tableLabel } from "@/lib/rules/saturday-tables";
 import { gymMemberLabel, parseGymMember } from "@/lib/rules/public-copy";
 import { MISSING_ENV } from "@/lib/supabase/env";
 import { createClient, createClientWithAccessToken } from "@/lib/supabase/server";
@@ -11,6 +12,8 @@ import type { AppRole, CharacterRow, ScoringRow, SessionWindow, Viewer } from "@
 
 const INTAKE_MEMBER =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist, gym_member, gym_membership_number, membership_verified, checkout_plan, signup_src";
+const INTAKE_TABLE =
+  `${INTAKE_MEMBER}, preferred_squad_id, table_starts_on, table_request, any_open_table, with_friend, friend_name`;
 const INTAKE_FULL =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
@@ -80,7 +83,7 @@ async function loadViewerOnce(): Promise<Viewer> {
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
     supabase.rpc("company_today"),
-    supabase.from("player_intake").select(INTAKE_MEMBER).eq("user_id", user.id).maybeSingle(),
+    supabase.from("player_intake").select(INTAKE_TABLE).eq("user_id", user.id).maybeSingle(),
   ]);
 
   const today = typeof todayResult.data === "string" ? todayResult.data : null;
@@ -129,6 +132,12 @@ async function loadViewerOnce(): Promise<Viewer> {
         membershipVerified: intakeRow.membership_verified === true,
         checkoutPlan: intakeRow.checkout_plan === "member" || intakeRow.checkout_plan === "standard" ? intakeRow.checkout_plan : null,
         signupSrc: textOrNull(intakeRow.signup_src),
+        tableStartsOn: textOrNull(intakeRow.table_starts_on)?.slice(0, 10) ?? null,
+        tableRequest: textOrNull(intakeRow.table_request),
+        preferredSquadId: textOrNull(intakeRow.preferred_squad_id),
+        anyOpenTable: intakeRow.any_open_table === true,
+        withFriend: intakeRow.with_friend === true,
+        friendName: textOrNull(intakeRow.friend_name),
       }
     : null;
 
@@ -170,8 +179,15 @@ async function loadViewerOnce(): Promise<Viewer> {
       verifiedBy: "",
       verifiedAt: "",
       signupSrc: intake?.signupSrc ?? "",
+      tableLabel: "",
+      tableRequest: "",
+      tableSquad: "",
+      withFriend: intake?.withFriend ? "yes" : "no",
+      friendName: intake?.friendName ?? "",
     };
-    if (account.trainingSlot) {
+    const chosen = tableLabel(intake?.timeslotId ?? "", intake?.tableStartsOn ?? "");
+    if (chosen) account.trainingSlot = chosen;
+    else if (account.trainingSlot) {
       const slot = await supabase.from("session_timeslots").select("label").eq("id", account.trainingSlot).maybeSingle();
       if (!slot.error && slot.data?.label) {
         account.trainingSlot = displaySlot(String(slot.data.label));

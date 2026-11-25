@@ -46,7 +46,9 @@ describe("public payment and age copy", () => {
     const schedule = read("src/app/schedule/page.tsx");
     const intake = read("src/components/intake-form.tsx");
     expect(schedule).toContain("SCHEDULE_PRICE_COPY");
-    expect(schedule).toContain("AGE_RULE");
+    expect(schedule).toContain("SATURDAY_TABLE_COPY");
+    expect(schedule).not.toContain("AGE_RULE");
+    expect(schedule).not.toContain("(18+)");
     expect(intake).toContain("Which rate is yours?");
     expect(intake).toContain("GYM_MEMBER_OPTIONS");
     expect(intake).not.toMatch(/shieldmate/i);

@@ -1,10 +1,12 @@
 import { johnChoices } from "@/config/johnChoices";
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
 import {
   PAYMENT_STEP,
   confirmationRateLine,
   gamegridWritLine,
   type GymMember,
 } from "@/lib/rules/public-copy";
+import { emailAskedLine } from "@/lib/rules/saturday-tables";
 
 /**
  * PLAYER CONFIRMATION EMAIL
@@ -25,6 +27,7 @@ export type PlayerConfirmationInput = {
   invitedBy?: string | null;
   gymMember?: GymMember | null;
   signupSrc?: string | null;
+  ageBand?: string | null;
 };
 
 export function confirmationFirstName(displayName: string | null | undefined): string {
@@ -81,7 +84,8 @@ export function renderPlayerConfirmation(input: PlayerConfirmationInput): {
     "",
     "We've received your seat request for the Empire Mercenary Company.",
     "",
-    `You asked for: ${slot}, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. The Company is for ages 16 and up. If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.`,
+    emailAskedLine(slot),
+    ...(input.ageBand === "16_17" ? ["", SATURDAY_TABLE_COPY.waiver16] : []),
     "",
     rate,
     ...(writ ? ["", writ] : []),

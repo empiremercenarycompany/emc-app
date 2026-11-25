@@ -60,6 +60,7 @@ const PLAYER_COPY = [
   "src/components/empty-state.tsx",
   "src/app/codex/page.tsx",
   "src/components/intake-form.tsx",
+  "src/components/saturday-hall.tsx",
   "src/components/work-kind.tsx",
   "src/components/term.tsx",
 ];

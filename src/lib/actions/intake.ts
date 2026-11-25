@@ -7,6 +7,7 @@ import { actionClient, dbError } from "@/lib/action-client";
 import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { confirmationFirstName } from "@/lib/notify/player-confirmation-template";
 import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand } from "@/lib/rules/intake";
+import { normalizeTimeslotId, requestPhrase, tableLabel } from "@/lib/rules/saturday-tables";
 import { gymMemberLabel, membershipNumberError, parseGymMember } from "@/lib/rules/public-copy";
 import type { ActionResult } from "@/lib/types";
 
@@ -27,8 +28,14 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     dnd: String(formData.get("dnd") ?? ""),
     gym: String(formData.get("gym") ?? ""),
     goals: formData.getAll("goal").map((goal) => String(goal).trim()).filter(Boolean),
-    timeslot: String(formData.get("timeslot") ?? ""),
+    timeslot: normalizeTimeslotId(String(formData.get("timeslot") ?? "")) ?? "",
   };
+  const startsOn = String(formData.get("starts_on") ?? "");
+  const squadId = String(formData.get("squad_id") ?? "");
+  const tableRequest = String(formData.get("table_request") ?? "");
+  const withFriend = formData.get("with_friend") === "1";
+  const anyOpen = formData.get("any_open") === "1";
+  const friendName = String(formData.get("friend_name") ?? "");
   const age = providedText(formData, "age");
   const enlisting = formData.get("enlist") === "1";
   const gymMember = enlisting ? parseGymMember(providedText(formData, "gym_member")) : null;
@@ -61,6 +68,16 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     p_gym: draft.gym,
     p_goals: draft.goals,
     p_timeslot: waiting ? null : draft.timeslot,
+    ...(formData.has("starts_on") || formData.has("table_request")
+      ? {
+          p_squad_id: waiting || !squadId ? null : squadId,
+          p_starts_on: waiting || !startsOn ? null : startsOn,
+          p_table_request: waiting || !tableRequest ? null : tableRequest,
+          p_any_open: anyOpen,
+          p_with_friend: withFriend,
+          p_friend_name: friendName,
+        }
+      : {}),
     ...(age !== null && isAgeBand(age) ? { p_age_band: age } : {}),
     ...(gymMember ? { p_gym_member: gymMember } : {}),
     ...(gymMember === "current" && membershipNumber !== null ? { p_gym_membership_number: membershipNumber } : {}),
@@ -86,12 +103,18 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       empireMembership: gymMemberLabel(gymMember),
       membershipNumber: gymMember === "current" ? (membershipNumber ?? "").trim() : "",
       signupSrc: (signupSrc ?? "").trim(),
+      tableLabel: tableLabel(draft.timeslot, startsOn) ?? "",
+      ageBand: age ?? "",
+      tableRequest,
+      withFriend,
+      friendName,
     });
     if (waiting) record.trainingSlot = "Teen waitlist";
     const enlistNotice = noticeFields(record);
     const confirmation = {
       firstName: confirmationFirstName(record.displayName),
       preferredSlot: record.trainingSlot,
+      ageBand: age,
       email: record.email,
       gymMember,
       signupSrc,
@@ -135,6 +158,11 @@ async function enlistRecord(
     empireMembership: string;
     membershipNumber: string;
     signupSrc: string;
+    tableLabel: string;
+    ageBand: string;
+    tableRequest: string;
+    withFriend: boolean;
+    friendName: string;
   },
 ): Promise<SignupRecord> {
   const [profile, slot] = await Promise.all([
@@ -149,7 +177,7 @@ async function enlistRecord(
     role: profile.data?.app_role ? String(profile.data.app_role) : "",
     joined: profile.data?.created_at ? String(profile.data.created_at) : "",
     phone: enlist.phone.trim(),
-    trainingSlot: label ? displaySlot(label) : draft.timeslot,
+    trainingSlot: enlist.tableLabel || (label ? displaySlot(label) : draft.timeslot),
     speciesIdea: enlist.species.trim(),
     classIdea: enlist.classIdea.trim(),
     fitnessGoals: draft.goals.join(", "),
@@ -164,5 +192,10 @@ async function enlistRecord(
     verifiedBy: "",
     verifiedAt: "",
     signupSrc: enlist.signupSrc,
+    tableLabel: enlist.tableLabel,
+    tableRequest: requestPhrase(enlist.tableRequest),
+    tableSquad: "",
+    withFriend: enlist.withFriend ? "yes" : "no",
+    friendName: enlist.withFriend ? enlist.friendName.trim() : "",
   };
 }

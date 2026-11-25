@@ -180,6 +180,12 @@ export type Viewer = {
     membershipVerified: boolean;
     checkoutPlan: "member" | "standard" | null;
     signupSrc: string | null;
+    tableStartsOn: string | null;
+    tableRequest: string | null;
+    preferredSquadId: string | null;
+    anyOpenTable: boolean;
+    withFriend: boolean;
+    friendName: string | null;
   } | null;
 };
 

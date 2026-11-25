@@ -2837,6 +2837,178 @@ html[data-theme="dark"] main:not(:has(.hero-band)){background-image:linear-gradi
 html[data-theme="light"] main:not(:has(.hero-band)){background-image:url("/art/gear-yard-light.webp"),var(--grain);background-size:100% auto,auto;background-repeat:no-repeat,repeat;background-position:center top,0 0}
 @media(max-width:700px){html[data-theme="dark"] main:not(:has(.hero-band)){background-size:auto,auto 620px,auto;background-position:0 0,60% 0,0 0}html[data-theme="light"] main:not(:has(.hero-band)){background-size:auto 620px,auto;background-position:60% 0,0 0}}
 
+/* Saturday table hall. Phone stacks the six cards. Desktop is times across and start dates down. */
+.saturday-hall {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.saturday-hall-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hall-corner,
+.hall-col,
+.hall-row {
+  display: none;
+}
+
+.saturday-table {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  border: 1px solid var(--line, var(--color-steel));
+  border-radius: 16px;
+  background: var(--raised, var(--color-char-2));
+  color: var(--ink, var(--color-parchment));
+  padding: 0.75rem;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+  text-transform: none;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.saturday-label,
+.saturday-squad,
+.saturday-seats,
+.saturday-yours {
+  display: block;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-sans), "Nunito Sans", sans-serif;
+  font-weight: 400;
+}
+
+.saturday-seats,
+.saturday-squad {
+  color: var(--ink-dim, var(--color-mute, currentColor));
+}
+
+.saturday-yours {
+  font-family: var(--font-condensed), "Bebas Neue", sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.saturday-table[aria-checked="true"],
+.saturday-table[aria-current="true"] {
+  border-color: var(--accent, var(--color-red));
+  box-shadow: inset 0 0 0 1px var(--accent, var(--color-red));
+}
+
+.seat-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.seat {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid currentColor;
+}
+
+.seat.is-filled,
+.seat.is-yours {
+  background: currentColor;
+}
+
+.seat.is-yours {
+  background: var(--accent, var(--color-red));
+  border-color: var(--accent, var(--color-red));
+}
+
+.saturday-follow,
+.saturday-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.saturday-panel .button,
+.saturday-panel button,
+.saturday-panel a.button {
+  min-height: 2.75rem;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .saturday-hall-grid {
+    display: grid;
+    grid-template-columns: 8.5rem repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .hall-corner,
+  .hall-col,
+  .hall-row {
+    display: flex;
+    align-items: end;
+    color: var(--ink-dim, currentColor);
+    font-family: var(--font-condensed), "Bebas Neue", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .hall-corner { grid-area: 1 / 1; }
+  .hall-col-morning { grid-area: 1 / 2; }
+  .hall-col-afternoon { grid-area: 1 / 3; }
+  .hall-col-evening { grid-area: 1 / 4; }
+  .hall-row-2027-01-02 { grid-area: 2 / 1; align-items: center; }
+  .hall-row-2027-01-09 { grid-area: 3 / 1; align-items: center; }
+  .saturday-table[data-slot="morning"][data-start="2027-01-02"] { grid-area: 2 / 2; }
+  .saturday-table[data-slot="afternoon"][data-start="2027-01-02"] { grid-area: 2 / 3; }
+  .saturday-table[data-slot="evening"][data-start="2027-01-02"] { grid-area: 2 / 4; }
+  .saturday-table[data-slot="morning"][data-start="2027-01-09"] { grid-area: 3 / 2; }
+  .saturday-table[data-slot="afternoon"][data-start="2027-01-09"] { grid-area: 3 / 3; }
+  .saturday-table[data-slot="evening"][data-start="2027-01-09"] { grid-area: 3 / 4; }
+}
+
+html[data-theme="light"] button.saturday-table,
+html[data-theme="dark"] button.saturday-table,
+html[data-theme="light"] a.saturday-table,
+html[data-theme="dark"] a.saturday-table {
+  background: var(--raised);
+  color: var(--ink);
+  border-color: var(--line);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+html[data-theme="light"] .saturday-table[aria-checked="true"],
+html[data-theme="dark"] .saturday-table[aria-checked="true"],
+html[data-theme="light"] .saturday-table[aria-current="true"],
+html[data-theme="dark"] .saturday-table[aria-current="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+html[data-theme="light"] .saturday-seats,
+html[data-theme="dark"] .saturday-seats,
+html[data-theme="light"] .saturday-squad,
+html[data-theme="dark"] .saturday-squad,
+html[data-theme="light"] .hall-col,
+html[data-theme="dark"] .hall-col,
+html[data-theme="light"] .hall-row,
+html[data-theme="dark"] .hall-row {
+  color: var(--ink-dim);
+}
+
 /* Alexandria's walk. Colors come from the active theme. Red is the ribbon, never small text. */
 .tour-layer {
   position: fixed;

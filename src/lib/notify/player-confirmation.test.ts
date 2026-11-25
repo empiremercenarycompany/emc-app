@@ -38,13 +38,10 @@ describe("player confirmation template", () => {
     expect(message.preheader).toBe("Nothing is charged yet. Staff will confirm your seat and send a payment link.");
     expect(message.text).toContain("We've received your seat request for the Empire Mercenary Company.");
     expect(message.text).toContain(
-      "You asked for: 9 AM–12 PM, every other Saturday, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls.",
+      "You asked for 9 AM–12 PM, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Staff will confirm your seat, then they'll send you a payment link.",
     );
-    expect(message.text).toContain("The Company is for ages 16 and up.");
-    expect(message.text).toContain(
-      "If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.",
-    );
-    expect(message.text).not.toMatch(/18\+|18 and up/);
+    expect(message.text).not.toMatch(/18\+|18 and up|adults-only|adults only/i);
+    expect(message.text).not.toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
     expect(message.text).toContain("Nothing is charged when you ENLIST.");
     expect(message.text).toContain(
       "Once staff confirm your seat, they'll send you a payment link. Nothing has been charged yet.",
@@ -78,6 +75,9 @@ describe("player confirmation template", () => {
     expect(moved.text).toContain('You listed A friend under "Who invited you?"');
     expect(moved.text).toContain("you and your Shieldmate are offered the next slot together.");
     expect(renderPlayerConfirmation(input).text).toContain("you go on the waitlist for it");
+    expect(renderPlayerConfirmation({ ...input, ageBand: "16_17" }).text).toContain(
+      "If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.",
+    );
   });
 
   it("states the answered rate, and the writ line only for gamegrid-writ", () => {
@@ -103,7 +103,10 @@ describe("player confirmation template", () => {
     johnChoices.confirmationEmailIncludeWaiver = true;
     expect(CONFIRMATION_WAIVER_PARAGRAPH).toBe("");
     expect(renderPlayerConfirmation(input).text).toBe(plain);
-    expect(plain).toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
+    expect(plain).not.toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
+    expect(renderPlayerConfirmation({ ...input, ageBand: "16_17" }).text).toContain(
+      "If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.",
+    );
   });
 });
 

@@ -1,3 +1,5 @@
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
+
 export const DND_LEVELS = [
   { id: "never", label: "Never" },
   { id: "a_few", label: "A few times" },
@@ -111,7 +113,7 @@ export function intakeError(input: IntakeDraft): string | null {
   const goals = input.goals.map((goal) => goal.trim()).filter(Boolean);
   if (goals.length < 1) return "Pick at least one first goal.";
   if (input.age === undefined) {
-    if (!input.timeslot) return "Pick a time.";
+    if (!input.timeslot) return SATURDAY_TABLE_COPY.heading;
     return null;
   }
   if (!isAgeBand(input.age)) return "Say your age.";
@@ -119,7 +121,7 @@ export function intakeError(input: IntakeDraft): string | null {
     if (input.timeslot) return "Under 16 joins the teen waitlist.";
     return null;
   }
-  if (!input.timeslot) return "Pick a time.";
+  if (!input.timeslot) return SATURDAY_TABLE_COPY.heading;
   return null;
 }
 

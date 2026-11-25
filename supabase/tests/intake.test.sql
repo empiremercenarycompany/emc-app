@@ -56,14 +56,14 @@ begin
   end if;
   if has_function_privilege(
     'anon',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
     'execute'
   ) then
     raise exception 'anon can save intake';
   end if;
   if not has_function_privilege(
     'authenticated',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
     'execute'
   ) then
     raise exception 'authenticated cannot save intake';

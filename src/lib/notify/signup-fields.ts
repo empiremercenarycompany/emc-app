@@ -1,3 +1,5 @@
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
+
 export type SignupRecord = {
   userId: string;
   email: string;
@@ -20,6 +22,11 @@ export type SignupRecord = {
   verifiedBy: string;
   verifiedAt: string;
   signupSrc: string;
+  tableLabel: string;
+  tableRequest: string;
+  tableSquad: string;
+  withFriend: string;
+  friendName: string;
 };
 
 export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
@@ -44,6 +51,11 @@ export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
   { key: "verifiedBy", label: "Verified by" },
   { key: "verifiedAt", label: "Verified at" },
   { key: "signupSrc", label: "Signup source" },
+  { key: "tableLabel", label: SATURDAY_TABLE_COPY.columnTable },
+  { key: "tableRequest", label: SATURDAY_TABLE_COPY.columnRequest },
+  { key: "tableSquad", label: SATURDAY_TABLE_COPY.columnSquad },
+  { key: "withFriend", label: SATURDAY_TABLE_COPY.columnFriend },
+  { key: "friendName", label: SATURDAY_TABLE_COPY.columnFriendName },
 ];
 
 export type NoticeField = { label: string; value: string };

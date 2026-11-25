@@ -12,8 +12,12 @@ import { calendarBlocks, nextSessionBlock, type CalendarBlock, type SessionFocus
 import { COMPANY_ZONE, calendarDate, formatDate, formatMuster, parseDate } from "@/lib/rules/dates";
 import { attendanceOpen, nextPostedSession, nextSessionCopy } from "@/lib/rules/table-sessions";
 import { CATCHUP_PER_POOL_CAP, CATCHUP_START_WEEK, CATCHUP_WEEKLY_CAP, PER_POOL_WEEKLY_CAP, SESSION_FREE_POINTS, WEEKLY_CAP } from "@/lib/pacing-config";
-import { displaySlot, TIMESLOT_FALLBACK } from "@/lib/rules/intake";
-import { AGE_RULE, SCHEDULE_PRICE_COPY } from "@/lib/rules/public-copy";
+import { SaturdayHall } from "@/components/saturday-hall";
+import { setSquadTable } from "@/lib/actions/staff";
+import { SCHEDULE_PRICE_COPY } from "@/lib/rules/public-copy";
+import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
+import { hallForApp, tableKey, yourTableLine } from "@/lib/rules/saturday-tables";
+import { loadSaturdayHall } from "@/lib/saturday-board";
 import type { CohortSession } from "@/lib/rules/progression";
 import { createClient } from "@/lib/supabase/server";
 import { isStaff } from "@/lib/types";
@@ -23,10 +27,6 @@ const KIND_LABEL: Record<CalendarBlock["kind"], string> = {
   "off-week": "Off-week",
   "three-parter": "Three-parter",
 };
-
-function slotText(slot: { label: string }): string {
-  return displaySlot(slot.label);
-}
 
 function blockMark(block: CalendarBlock, focus: SessionFocus | null): string | null {
   if (!focus) return null;
@@ -74,13 +74,10 @@ export default async function SchedulePage() {
     supabase && viewer.userId
       ? (await supabase.from("cohort_sessions").select("session_number, start_date, end_date").order("session_number")).data
       : [];
-  const slotRows = supabase
-    ? (await supabase.from("session_timeslots").select("id, label").order("start_time")).data
-    : null;
-  const slots =
-    slotRows && slotRows.length > 0
-      ? slotRows.map((slot) => ({ id: String(slot.id), label: String(slot.label) }))
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label }));
+  const showNames = Boolean(viewer.userId);
+  const hall = supabase ? await loadSaturdayHall(supabase, showNames) : hallForApp([], showNames);
+  const yourKey = tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "") ?? "";
+  const yours = hall.find((table) => table.key === yourKey) ?? null;
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name, user_id, class, level").eq("guild_id", viewer.guildId)).data
@@ -143,8 +140,6 @@ export default async function SchedulePage() {
   }));
   const posted = nextPostedSession(postedRows, today, viewer.character?.squad_id ?? null);
   const cohort = cohortAdventure(adventureRows ?? [], viewer.config?.cohort_start ?? null);
-  const yours = slots.find((slot) => slot.id === viewer.intake?.timeslotId) ?? null;
-
   return (
     <Page tour="schedule" title="Schedule" lede="Sessions are every other Saturday. An off-week still lets you record work.">
       {setup ? <Notice>{setup}</Notice> : null}
@@ -163,24 +158,44 @@ export default async function SchedulePage() {
         {!viewer.userId ? <SignInPrompt /> : null}
         <p>{viewer.config?.location_address ?? "1539 E Piper St, Idaho Falls, ID 83401"}</p>
       </Panel>
-      <Panel title="Times">
-        <ul className="flex flex-col gap-2">
-          {slots.map((slot) => {
-            const chosen = yours?.id === slot.id;
-            return (
-              <li key={slot.id} className={chosen ? "border border-bronze p-2" : "border border-steel p-2"}>
-                {slotText(slot)}
-                {chosen ? " · Yours" : ""}
-              </li>
-            );
-          })}
-        </ul>
-        <p className="text-mute">{AGE_RULE}</p>
-        {yours ? <p>Your time is {slotText(yours)}.</p> : null}
+      <Panel wide>
+        <SaturdayHall tables={hall} mode="view" yourKey={yourKey} />
+        {yours ? (
+          <p>
+            {yourTableLine(yours.label)}
+            {yours.squadLine ? ` ${yours.squadLine}` : ""}
+          </p>
+        ) : null}
         {viewer.userId && !yours ? (
           <p>
-            <Link href="/intake">Pick a time</Link> so your coach knows when you can come.
+            <Link href="/intake">{SATURDAY_TABLE_COPY.heading}</Link>
           </p>
+        ) : null}
+        {isStaff(viewer.role) ? (
+          <ResultForm action={setSquadTable} submit={SATURDAY_TABLE_COPY.staffSave}>
+            <p className="text-mute">{SATURDAY_TABLE_COPY.staffPlace}</p>
+            <select name="squad_id" required defaultValue="">
+              <option value="" disabled>
+                {SATURDAY_TABLE_COPY.staffSquad}
+              </option>
+              {(squads ?? []).map((squad) => (
+                <option key={squad.id} value={squad.id}>
+                  {squad.name.trim() || SATURDAY_TABLE_COPY.squadForming}
+                </option>
+              ))}
+            </select>
+            <select name="timeslot" defaultValue="morning">
+              <option value="">{SATURDAY_TABLE_COPY.staffClear}</option>
+              <option value="morning">{SATURDAY_TABLE_COPY.timeHead.morning}</option>
+              <option value="afternoon">{SATURDAY_TABLE_COPY.timeHead.afternoon}</option>
+              <option value="evening">{SATURDAY_TABLE_COPY.timeHead.evening}</option>
+            </select>
+            <select name="starts_on" defaultValue="2027-01-02">
+              <option value="">{SATURDAY_TABLE_COPY.staffClear}</option>
+              <option value="2027-01-02">{SATURDAY_TABLE_COPY.dateHead["2027-01-02"]}</option>
+              <option value="2027-01-09">{SATURDAY_TABLE_COPY.dateHead["2027-01-09"]}</option>
+            </select>
+          </ResultForm>
         ) : null}
       </Panel>
       <Panel title="Company calendar">

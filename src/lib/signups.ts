@@ -3,6 +3,7 @@ import { formatPeriodEnd } from "@/lib/billing/display";
 import { isCheckoutPlan, type CheckoutPlan } from "@/lib/billing/price";
 import { SIGNUP_COLUMNS, type SignupRecord } from "@/lib/notify/signup-fields";
 import { displaySlot, dndLabel, gymLabel } from "@/lib/rules/intake";
+import { requestPhrase, squadLineFor, tableLabel } from "@/lib/rules/saturday-tables";
 import { gymMemberLabel, parseGymMember, type GymMember } from "@/lib/rules/public-copy";
 
 function clean(value: unknown): string {
@@ -54,10 +55,15 @@ type IntakeRow = {
   membership_verified_at?: unknown;
   checkout_plan?: unknown;
   signup_src?: unknown;
+  preferred_squad_id?: unknown;
+  table_starts_on?: unknown;
+  table_request?: unknown;
+  with_friend?: unknown;
+  friend_name?: unknown;
 };
 
 const INTAKE_COLUMNS =
-  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src, preferred_squad_id, table_starts_on, table_request, with_friend, friend_name";
 const INTAKE_BASE =
   "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders";
 
@@ -80,15 +86,22 @@ function missingColumn(error: { code?: string; message?: string } | null): boole
 export async function loadSignups(
   supabase: SupabaseClient,
 ): Promise<{ rows: SignupRecord[]; billing: Record<string, SignupBilling>; error: string | null }> {
-  const [profiles, intakeFirst, slots] = await Promise.all([
+  const [profiles, intakeFirst, slots, squadRows] = await Promise.all([
     supabase.from("profiles").select("id, email, display_name, app_role, created_at").order("created_at", { ascending: false }),
     supabase.from("player_intake").select(INTAKE_COLUMNS),
     supabase.from("session_timeslots").select("id, label"),
+    supabase.from("squads").select("id, name"),
   ]);
   const intake = missingColumn(intakeFirst.error)
     ? await supabase.from("player_intake").select(INTAKE_BASE)
     : intakeFirst;
   if (profiles.error || intake.error) return { rows: [], billing: {}, error: "Sign-ups could not be loaded." };
+
+  const squadNameById = new Map<string, string>();
+  for (const squad of (squadRows.data ?? []) as { id?: unknown; name?: unknown }[]) {
+    const id = clean(squad.id);
+    if (id) squadNameById.set(id, clean(squad.name));
+  }
 
   const slotById = new Map<string, { label: string }>();
   for (const slot of (slots.data ?? []) as SlotRow[]) {
@@ -121,7 +134,10 @@ export async function loadSignups(
     const userId = clean(profile.id);
     const details = intakeByUser.get(userId);
     const timeslotId = clean(details?.timeslot_id);
+    const startsOn = clean(details?.table_starts_on).slice(0, 10);
+    const chosenTable = tableLabel(timeslotId, startsOn) ?? "";
     const slot = timeslotId ? slotById.get(timeslotId) : undefined;
+    const squadId = clean(details?.preferred_squad_id);
     const dnd = clean(details?.dnd_experience);
     const gym = clean(details?.gym_experience);
     const gymMember = parseGymMember(clean(details?.gym_member));
@@ -146,7 +162,7 @@ export async function loadSignups(
       role: clean(profile.app_role),
       joined: clean(profile.created_at),
       phone: clean(details?.phone),
-      trainingSlot: slot ? displaySlot(slot.label) : timeslotId,
+      trainingSlot: chosenTable || (slot ? displaySlot(slot.label) : timeslotId),
       speciesIdea: clean(details?.species_idea),
       classIdea: clean(details?.class_idea),
       fitnessGoals: goalsText(details?.first_goals),
@@ -161,6 +177,11 @@ export async function loadSignups(
       verifiedBy: names.get(verifierId) || "",
       verifiedAt,
       signupSrc: clean(details?.signup_src),
+      tableLabel: chosenTable,
+      tableRequest: requestPhrase(clean(details?.table_request)),
+      tableSquad: squadId ? (squadLineFor(squadNameById.get(squadId), true) ?? "") : "",
+      withFriend: details ? (details.with_friend ? "yes" : "no") : "",
+      friendName: clean(details?.friend_name),
     };
   });
 
