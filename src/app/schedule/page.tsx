@@ -24,8 +24,8 @@ const KIND_LABEL: Record<CalendarBlock["kind"], string> = {
   "three-parter": "Three-parter",
 };
 
-function slotText(slot: { label: string; adultsOnly: boolean }): string {
-  return displaySlot(slot.label, slot.adultsOnly);
+function slotText(slot: { label: string }): string {
+  return displaySlot(slot.label);
 }
 
 function blockMark(block: CalendarBlock, focus: SessionFocus | null): string | null {
@@ -75,12 +75,12 @@ export default async function SchedulePage() {
       ? (await supabase.from("cohort_sessions").select("session_number, start_date, end_date").order("session_number")).data
       : [];
   const slotRows = supabase
-    ? (await supabase.from("session_timeslots").select("id, label, adults_only").order("start_time")).data
+    ? (await supabase.from("session_timeslots").select("id, label").order("start_time")).data
     : null;
   const slots =
     slotRows && slotRows.length > 0
-      ? slotRows.map((slot) => ({ id: String(slot.id), label: String(slot.label), adultsOnly: Boolean(slot.adults_only) }))
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adultsOnly: slot.adultsOnly }));
+      ? slotRows.map((slot) => ({ id: String(slot.id), label: String(slot.label) }))
+      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label }));
   const people =
     supabase && viewer.guildId && isStaff(viewer.role)
       ? (await supabase.from("characters").select("id, name, user_id, class, level").eq("guild_id", viewer.guildId)).data

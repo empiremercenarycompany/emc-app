@@ -104,11 +104,11 @@ export default async function BarracksPage({
             .order("name")
         ).data
       : [];
-  const slotRows = supabase ? (await supabase.from("session_timeslots").select("label, adults_only").order("start_time")).data : null;
+  const slotRows = supabase ? (await supabase.from("session_timeslots").select("label").order("start_time")).data : null;
   const times =
     slotRows && slotRows.length > 0
-      ? slotRows.map((slot) => displaySlot(String(slot.label), Boolean(slot.adults_only))).join(" · ")
-      : TIMESLOT_FALLBACK.map((slot) => displaySlot(slot.label, slot.adultsOnly)).join(" · ");
+      ? slotRows.map((slot) => displaySlot(String(slot.label))).join(" · ")
+      : TIMESLOT_FALLBACK.map((slot) => displaySlot(slot.label)).join(" · ");
   const welcome = recruitName({
     characterName: viewer.character?.name,
     displayName: viewer.displayName,

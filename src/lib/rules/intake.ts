@@ -24,9 +24,9 @@ export const ENLIST_LIMITS = {
 const PHONE_PATTERN = /^[0-9+(). -]{7,40}$/;
 
 export const TIMESLOT_FALLBACK = [
-  { id: "morning", label: "9 AM–12 PM", adultsOnly: false },
-  { id: "afternoon", label: "2–5 PM", adultsOnly: false },
-  { id: "evening", label: "7–10 PM", adultsOnly: true },
+  { id: "morning", label: "9 AM–12 PM" },
+  { id: "afternoon", label: "2–5 PM" },
+  { id: "evening", label: "7–10 PM" },
 ] as const;
 
 const KNOWN_SLOTS: Record<string, string> = {
@@ -34,15 +34,16 @@ const KNOWN_SLOTS: Record<string, string> = {
   "9-12": "9 AM–12 PM",
   "2–5": "2–5 PM",
   "2-5": "2–5 PM",
+  "7–10": "7–10 PM",
+  "7-10": "7–10 PM",
   "7–10 PM": "7–10 PM",
   "7-10 PM": "7–10 PM",
 };
 
-/** Spoken clock time. The evening slot keeps its 18+ label. Age rules sit beside the list. */
-export function displaySlot(label: string, adultsOnly: boolean): string {
+/** Spoken clock time. A stored "(18+)" suffix is dropped. Age rules sit beside the list. */
+export function displaySlot(label: string): string {
   const stripped = label.replace(/\s*\(18\+\)\s*$/, "").trim();
-  const base = KNOWN_SLOTS[stripped] ?? stripped;
-  return adultsOnly && !base.includes("(18+)") ? `${base} (18+)` : base;
+  return KNOWN_SLOTS[stripped] ?? stripped;
 }
 
 export const AGE_BANDS = [
@@ -57,11 +58,10 @@ export function isAgeBand(value: string): value is AgeBand {
   return AGE_BANDS.some((band) => band.id === value);
 }
 
-/** 18+ sees every slot. 16 or 17, and a blank age, see daytime only. Under 16 sees none. */
-export function slotsForAge<T extends { adultsOnly: boolean }>(age: string, slots: T[]): T[] {
+/** Under 16 sees no seat. Every other age, including a blank age, sees every slot. */
+export function slotsForAge<T>(age: string, slots: T[]): T[] {
   if (age === "under_16") return [];
-  if (age === "18_plus") return slots;
-  return slots.filter((slot) => !slot.adultsOnly);
+  return slots;
 }
 
 export type IntakeDraft = {
@@ -71,7 +71,6 @@ export type IntakeDraft = {
   timeslot: string;
   /** Omitted on the reminder save, which does not change age. */
   age?: string;
-  adultsOnly?: boolean;
 };
 
 export function dndLabel(id: string): string {
@@ -121,7 +120,6 @@ export function intakeError(input: IntakeDraft): string | null {
     return null;
   }
   if (!input.timeslot) return "Pick a time.";
-  if (input.age === "16_17" && input.adultsOnly) return "The 7–10 PM slot is for ages 18 and up.";
   return null;
 }
 

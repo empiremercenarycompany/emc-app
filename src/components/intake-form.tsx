@@ -32,7 +32,7 @@ export function IntakeForm({
   signupSrc = "",
   initial,
 }: {
-  slots: { id: string; label: string; adultsOnly: boolean }[];
+  slots: { id: string; label: string }[];
   canSave?: boolean;
   signupSrc?: string;
   initial?: {
@@ -72,7 +72,6 @@ export function IntakeForm({
     null,
   );
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
-  const chosenSlot = slots.find((slot) => slot.id === timeslot);
   const rateProblem = gymMember ? null : "Say which rate is yours.";
   const numberProblem = gymMember === "current" ? membershipNumberError(membershipNumber) : null;
   const problem = rateProblem ?? numberProblem ?? intakeError({
@@ -81,7 +80,6 @@ export function IntakeForm({
     goals: chosen,
     timeslot: age === "under_16" ? "" : timeslot,
     age,
-    adultsOnly: Boolean(chosenSlot?.adultsOnly),
   });
 
   function chooseAge(next: string) {
@@ -144,7 +142,7 @@ export function IntakeForm({
                   aria-pressed={timeslot === slot.id}
                   onClick={() => setTimeslot(slot.id)}
                 >
-                  {displaySlot(slot.label, slot.adultsOnly)}
+                  {displaySlot(slot.label)}
                 </button>
               ))}
             </div>

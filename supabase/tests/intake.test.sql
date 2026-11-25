@@ -271,17 +271,24 @@ begin
   end if;
 end $$;
 
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true,
+  null, null, null, null, null, '16_17'
+);
+
 do $$
+declare
+  v_slot text;
+  v_wait boolean;
+  v_age text;
 begin
-  perform public.save_player_intake(
-    'lots', 'regular', array['Call a friend'], 'evening', true,
-    null, null, null, null, null, '16_17'
-  );
-  raise exception 'a 16 year old took the evening slot';
-exception
-  when others then
-    if sqlerrm ilike '%evening slot%' then raise; end if;
-    if sqlerrm not ilike '%18+%' then raise; end if;
+  select timeslot_id, teen_waitlist, age_band
+    into v_slot, v_wait, v_age
+  from public.player_intake
+  where user_id = auth.uid();
+  if v_slot is distinct from 'evening' or v_wait is distinct from false or v_age is distinct from '16_17' then
+    raise exception '16 or 17 could not keep the evening slot';
+  end if;
 end $$;
 
 select public.save_player_intake(
@@ -318,7 +325,7 @@ begin
   from public.player_intake
   where user_id = auth.uid();
   if v_slot is distinct from 'evening' or v_wait is distinct from false then
-    raise exception '18+ could not keep the evening slot';
+    raise exception 'an 18 or older player could not keep the evening slot';
   end if;
 end $$;
 

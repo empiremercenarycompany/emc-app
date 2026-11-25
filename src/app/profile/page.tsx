@@ -36,17 +36,17 @@ export default async function ProfilePage({
       ? (await supabase.from("squads").select("name").eq("id", viewer.character.squad_id).maybeSingle()).data?.name ?? null
       : null;
   const slots = supabase
-    ? (await supabase.from("session_timeslots").select("id, label, adults_only").order("start_time")).data
+    ? (await supabase.from("session_timeslots").select("id, label").order("start_time")).data
     : null;
   const times =
     slots && slots.length > 0
       ? slots
-      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label, adults_only: slot.adultsOnly }));
+      : TIMESLOT_FALLBACK.map((slot) => ({ id: slot.id, label: slot.label }));
   const chosenSlot = times.find((slot) => slot.id === viewer.intake?.timeslotId);
   const timeLabel = viewer.intake?.teenWaitlist
     ? "Teen waitlist"
     : chosenSlot
-      ? displaySlot(String(chosenSlot.label), Boolean(chosenSlot.adults_only))
+      ? displaySlot(String(chosenSlot.label))
       : "Not chosen";
   const shownName = recruitName({
     characterName: viewer.character?.name,

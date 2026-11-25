@@ -188,8 +188,12 @@ test("the old calendar route opens the schedule", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Sign in to see the calendar" })).toHaveCount(1);
   await expect(page.getByText("9 AM–12 PM", { exact: true })).toBeVisible();
   await expect(page.getByText("2–5 PM", { exact: true })).toBeVisible();
-  await expect(page.getByText("7–10 PM (18+)", { exact: true })).toBeVisible();
-  await expect(page.getByText(/The 7–10 PM slot is for ages 18 and up/)).toBeVisible();
+  await expect(page.getByText("7–10 PM", { exact: true })).toBeVisible();
+  await expect(page.getByText("7–10 PM (18+)")).toHaveCount(0);
+  await expect(
+    page.getByText("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver."),
+  ).toBeVisible();
+  await expect(page.getByText(/18\+|18 and up|adults-only|adults only/i)).toHaveCount(0);
   await expect(page.getByText("Nothing else marked.")).toBeVisible();
   await expect(page.getByText("This sample is not the company schedule")).toHaveCount(0);
   await expect(page.getByText("America/Denver")).toHaveCount(0);
@@ -345,6 +349,11 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "About you" })).toBeVisible();
   await expect(page.getByLabel("Phone")).toBeVisible();
   await expect(page.getByRole("group", { name: "Training slot" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "7–10 PM", exact: true })).toBeVisible();
+  await expect(
+    page.getByText("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver."),
+  ).toBeVisible();
+  await expect(page.getByText(/18\+|18 and up|adults-only|adults only/i)).toHaveCount(0);
   await expect(page.getByLabel("Species idea")).toBeVisible();
   await expect(page.getByLabel("Class idea")).toBeVisible();
   await expect(page.getByText("Fitness goals and experience")).toBeVisible();
