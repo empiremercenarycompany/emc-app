@@ -86,7 +86,7 @@ test("the buff menu names the temporary awards", async ({ page }) => {
   await expect(page.getByText("Advantage on one check")).toBeVisible();
   await expect(
     page.getByText(
-      "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. No payments are taken in the app.",
+      "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
     ),
   ).toBeVisible();
 });
@@ -354,7 +354,7 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByText("7–10 PM (18+)")).toHaveCount(0);
   await expect(page.getByText(/18\+|18 and up|adults-only|adults only/i)).toHaveCount(0);
   await expect(page.getByLabel("Species idea")).toBeVisible();
-  await expect(page.getByLabel("Class idea")).toBeVisible();
+  await expect(page.getByLabel("A class you would like to grow into (optional)")).toBeVisible();
   await expect(page.getByText("Fitness goals and experience")).toBeVisible();
   await expect(page.getByRole("group", { name: "D&D experience" })).toBeVisible();
   await expect(page.getByText(ENLIST_CITY_BLURB)).toBeVisible();

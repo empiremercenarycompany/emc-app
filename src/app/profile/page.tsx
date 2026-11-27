@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ResultForm } from "@/components/result-form";
 import { InstallHelp } from "@/components/install-help";
 import { MembershipPanel } from "@/components/membership-panel";
+import { ShieldmateInvite } from "@/components/shieldmate-invite";
 import { SignInPrompt } from "@/components/sign-in-prompt";
 import { TextSizeToggle } from "@/components/text-size-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -13,7 +14,7 @@ import { signOut } from "@/lib/actions/staff";
 import { billingFlags } from "@/lib/billing/flags";
 import { billingQueryNotice } from "@/lib/billing/notices";
 import { loadOwnBilling } from "@/lib/billing/own-billing";
-import { checkoutPlanFor } from "@/lib/billing/price";
+import { PAYMENT_STEP } from "@/lib/rules/public-copy";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { tableKey, yourTableLine } from "@/lib/rules/saturday-tables";
@@ -23,15 +24,28 @@ import { recruitName } from "@/lib/recruit-name";
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams?: Promise<{ billing?: string }>;
+  searchParams?: Promise<{ billing?: string; enlisted?: string }>;
 }) {
   const viewer = await loadViewer();
   const setup = setupMessage(viewer);
   const params = searchParams ? await searchParams : {};
   const billingNotice = billingQueryNotice(params.billing);
+  const enlisted = params.enlisted === "1";
   const flags = billingFlags();
   const supabase = await createClient();
   const membership = viewer.userId && supabase ? await loadOwnBilling(supabase) : null;
+  const shieldmate =
+    viewer.userId && supabase
+      ? (
+          await supabase
+            .from("shieldmate_invites")
+            .select("code, expires_at, status")
+            .or(`host_user_id.eq.${viewer.userId},guest_user_id.eq.${viewer.userId}`)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+        ).data
+      : null;
   const squadName =
     supabase && viewer.character?.squad_id
       ? (await supabase.from("squads").select("name").eq("id", viewer.character.squad_id).maybeSingle()).data?.name ?? null
@@ -56,6 +70,13 @@ export default async function ProfilePage({
   return (
     <Page tour="profile" title="Profile" lede="Who the Company sees when you walk in.">
       {setup ? <Notice>{setup}</Notice> : null}
+      {enlisted ? (
+        <Notice>
+          {viewer.intake?.teenWaitlist
+            ? "You're on the teen waitlist. Nothing is charged."
+            : `Seat request received${table ? `: ${table.label}` : ""}. ${PAYMENT_STEP}`}
+        </Notice>
+      ) : null}
       <ThemeToggle />
       <TextSizeToggle />
       <TourReplay className="secondary" />
@@ -78,6 +99,29 @@ export default async function ProfilePage({
             <p>{timeLabel}</p>
             {table?.squadLine ? <p>{table.squadLine}</p> : null}
           </Panel>
+          <MembershipPanel
+            billing={membership}
+            wanderlustEnabled={flags.wanderlust}
+            gymMember={viewer.intake?.gymMember ?? null}
+            membershipVerified={viewer.intake?.membershipVerified ?? false}
+            membershipNumber={viewer.intake?.membershipNumber ?? null}
+            staffPlan={viewer.intake?.checkoutPlan ?? null}
+            ageBand={viewer.intake?.ageBand ?? null}
+            teenWaitlist={viewer.intake?.teenWaitlist ?? false}
+            hasIntake={Boolean(viewer.intake)}
+            couponNote={
+              viewer.intake?.checkoutPlan === "standard" && membership?.subscription
+                ? "Staff set this rate to $120. The app does not charge the difference."
+                : null
+            }
+          />
+          {viewer.userId ? (
+            <ShieldmateInvite
+              code={shieldmate?.code ? String(shieldmate.code) : null}
+              expiresAt={shieldmate?.expires_at ? String(shieldmate.expires_at) : null}
+              status={shieldmate?.status ? String(shieldmate.status) : null}
+            />
+          ) : null}
           <Panel title="Your name">
             <ResultForm action={saveDisplayName} submit="Save name">
               <label>
@@ -113,17 +157,6 @@ export default async function ProfilePage({
             </Panel>
           )}
           {billingNotice ? <Notice>{billingNotice}</Notice> : null}
-          <MembershipPanel
-            billing={membership}
-            wanderlustEnabled={flags.wanderlust}
-            plan={checkoutPlanFor({
-              gymMember: viewer.intake?.gymMember ?? null,
-              membershipVerified: viewer.intake?.membershipVerified ?? false,
-              membershipNumber: viewer.intake?.membershipNumber ?? null,
-              staffPlan: viewer.intake?.checkoutPlan ?? null,
-            })}
-            gymMember={viewer.intake?.gymMember ?? null}
-          />
           <form action={signOut}>
             <button className="secondary" type="submit">
               Sign out

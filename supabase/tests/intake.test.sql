@@ -56,14 +56,14 @@ begin
   end if;
   if has_function_privilege(
     'anon',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text,text)',
     'execute'
   ) then
     raise exception 'anon can save intake';
   end if;
   if not has_function_privilege(
     'authenticated',
-    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text)',
+    'public.save_player_intake(text,text,text[],text,boolean,text,text,text,text,text,text,text,text,text,uuid,date,text,boolean,boolean,text,text)',
     'execute'
   ) then
     raise exception 'authenticated cannot save intake';
@@ -329,18 +329,10 @@ begin
   end if;
 end $$;
 
-do $$
-begin
-  perform public.save_player_intake(
-    'lots', 'regular', array['Call a friend'], 'evening', true,
-    null, null, null, null, null, '18_plus', 'current', 'gamegrid-writ'
-  );
-  raise exception 'current member without a number was accepted';
-exception
-  when others then
-    if sqlerrm ilike '%without a number was accepted%' then raise; end if;
-    if sqlerrm not ilike '%membership number%' then raise; end if;
-end $$;
+select public.save_player_intake(
+  'lots', 'regular', array['Call a friend'], 'evening', true,
+  null, null, null, null, null, '18_plus', 'current', 'fb-gamegrid', null, null, null, null, null, null, null, 'GG-12'
+);
 
 select public.save_player_intake(
   'lots', 'regular', array['Call a friend'], 'evening', true,

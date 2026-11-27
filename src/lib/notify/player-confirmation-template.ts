@@ -49,23 +49,23 @@ export function fullSlotSentence(pair: boolean): string {
   if (pair && johnChoices.shieldmateFullSlot === "next-slot-together") {
     return "If your time is full, you and your Shieldmate are offered the next slot together.";
   }
-  return "If your time is full, you go on the waitlist for it with today's rate locked in.";
+  return "If your time is full, you go on the waitlist for it. Staff will find a Saturday time that works.";
 }
 
 export function shieldmateBlock(input: PlayerConfirmationInput): string {
   const friend = filled(input.friendName);
   const invited = filled(input.invitedBy);
   if (friend) {
-    return `You're signing up as Shieldmates with ${friend}. If they enlist within 14 days, pick your session time, and put your name under "Who invited you?", you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.`;
+    return `You're signing up as Shieldmates with ${friend}. Share your invite code from the EMC app. If they join within 14 days, you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.`;
   }
   if (invited) {
-    return `You listed ${invited} under "Who invited you?" If they enlisted within 14 days and you picked the same session time, you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.`;
+    return `You named ${invited} as your Shieldmate. If they join within 14 days with your invite code, you'll be in the same squad, and you each get $20 off your first two months.`;
   }
   return [
-    "Bring your Shieldmate. If a friend enlists within 14 days, picks your session time and puts your name under 'Who invited you?', you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.",
+    "Bring your Shieldmate. Share your invite code from the EMC app. If your friend joins within 14 days, you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.",
     "",
     "A line you can send them:",
-    "I just joined the Empire Mercenary Company. Enlist in the next 14 days, pick my session time, put my name under 'Who invited you?', and we'll be in the same squad with $20 off our first two months each: empiremercenarycompany.com/signup?src=friend",
+    "I just joined the Empire Mercenary Company. Open my Shieldmate invite in the EMC app within 14 days and we'll each get $20 off our first two months: https://emc.thegiantdungeonmaster.com/shieldmate",
   ].join("\n");
 }
 
@@ -113,7 +113,7 @@ export function renderPlayerConfirmation(input: PlayerConfirmationInput): {
   if (waiver) lines.push("", waiver);
   return {
     subject: `We have your enlistment, ${firstName}`,
-    preheader: "Nothing is charged yet. Staff will confirm your seat and send a payment link.",
+    preheader: PAYMENT_STEP,
     text: lines.join("\n"),
   };
 }

@@ -1,11 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { lapseGymMembership, saveCheckoutPlan, setMembershipVerified } from "@/lib/actions/membership";
+import { lapseGymMembership, markNoSaturdayTime, saveCheckoutPlan, setMembershipVerified } from "@/lib/actions/membership";
 import type { CheckoutPlan } from "@/lib/billing/price";
 import {
   MEMBERSHIP_NUMBER_LABEL,
-  MEMBERSHIP_NUMBER_STAFF,
   PLAN_LABEL_MEMBER,
   PLAN_LABEL_STANDARD,
   VERIFY_MEMBERSHIP_NOTE,
@@ -21,6 +20,7 @@ export function StaffPaymentForm({
   canChooseMember,
   needsVerify,
   staffPlan,
+  noTime,
 }: {
   userId: string;
   membershipNumber: string;
@@ -30,6 +30,7 @@ export function StaffPaymentForm({
   canChooseMember: boolean;
   needsVerify: boolean;
   staffPlan: CheckoutPlan | null;
+  noTime: boolean;
 }) {
   const [verifiedState, verifyAction, verifyPending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => setMembershipVerified(formData),
@@ -41,6 +42,10 @@ export function StaffPaymentForm({
   );
   const [lapseState, lapseAction, lapsePending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => lapseGymMembership(formData),
+    null,
+  );
+  const [timeState, timeAction, timePending] = useActionState(
+    async (_previous: ActionResult | null, formData: FormData) => markNoSaturdayTime(formData),
     null,
   );
   const memberChecked = canChooseMember && staffPlan === "member";
@@ -74,16 +79,30 @@ export function StaffPaymentForm({
       <form action={lapseAction}>
         <input type="hidden" name="user_id" value={userId} />
         <button type="submit" disabled={lapsePending}>
-          {lapsePending ? "Saving" : "Move to $120"}
+          {lapsePending ? "Saving" : "Not a current member: move to $120"}
         </button>
-        <p className="text-mute">Use this when a gym membership lapses. The $60 price comes off.</p>
+        <p className="text-mute">
+          Flags the rate as $120. The app does not charge the difference. Change the Stripe price only if the next invoice should be $120.
+        </p>
         {lapseState && "error" in lapseState ? <p role="alert">{lapseState.error}</p> : null}
         {lapseState && "ok" in lapseState ? <p>Moved to $120.</p> : null}
+      </form>
+      <form action={timeAction}>
+        <input type="hidden" name="user_id" value={userId} />
+        <button type="submit" disabled={timePending || noTime}>
+          {timePending ? "Saving" : noTime ? "No time available — owner notified" : "No time available"}
+        </button>
+        <p className="text-mute">
+          Use this when you cannot place a paid recruit in a Saturday time. It emails the owner and leaves the money
+          where it is. The player is not emailed.
+        </p>
+        {timeState && "error" in timeState ? <p role="alert">{timeState.error}</p> : null}
+        {timeState && "ok" in timeState ? <p>Owner notified.</p> : null}
       </form>
       <form action={priceAction} className="flex flex-col gap-3">
         <input type="hidden" name="user_id" value={userId} />
         <fieldset>
-          <legend>Price before the payment link</legend>
+          <legend>Price</legend>
           <label className="choice">
             <input type="radio" name="plan" value="standard" defaultChecked={!memberChecked} />
             <span className="choice-mark radio" aria-hidden="true" />
@@ -96,7 +115,7 @@ export function StaffPaymentForm({
           </label>
         </fieldset>
         {needsVerify ? <p role="note">{VERIFY_MEMBERSHIP_NOTE}</p> : null}
-        {!membershipNumber ? <p role="note">{MEMBERSHIP_NUMBER_STAFF}</p> : null}
+        {!membershipNumber ? <p role="note">No membership number on file. $60 is still allowed before you verify.</p> : null}
         <button name="intent" value="save" type="submit" disabled={pricePending}>
           Save price
         </button>

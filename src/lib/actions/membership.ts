@@ -10,7 +10,10 @@ import { originFromHost } from "@/lib/billing/origin";
 import { checkoutPlanFor, isCheckoutPlan, PriceConfigError, staffPlanError } from "@/lib/billing/price";
 import { confirmedShieldmatePair } from "@/lib/billing/shieldmate-pair";
 import { getStripe, isStripeCheckoutUrl, safeBillingMessage } from "@/lib/billing/stripe";
+import { NO_TIME_SUBJECT, OWNER_ALERT_EMAIL, noTimeNotice } from "@/lib/notify/no-time";
+import { sendStaffNotice } from "@/lib/notify/staff-notice";
 import { VERIFY_MEMBERSHIP_NOTE } from "@/lib/rules/public-copy";
+import { tableLabel } from "@/lib/rules/saturday-tables";
 import type { ActionResult } from "@/lib/types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -33,6 +36,39 @@ export async function setMembershipVerified(formData: FormData): Promise<ActionR
   });
   const message = dbError(rpcError);
   if (message) return { error: message };
+  refresh();
+  return { ok: true };
+}
+
+/**
+ * Staff could not place a paid recruit. Flags the row, shows it on the sign-up
+ * page, and emails the owner. It does not charge, refund, or email the player.
+ */
+export async function markNoSaturdayTime(formData: FormData): Promise<ActionResult> {
+  const gate = await requireRole("staff");
+  if (gate) return gate;
+  const { supabase, error } = await actionClient();
+  if (!supabase || error) return { error: error ?? "Sign in first." };
+  const userId = String(formData.get("user_id") ?? "");
+  if (!UUID.test(userId)) return { error: "Choose a player." };
+  const { error: rpcError } = await supabase.rpc("mark_no_saturday_time", { p_user_id: userId });
+  const message = dbError(rpcError);
+  if (message) return { error: message };
+  const [profile, intake] = await Promise.all([
+    supabase.from("profiles").select("email, display_name").eq("id", userId).maybeSingle(),
+    supabase.from("player_intake").select("timeslot_id, table_starts_on").eq("user_id", userId).maybeSingle(),
+  ]);
+  const table =
+    tableLabel(String(intake.data?.timeslot_id ?? ""), String(intake.data?.table_starts_on ?? "").slice(0, 10)) ?? "";
+  await sendStaffNotice(
+    NO_TIME_SUBJECT,
+    noTimeNotice({
+      email: String(profile.data?.email ?? ""),
+      name: String(profile.data?.display_name ?? ""),
+      table,
+    }),
+    OWNER_ALERT_EMAIL,
+  );
   refresh();
   return { ok: true };
 }

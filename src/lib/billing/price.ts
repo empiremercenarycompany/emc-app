@@ -1,6 +1,6 @@
+import { MEMBER_CHECKOUT_BEFORE_VERIFY } from "@/lib/billing/member-checkout";
 import { EMC_GYM_MONTHLY, EMC_MONTHLY } from "@/lib/billing/plans";
 import {
-  MEMBERSHIP_NUMBER_STAFF,
   VERIFY_MEMBERSHIP_NOTE,
   type GymMember,
   parseGymMember,
@@ -17,6 +17,11 @@ export const SHIELDMATE_MONTHS = 2;
 export type CheckoutPlan = "member" | "standard";
 
 const PRICE_ID = /^price_[A-Za-z0-9_]+$/;
+
+/** Player-facing. The technical reason stays in the server log. Nothing was charged. */
+export function playerPriceFailureMessage(): string {
+  return "Payment isn't open right now. Nothing was charged.";
+}
 
 export function priceFailureMessage(plan: CheckoutPlan, reason: "missing" | "invalid"): string {
   if (plan === "standard" && reason === "missing") {
@@ -58,8 +63,10 @@ export function hasMembershipNumber(value: string | null | undefined): boolean {
 }
 
 /**
- * $60 only after staff switch a verified current member who has a membership number.
- * A lapse clears that switch. Everyone else stays on $120.
+ * The price a checkout would charge. A self-declared current member is quoted
+ * $60, never $120, unless staff have set the plan to standard (a lapse).
+ * Whether the button is shown is checkoutOffer, not this function.
+ * A membership number is not required.
  */
 export function checkoutPlanFor(input: {
   gymMember: GymMember | null;
@@ -67,14 +74,9 @@ export function checkoutPlanFor(input: {
   membershipNumber: string | null;
   staffPlan: CheckoutPlan | null;
 }): CheckoutPlan {
-  if (
-    input.staffPlan === "member" &&
-    input.gymMember === "current" &&
-    input.membershipVerified &&
-    hasMembershipNumber(input.membershipNumber)
-  ) {
-    return "member";
-  }
+  if (input.staffPlan === "standard") return "standard";
+  if (input.gymMember === "current" && (input.membershipVerified || MEMBER_CHECKOUT_BEFORE_VERIFY)) return "member";
+  if (input.gymMember === "current") return "member";
   return "standard";
 }
 
@@ -83,7 +85,7 @@ export function staffCanChooseMember(input: {
   membershipVerified: boolean;
   membershipNumber: string | null;
 }): boolean {
-  return input.gymMember === "current" && input.membershipVerified && hasMembershipNumber(input.membershipNumber);
+  return input.gymMember === "current" && input.membershipVerified;
 }
 
 export function needsMembershipVerification(input: {
@@ -100,9 +102,6 @@ export function staffPlanError(input: {
   staffPlan: CheckoutPlan;
 }): string | null {
   if (input.staffPlan !== "member") return null;
-  if (input.gymMember === "current" && input.membershipVerified && !hasMembershipNumber(input.membershipNumber)) {
-    return MEMBERSHIP_NUMBER_STAFF;
-  }
   if (!staffCanChooseMember(input)) return VERIFY_MEMBERSHIP_NOTE;
   return null;
 }

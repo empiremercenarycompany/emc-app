@@ -368,7 +368,7 @@ describe("billing event normalize", () => {
     expect(JSON.stringify(write?.subscription)).not.toContain("transfer");
   });
 
-  it("links an app checkout to the auth uid and a site checkout to the signup id", () => {
+  it("links an app checkout to the auth uid and a site checkout by email, not a signup id", () => {
     const app = billingWriteFromEvent({
       id: "evt_app",
       object: "event",
@@ -400,11 +400,32 @@ describe("billing event normalize", () => {
           object: "checkout.session",
           client_reference_id: SIGNUP,
           customer: "cus_site",
-          metadata: { surface: "site" },
+          customer_email: "Member@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_monthly",
+            signup_email: "Member@example.test",
+            gym_member: "current",
+            membership_number: "",
+            age_group: "age_16_17",
+          },
         },
       },
     } as unknown as Stripe.Event);
-    expect(site?.customer).toMatchObject({ user_id: null, signup_id: SIGNUP });
+    expect(site?.customer).toMatchObject({
+      user_id: null,
+      signup_id: null,
+      email: "Member@example.test",
+    });
+    expect(site?.site).toMatchObject({
+      email: "member@example.test",
+      plan: "emc_monthly",
+      invite: true,
+    });
+    expect(site?.site?.metadata).not.toHaveProperty("signup_id");
+    expect(JSON.stringify(site?.site)).not.toContain("shieldmate");
   });
 });
 

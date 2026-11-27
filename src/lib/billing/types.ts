@@ -43,6 +43,19 @@ export type StaffPaymentNotice = {
   shieldmate: boolean;
 };
 
+/** Site payment matched by email. No signup id. */
+export type SiteCheckoutWrite = {
+  email: string;
+  status: "paid";
+  plan: string;
+  metadata: Record<string, string>;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  checkoutSessionId: string | null;
+  /** True only for a completed paid site checkout that is not the teen waitlist. */
+  invite: boolean;
+};
+
 /** Wire shape for apply_billing_event. The webhook secret is a separate argument. */
 export type BillingWrite = {
   id: string;
@@ -52,4 +65,5 @@ export type BillingWrite = {
   customer: BillingCustomerWrite | null;
   subscription: BillingSubscriptionWrite | null;
   notice: StaffPaymentNotice | null;
+  site: SiteCheckoutWrite | null;
 };

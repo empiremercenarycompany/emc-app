@@ -1,4 +1,4 @@
-import { priceFailureMessage } from "@/lib/billing/price";
+import { playerPriceFailureMessage } from "@/lib/billing/price";
 import type { NoticeField } from "@/lib/notify/signup-fields";
 import { sendStaffNotice } from "@/lib/notify/staff-notice";
 import type { StaffPaymentNotice } from "@/lib/billing/types";
@@ -32,11 +32,14 @@ export function billingQueryNotice(flag: string | undefined): string | null {
     case "portal-config":
       return "The billing portal is not set up in Stripe yet. Staff can add a Customer Portal configuration, then this link will open.";
     case "unavailable":
-      return "Billing is not available right now.";
+      return "Payment isn't open right now. Nothing was charged.";
     case "price-standard":
-      return priceFailureMessage("standard", "missing");
     case "price-member":
-      return priceFailureMessage("member", "missing");
+      return playerPriceFailureMessage();
+    case "hold":
+      return "We're checking your Empire membership. You'll pay $60 a month once staff confirm it. Nothing is charged until then.";
+    case "closed":
+      return "Checkout isn't available for this enlistment. Nothing was charged.";
     default:
       return null;
   }

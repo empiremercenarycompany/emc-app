@@ -60,10 +60,11 @@ type IntakeRow = {
   table_request?: unknown;
   with_friend?: unknown;
   friend_name?: unknown;
+  placement_status?: unknown;
 };
 
 const INTAKE_COLUMNS =
-  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src, preferred_squad_id, table_starts_on, table_request, with_friend, friend_name";
+  "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src, preferred_squad_id, table_starts_on, table_request, with_friend, friend_name, placement_status";
 const INTAKE_BASE =
   "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders";
 
@@ -182,6 +183,7 @@ export async function loadSignups(
       tableSquad: squadId ? (squadLineFor(squadNameById.get(squadId), true) ?? "") : "",
       withFriend: details ? (details.with_friend ? "yes" : "no") : "",
       friendName: clean(details?.friend_name),
+      placementStatus: clean(details?.placement_status) === "no_time" ? "No time available" : "",
     };
   });
 

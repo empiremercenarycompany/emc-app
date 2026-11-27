@@ -2,14 +2,17 @@ import Stripe from "stripe";
 import { billingWriteFromEvent } from "@/lib/billing/normalize";
 import { notifyStaffOfPayment } from "@/lib/billing/notices";
 import { recordBillingEvent } from "@/lib/billing/record";
+import { sendAppInvite } from "@/lib/billing/app-invite";
 import { safeBillingMessage, stripeWebhookSecret } from "@/lib/billing/stripe";
 import type { BillingWrite, StaffPaymentNotice } from "@/lib/billing/types";
 
 export type BillingWebhookDeps = {
   secret: string | null;
   constructEvent: (payload: string, signature: string, secret: string) => Stripe.Event;
-  record: (secret: string, write: BillingWrite) => Promise<{ applied: boolean }>;
+  record: (secret: string, write: BillingWrite) => Promise<{ applied: boolean; invite?: boolean }>;
   notify: (notice: StaffPaymentNotice) => Promise<void>;
+  /** Sends the app sign-in link after a paid site checkout. Tests omit it. */
+  invite?: (email: string) => Promise<void>;
 };
 
 export function defaultWebhookDeps(): BillingWebhookDeps {
@@ -18,6 +21,7 @@ export function defaultWebhookDeps(): BillingWebhookDeps {
     constructEvent: (payload, signature, secret) => Stripe.webhooks.constructEvent(payload, signature, secret),
     record: recordBillingEvent,
     notify: notifyStaffOfPayment,
+    invite: sendAppInvite,
   };
 }
 
@@ -55,9 +59,11 @@ export async function handleStripeWebhook(request: Request, deps: BillingWebhook
   if (!write) return Response.json({ received: true });
 
   let applied = false;
+  let sendInvite = false;
   try {
     const recorded = await deps.record(deps.secret, write);
     applied = recorded.applied;
+    sendInvite = recorded.invite === true;
   } catch (error) {
     const message = safeBillingMessage(error);
     const reason = message.includes("billing write refused") ? "write_secret" : "record";
@@ -75,6 +81,14 @@ export async function handleStripeWebhook(request: Request, deps: BillingWebhook
       await deps.notify(write.notice);
     } catch {
       log("mail_failed", { eventId: event.id, type: event.type });
+    }
+  }
+
+  if (sendInvite && write.site && deps.invite) {
+    try {
+      await deps.invite(write.site.email);
+    } catch (error) {
+      log("invite_failed", { eventId: event.id, type: event.type, message: safeBillingMessage(error) });
     }
   }
 

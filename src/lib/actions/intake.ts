@@ -8,7 +8,7 @@ import { noticeFields, type SignupRecord } from "@/lib/notify/signup-fields";
 import { confirmationFirstName } from "@/lib/notify/player-confirmation-template";
 import { displaySlot, dndLabel, enlistError, gymLabel, intakeError, isAgeBand } from "@/lib/rules/intake";
 import { normalizeTimeslotId, requestPhrase, tableLabel } from "@/lib/rules/saturday-tables";
-import { gymMemberLabel, membershipNumberError, parseGymMember } from "@/lib/rules/public-copy";
+import { gymMemberLabel, membershipNumberError, normalizeMembershipNumber, parseGymMember, isGameGridSrc } from "@/lib/rules/public-copy";
 import type { ActionResult } from "@/lib/types";
 
 function providedText(formData: FormData, name: string): string | null {
@@ -38,15 +38,16 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
   const friendName = String(formData.get("friend_name") ?? "");
   const age = providedText(formData, "age");
   const enlisting = formData.get("enlist") === "1";
-  const gymMember = enlisting ? parseGymMember(providedText(formData, "gym_member")) : null;
-  if (enlisting && !gymMember) return { error: "Say which rate is yours." };
-  const membershipNumber = providedText(formData, "gym_membership_number");
+  const waiting = age === "under_16";
+  const gymMember = enlisting && !waiting ? parseGymMember(providedText(formData, "gym_member")) : null;
+  if (enlisting && !waiting && !gymMember) return { error: "Say which rate is yours." };
+  const membershipNumber = normalizeMembershipNumber(providedText(formData, "gym_membership_number") ?? "");
   if (enlisting && gymMember === "current") {
-    const numberProblem = membershipNumberError(membershipNumber ?? "");
+    const numberProblem = membershipNumberError(membershipNumber);
     if (numberProblem) return { error: numberProblem };
   }
   const signupSrc = providedText(formData, "signup_src");
-  const waiting = age === "under_16";
+  const writNumber = isGameGridSrc(signupSrc) ? providedText(formData, "writ_number") : signupSrc !== null ? "" : null;
   const problem = intakeError({
     ...draft,
     timeslot: waiting ? "" : draft.timeslot,
@@ -80,8 +81,9 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       : {}),
     ...(age !== null && isAgeBand(age) ? { p_age_band: age } : {}),
     ...(gymMember ? { p_gym_member: gymMember } : {}),
-    ...(gymMember === "current" && membershipNumber !== null ? { p_gym_membership_number: membershipNumber } : {}),
+    ...(gymMember === "current" ? { p_gym_membership_number: membershipNumber } : waiting ? { p_gym_membership_number: "" } : {}),
     ...(signupSrc !== null ? { p_signup_src: signupSrc } : {}),
+    ...(writNumber !== null ? { p_writ_number: writNumber } : {}),
     p_reminders: formData.get("reminders") === "on",
     p_phone: phone,
     p_species_idea: species,
@@ -140,7 +142,7 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
   revalidatePath("/profile");
   revalidatePath("/intake");
   revalidatePath("/dm/signups");
-  redirect("/profile");
+  redirect("/profile?enlisted=1");
 }
 
 async function enlistRecord(
@@ -197,5 +199,6 @@ async function enlistRecord(
     tableSquad: "",
     withFriend: enlist.withFriend ? "yes" : "no",
     friendName: enlist.withFriend ? enlist.friendName.trim() : "",
+    placementStatus: "",
   };
 }

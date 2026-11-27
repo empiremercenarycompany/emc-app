@@ -86,7 +86,14 @@ export function membershipCheckoutParams(input: {
   };
   if (input.customerId) params.customer = input.customerId;
   else if (input.email) params.customer_email = input.email;
-  if (input.selection.coupon) params.discounts = [{ coupon: input.selection.coupon }];
+  if (input.selection.coupon) {
+    params.discounts = [{ coupon: input.selection.coupon }];
+    const months =
+      input.selection.plan === "member"
+        ? "$40 for your first 2 months, then $60 a month."
+        : "$100 for your first 2 months, then $120 a month.";
+    params.custom_text = { submit: { message: months } };
+  }
   return params;
 }
 

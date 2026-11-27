@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { ENLIST_BACKSTORY_PROMPT, ENLIST_CITY_BLURB } from "@/content/enlist";
 import { SATURDAY_TABLE_COPY } from "@/content/saturday-tables";
 import { Choice } from "@/components/choice";
@@ -9,10 +9,11 @@ import { saveIntake } from "@/lib/actions/intake";
 import {
   GYM_MEMBER_HELPER,
   GYM_MEMBER_OPTIONS,
+  MEMBERSHIP_NUMBER_HINT,
   MEMBERSHIP_NUMBER_LABEL,
   PRICE_ONE_LINE,
   membershipNumberError,
-  gamegridLead,
+  isGameGridSrc,
   type GymMember,
 } from "@/lib/rules/public-copy";
 import { AGE_BANDS, DND_LEVELS, ENLIST_LIMITS, GOAL_CHIPS, GYM_LEVELS, intakeError } from "@/lib/rules/intake";
@@ -66,6 +67,9 @@ export function IntakeForm({
   const [friendName, setFriendName] = useState(initial?.friendName ?? "");
   const [anyOpen, setAnyOpen] = useState(initial?.anyOpen ?? false);
   const [reminders, setReminders] = useState(initial?.reminders ?? false);
+  const [writNumber, setWritNumber] = useState("");
+  const [showErrors, setShowErrors] = useState(false);
+  const [draftReady, setDraftReady] = useState(Boolean(initial));
   const [state, formAction, pending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => saveIntake(formData),
     null,
@@ -74,28 +78,86 @@ export function IntakeForm({
   const selected = tables.find((table) => table.key === selectedKey) ?? null;
   const request = selected ? tableRequest(selected.seatsLeft, withFriend) : "";
   const waiting = age === "under_16";
-  const rateProblem = gymMember ? null : "Say which rate is yours.";
-  const numberProblem = gymMember === "current" ? membershipNumberError(membershipNumber) : null;
-  const problem =
-    rateProblem ??
-    numberProblem ??
-    intakeError({
-      dnd,
-      gym,
-      goals: chosen,
-      timeslot: waiting ? "" : (selected?.timeslotId ?? ""),
-      age,
-    });
+  const gamegrid = isGameGridSrc(signupSrc);
+  const errors: Record<string, string> = {};
+  if (!age) errors.age = "Say your age.";
+  if (!waiting && !gymMember) errors.gym_member = "Say which rate is yours.";
+  if (!waiting && gymMember === "current") {
+    const numberProblem = membershipNumberError(membershipNumber);
+    if (numberProblem) errors.gym_membership_number = numberProblem;
+  }
+  const intakeProblem = intakeError({
+    dnd,
+    gym,
+    goals: chosen,
+    timeslot: waiting ? "" : (selected?.timeslotId ?? ""),
+    age,
+  });
+  if (!waiting && !selected) errors.table = intakeProblem ?? "Pick your Saturday table.";
+  else if (intakeProblem && intakeProblem !== "Pick your Saturday table." && intakeProblem !== "Say your age.") {
+    errors.form = intakeProblem;
+  }
+  const firstError = Object.keys(errors)[0];
+
+  useEffect(() => {
+    if (initial) return;
+    try {
+      const raw = window.localStorage.getItem("emc-intake-draft");
+      if (!raw) {
+        setDraftReady(true);
+        return;
+      }
+      const draft = JSON.parse(raw) as {
+        age?: string;
+        gymMember?: string;
+        membershipNumber?: string;
+        selectedKey?: string;
+        withFriend?: boolean;
+        friendName?: string;
+        writNumber?: string;
+      };
+      if (draft.age) setAge(draft.age);
+      if (draft.gymMember === "current" || draft.gymMember === "former" || draft.gymMember === "not_yet") {
+        setGymMember(draft.gymMember);
+      }
+      if (draft.membershipNumber) setMembershipNumber(draft.membershipNumber);
+      if (draft.selectedKey) setSelectedKey(draft.selectedKey);
+      if (draft.withFriend) setWithFriend(true);
+      if (draft.friendName) setFriendName(draft.friendName);
+      if (draft.writNumber) setWritNumber(draft.writNumber);
+    } catch {
+      // A bad draft is ignored.
+    }
+    setDraftReady(true);
+  }, [initial]);
+
+  useEffect(() => {
+    if (!draftReady || initial) return;
+    window.localStorage.setItem(
+      "emc-intake-draft",
+      JSON.stringify({ age, gymMember, membershipNumber, selectedKey, withFriend, friendName, writNumber, signupSrc }),
+    );
+  }, [draftReady, initial, age, gymMember, membershipNumber, selectedKey, withFriend, friendName, writNumber, signupSrc]);
 
   function toggleGoal(goal: string) {
     setGoals((current) => (current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal]));
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 span-all">
+    <form
+      action={formAction}
+      className="flex flex-col gap-4 span-all"
+      onSubmit={(event) => {
+        if (firstError) {
+          event.preventDefault();
+          setShowErrors(true);
+          document.getElementById(`field-${firstError}`)?.scrollIntoView({ block: "center" });
+        }
+      }}
+    >
       <section id="enlist-details" aria-labelledby="enlist-heading" className="flex flex-col gap-4">
         <h2 id="enlist-heading">Enlist details</h2>
-        <fieldset className="score-card">
+        <fieldset className="score-card" id="field-age">
           <legend>Age</legend>
           <div className="score-taps" role="radiogroup" aria-label="Age">
             {AGE_BANDS.map((band) => (
@@ -110,12 +172,14 @@ export function IntakeForm({
               </button>
             ))}
           </div>
+          {showErrors && errors.age ? <p role="alert">{errors.age}</p> : null}
           {waiting ? <p>{SATURDAY_TABLE_COPY.under16}</p> : null}
           {age === "16_17" ? <p>{SATURDAY_TABLE_COPY.waiver16}</p> : null}
         </fieldset>
-        <fieldset className="score-card">
+        {waiting ? null : (
+        <fieldset className="score-card" id="field-gym_member">
           <legend>Which rate is yours?</legend>
-          {gamegridLead(signupSrc) ? <p>{PRICE_ONE_LINE}</p> : null}
+          {gamegrid ? <p>{PRICE_ONE_LINE}</p> : null}
           {GYM_MEMBER_OPTIONS.map((option) => (
             <label key={option.id} className="choice">
               <input
@@ -124,27 +188,32 @@ export function IntakeForm({
                 value={option.id}
                 checked={gymMember === option.id}
                 onChange={() => setGymMember(option.id)}
-                required
               />
               <span className="choice-mark radio" aria-hidden="true" />
               <span className="choice-label">{option.label}</span>
             </label>
           ))}
           <p className="text-mute">{GYM_MEMBER_HELPER}</p>
+          {showErrors && errors.gym_member ? <p role="alert">{errors.gym_member}</p> : null}
           {gymMember === "current" ? (
-            <label>
+            <label id="field-gym_membership_number">
               {MEMBERSHIP_NUMBER_LABEL}
               <input
                 name="gym_membership_number"
                 value={membershipNumber}
                 onChange={(event) => setMembershipNumber(event.target.value)}
                 maxLength={40}
-                required
                 autoComplete="off"
+                aria-describedby="membership-number-hint"
               />
+              <p className="text-mute" id="membership-number-hint">
+                {MEMBERSHIP_NUMBER_HINT}
+              </p>
+              {showErrors && errors.gym_membership_number ? <p role="alert">{errors.gym_membership_number}</p> : null}
             </label>
           ) : null}
         </fieldset>
+        )}
         {waiting ? null : (
           <>
             <Choice checked={withFriend} onChange={setWithFriend}>
@@ -162,6 +231,7 @@ export function IntakeForm({
                 />
               </label>
             ) : null}
+            <div id="field-table">
             <SaturdayHall
               tables={tables}
               mode="pick"
@@ -169,11 +239,15 @@ export function IntakeForm({
               selectedKey={selectedKey}
               onSelect={setSelectedKey}
             />
+            {showErrors && errors.table ? <p role="alert">{errors.table}</p> : null}
+            </div>
             <Choice checked={anyOpen} onChange={setAnyOpen}>
               {SATURDAY_TABLE_COPY.anyOpen}
             </Choice>
           </>
         )}
+        {waiting ? null : (
+          <>
         <label>
           Phone
           <input
@@ -194,9 +268,12 @@ export function IntakeForm({
           <input name="species" maxLength={ENLIST_LIMITS.species} defaultValue={initial?.species ?? ""} />
         </label>
         <label>
-          Class idea
+          A class you would like to grow into (optional)
           <input name="class_idea" maxLength={ENLIST_LIMITS.classIdea} defaultValue={initial?.classIdea ?? ""} />
+          <p className="text-mute">You start as a commoner, grow by training, and choose a class at the week 6 ceremony.</p>
         </label>
+          </>
+        )}
         <fieldset className="score-card">
           <legend>Fitness goals and experience</legend>
           <p className="text-mute">Pick any that fit. You can add your own.</p>
@@ -257,10 +334,15 @@ export function IntakeForm({
             ))}
           </div>
         </fieldset>
+        {waiting ? null : (
+          <>
         <p className="enlist-copy">{ENLIST_CITY_BLURB}</p>
         <p className="enlist-copy" id="backstory-prompt">
           {ENLIST_BACKSTORY_PROMPT}
         </p>
+          </>
+        )}
+        {waiting ? null : (
         <label>
           Life before you enlisted
           <textarea
@@ -271,6 +353,7 @@ export function IntakeForm({
             defaultValue={initial?.backstory ?? ""}
           />
         </label>
+        )}
       </section>
       <Choice name="reminders" checked={reminders} onChange={setReminders}>
         Session reminders
@@ -285,6 +368,20 @@ export function IntakeForm({
       <input type="hidden" name="gym" value={gym} />
       <input type="hidden" name="age" value={age} />
       <input type="hidden" name="signup_src" value={signupSrc.slice(0, 80)} />
+      {gamegrid ? (
+        <label id="field-writ">
+          Writ number (optional)
+          <input
+            name="writ_number"
+            value={writNumber}
+            onChange={(event) => setWritNumber(event.target.value)}
+            maxLength={20}
+            autoComplete="off"
+          />
+        </label>
+      ) : (
+        <input type="hidden" name="writ_number" value="" />
+      )}
       <input type="hidden" name="timeslot" value={waiting ? "" : (selected?.timeslotId ?? "")} />
       <input type="hidden" name="starts_on" value={waiting ? "" : (selected?.startsOn ?? "")} />
       <input type="hidden" name="squad_id" value={waiting ? "" : (selected?.squadId ?? "")} />
@@ -295,8 +392,8 @@ export function IntakeForm({
       {chosen.map((goal) => (
         <input key={goal} type="hidden" name="goal" value={goal} />
       ))}
-      {problem ? <p role="alert">{problem}</p> : null}
-      <button className="primary" type="submit" disabled={pending || Boolean(problem) || !canSave}>
+      {showErrors && errors.form ? <p role="alert">{errors.form}</p> : null}
+      <button className="primary" type="submit" disabled={pending || !canSave}>
         {pending ? "Saving" : canSave ? "Save" : "Sign in to save"}
       </button>
       {state && "error" in state ? <p role="alert">{state.error}</p> : null}

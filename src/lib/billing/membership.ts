@@ -4,6 +4,9 @@ import { isCheckoutPlan } from "@/lib/billing/price";
 import { parseGymMember, type GymMember } from "@/lib/rules/public-copy";
 
 export type MembershipDecision = {
+  hasIntake: boolean;
+  ageBand: string | null;
+  teenWaitlist: boolean;
   gymMember: GymMember | null;
   membershipVerified: boolean;
   membershipNumber: string | null;
@@ -14,6 +17,9 @@ export type MembershipDecision = {
 };
 
 const EMPTY: MembershipDecision = {
+  hasIntake: false,
+  ageBand: null,
+  teenWaitlist: false,
   gymMember: null,
   membershipVerified: false,
   membershipNumber: null,
@@ -24,7 +30,7 @@ const EMPTY: MembershipDecision = {
 };
 
 const COLUMNS =
-  "gym_member, membership_verified, gym_membership_number, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+  "age_band, teen_waitlist, gym_member, membership_verified, gym_membership_number, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
 
 function textOrNull(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -37,6 +43,9 @@ export async function loadMembershipDecision(supabase: SupabaseClient, userId: s
   const { data, error } = await supabase.from("player_intake").select(COLUMNS).eq("user_id", userId).maybeSingle();
   if (error || !data) return EMPTY;
   return {
+    hasIntake: true,
+    ageBand: textOrNull(data.age_band),
+    teenWaitlist: data.teen_waitlist === true || data.age_band === "under_16",
     gymMember: parseGymMember(typeof data.gym_member === "string" ? data.gym_member : null),
     membershipVerified: data.membership_verified === true,
     membershipNumber: textOrNull(data.gym_membership_number),

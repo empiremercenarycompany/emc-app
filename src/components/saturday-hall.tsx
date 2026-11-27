@@ -15,7 +15,7 @@ import {
 } from "@/lib/rules/saturday-tables";
 
 function chairs(table: SaturdayTable, markPair: boolean) {
-  const filled = Math.min(6, table.placed);
+  const filled = Math.min(6, 6 - table.seatsLeft);
   let pairLeft = markPair ? 2 : 0;
   return Array.from({ length: 6 }, (_item, index) => {
     const open = index >= filled;
@@ -114,6 +114,7 @@ export function SaturdayHall({
           const text = (
             <>
               <span className="saturday-label">{table.label}</span>
+              <span className="saturday-date">First game {SATURDAY_TABLE_COPY.dateHead[table.startsOn]}</span>
               {table.squadLine ? <span className="saturday-squad">{table.squadLine}</span> : null}
               <span className="saturday-seats">{seatLine(table.seatsLeft)}</span>
               <span className="seat-row" aria-hidden="true">

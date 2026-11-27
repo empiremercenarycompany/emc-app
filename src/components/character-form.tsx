@@ -26,6 +26,7 @@ import {
 } from "@/lib/rules/proficiency-grants";
 import { speciesBlurb } from "@/lib/rules/species-blurbs";
 import { speciesLabel } from "@/lib/rules/species-names";
+import { level0SpeciesTraitLine } from "@/lib/rules/species-traits";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 
 const SHORT: Record<AbilityName, string> = {
@@ -357,7 +358,7 @@ export function CharacterForm({
           )}
           <p className="text-mute">
             {mode === "plus1"
-              ? "These three start one step higher. That is the whole bonus."
+              ? "These three start one step higher. Your training grows the rest. You start as a commoner, grow by training, and choose a class at the week 6 ceremony."
               : "Put the two bonuses on different abilities."}
           </p>
           <ul className="ability-row" data-testid="score-preview">
@@ -391,6 +392,7 @@ export function CharacterForm({
             grants={resolveCreationGrants(grantInput)}
           />
           <p>{speciesLabel(speciesId, species.find((row) => row.id === speciesId)?.name)}</p>
+          <p>{level0SpeciesTraitLine(speciesId)}</p>
           <ul className="ability-row" data-testid="score-preview">
             {ABILITIES.map((ability) => (
               <li key={ability} className="stat">

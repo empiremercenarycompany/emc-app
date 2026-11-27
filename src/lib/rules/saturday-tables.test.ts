@@ -121,7 +121,7 @@ describe("saturday hall", () => {
 
   it("uses the locked email sentence", () => {
     expect(emailAskedLine("Saturday evenings, 7 PM to 10 PM, first game Jan 9, 2027")).toBe(
-      "You asked for Saturday evenings, 7 PM to 10 PM, first game Jan 9, 2027, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Staff will confirm your seat, then they'll send you a payment link.",
+      "You asked for Saturday evenings, 7 PM to 10 PM, first game Jan 9, 2027, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
     );
   });
 });

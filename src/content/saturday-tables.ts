@@ -53,7 +53,7 @@ export const SATURDAY_TABLE_COPY = {
     "Not sure which time? Pick the Saturday that fits you best. Each squad plays every other week. You can also say you're okay with any other open table. Staff will confirm your seat.",
   anyOpen: "Okay with any other open table",
   emailAsked:
-    "You asked for {table_label}, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Staff will confirm your seat, then they'll send you a payment link.",
+    "You asked for {table_label}, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
   yourTableLine: "Your table: {table_label}. Staff will confirm your seat.",
   yourTable: "Your table",
   under16:

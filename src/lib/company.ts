@@ -77,6 +77,8 @@ async function loadViewerOnce(): Promise<Viewer> {
     return { ...EMPTY, configured: true };
   }
 
+  await supabase.rpc("claim_paid_site_signup");
+
   const [profileResult, membership, character, config, todayResult, intakeResult] = await Promise.all([
     supabase.from("profiles").select(PROFILE_WITH_NOTICE).eq("id", user.id).maybeSingle(),
     supabase.from("guild_memberships").select("guild_id, rank").eq("user_id", user.id).maybeSingle(),
@@ -184,6 +186,7 @@ async function loadViewerOnce(): Promise<Viewer> {
       tableSquad: "",
       withFriend: intake?.withFriend ? "yes" : "no",
       friendName: intake?.friendName ?? "",
+      placementStatus: "",
     };
     const chosen = tableLabel(intake?.timeslotId ?? "", intake?.tableStartsOn ?? "");
     if (chosen) account.trainingSlot = chosen;
