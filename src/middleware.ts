@@ -6,6 +6,7 @@ export async function middleware(request: NextRequest) {
   if (path === "/privacy" || path === "/terms") {
     return NextResponse.redirect(`https://empiremercenarycompany.com${path}`, 308);
   }
+  if (path === "/api/availability") return NextResponse.next();
   return updateSession(request);
 }
 
