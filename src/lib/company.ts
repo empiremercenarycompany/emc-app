@@ -14,6 +14,7 @@ const INTAKE_MEMBER =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist, gym_member, gym_membership_number, membership_verified, checkout_plan, signup_src";
 const INTAKE_TABLE =
   `${INTAKE_MEMBER}, preferred_squad_id, table_starts_on, table_request, any_open_table, with_friend, friend_name`;
+const INTAKE_CHOICE = `${INTAKE_TABLE}, second_timeslot_id, second_starts_on, held_choice`;
 const INTAKE_FULL =
   "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders, phone, species_idea, class_idea, backstory_idea, fitness_experience, age_band, teen_waitlist";
 const INTAKE_BASE = "dnd_experience, gym_experience, first_goals, timeslot_id, session_reminders";
@@ -85,7 +86,7 @@ async function loadViewerOnce(): Promise<Viewer> {
     supabase.from("characters").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("scoring_config").select("*").eq("id", 1).maybeSingle(),
     supabase.rpc("company_today"),
-    supabase.from("player_intake").select(INTAKE_TABLE).eq("user_id", user.id).maybeSingle(),
+    supabase.from("player_intake").select(INTAKE_CHOICE).eq("user_id", user.id).maybeSingle(),
   ]);
 
   const today = typeof todayResult.data === "string" ? todayResult.data : null;
@@ -108,6 +109,9 @@ async function loadViewerOnce(): Promise<Viewer> {
   }
 
   let intakeQuery = intakeResult;
+  if (missingColumn(intakeQuery.error)) {
+    intakeQuery = await supabase.from("player_intake").select(INTAKE_TABLE).eq("user_id", user.id).maybeSingle();
+  }
   if (missingColumn(intakeQuery.error)) {
     intakeQuery = await supabase.from("player_intake").select(INTAKE_FULL).eq("user_id", user.id).maybeSingle();
   }
@@ -140,6 +144,12 @@ async function loadViewerOnce(): Promise<Viewer> {
         anyOpenTable: intakeRow.any_open_table === true,
         withFriend: intakeRow.with_friend === true,
         friendName: textOrNull(intakeRow.friend_name),
+        heldChoice:
+          intakeRow.held_choice === "first" || intakeRow.held_choice === "second" || intakeRow.held_choice === "waitlist"
+            ? intakeRow.held_choice
+            : null,
+        secondTimeslotId: textOrNull(intakeRow.second_timeslot_id),
+        secondStartsOn: textOrNull(intakeRow.second_starts_on)?.slice(0, 10) ?? null,
       }
     : null;
 

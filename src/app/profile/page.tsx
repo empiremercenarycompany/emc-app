@@ -15,6 +15,7 @@ import { billingFlags } from "@/lib/billing/flags";
 import { billingQueryNotice } from "@/lib/billing/notices";
 import { loadOwnBilling } from "@/lib/billing/own-billing";
 import { PAYMENT_STEP } from "@/lib/rules/public-copy";
+import { FIRST_FULL_COPY, WAITLIST_COPY } from "@/lib/rules/seat-choice";
 import { loadViewer, setupMessage } from "@/lib/company";
 import { createClient } from "@/lib/supabase/server";
 import { tableKey, yourTableLine } from "@/lib/rules/saturday-tables";
@@ -74,7 +75,11 @@ export default async function ProfilePage({
         <Notice>
           {viewer.intake?.teenWaitlist
             ? "You're on the teen waitlist. Nothing is charged."
-            : `Seat request received${table ? `: ${table.label}` : ""}. ${PAYMENT_STEP}`}
+            : viewer.intake?.heldChoice === "waitlist"
+              ? WAITLIST_COPY
+              : viewer.intake?.heldChoice === "second"
+                ? `${FIRST_FULL_COPY} ${PAYMENT_STEP}`
+                : `Seat request received${table ? `: ${table.label}` : ""}. ${PAYMENT_STEP}`}
         </Notice>
       ) : null}
       <ThemeToggle />
@@ -109,6 +114,7 @@ export default async function ProfilePage({
             ageBand={viewer.intake?.ageBand ?? null}
             teenWaitlist={viewer.intake?.teenWaitlist ?? false}
             hasIntake={Boolean(viewer.intake)}
+            heldChoice={viewer.intake?.heldChoice ?? null}
             couponNote={
               viewer.intake?.checkoutPlan === "standard" && membership?.subscription
                 ? "Staff set this rate to $120. The app does not charge the difference."

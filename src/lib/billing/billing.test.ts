@@ -308,6 +308,80 @@ describe("stripe webhook", () => {
     expect(response.status).toBe(200);
   });
 
+  it("keeps a payment when the Saturday table filled and tells staff", async () => {
+    const payload = JSON.stringify({
+      id: "evt_full",
+      object: "event",
+      type: "checkout.session.completed",
+      created: 1763760000,
+      data: {
+        object: {
+          object: "checkout.session",
+          id: "cs_full",
+          customer: "cus_full",
+          customer_email: "full@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_gym_monthly",
+            signup_email: "full@example.test",
+            preferred_slot: "morning:2027-01-02",
+            preferred_slot_2: "evening:2027-01-09",
+            checkout_slot: "second",
+          },
+        },
+      },
+    });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });
+    const flagNoTime = vi.fn().mockResolvedValue(true);
+    const response = await handleStripeWebhook(
+      signedRequest(payload, signature),
+      deps({ record: vi.fn().mockResolvedValue({ applied: true }), flagNoTime }),
+    );
+    expect(response.status).toBe(200);
+    expect(flagNoTime).toHaveBeenCalledWith({
+      secret: SECRET,
+      email: "full@example.test",
+      slot: "evening:2027-01-09",
+    });
+  });
+
+  it("still returns 200 when the full-table check fails", async () => {
+    const payload = JSON.stringify({
+      id: "evt_full_fail",
+      object: "event",
+      type: "checkout.session.completed",
+      created: 1763760000,
+      data: {
+        object: {
+          object: "checkout.session",
+          id: "cs_full_fail",
+          customer: "cus_full_fail",
+          customer_email: "full@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_gym_monthly",
+            signup_email: "full@example.test",
+            preferred_slot: "morning:2027-01-02",
+          },
+        },
+      },
+    });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await handleStripeWebhook(
+      signedRequest(payload, signature),
+      deps({
+        record: vi.fn().mockResolvedValue({ applied: true }),
+        flagNoTime: vi.fn().mockRejectedValue(new Error("db down")),
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
+
   it("ignores events outside the six billing types", async () => {
     const payload = JSON.stringify({ id: "evt_other", object: "event", type: "charge.succeeded", created: 1, data: { object: {} } });
     const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });

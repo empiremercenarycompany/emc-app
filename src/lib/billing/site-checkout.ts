@@ -27,6 +27,8 @@ export const SITE_CHECKOUT_METADATA_KEYS = [
   "gym_member",
   "membership_number",
   "preferred_slot",
+  "preferred_slot_2",
+  "checkout_slot",
   "waitlist_for",
   "age_group",
   "joining_with_friend",
@@ -56,6 +58,8 @@ export function emptySiteMetadata(): SiteMetadata {
     gym_member: "",
     membership_number: "",
     preferred_slot: "",
+    preferred_slot_2: "",
+    checkout_slot: "",
     waitlist_for: "",
     age_group: "",
     joining_with_friend: "",
@@ -109,6 +113,8 @@ export function buildSiteMetadata(input: {
   gymMember?: string | null;
   membershipNumber?: string | null;
   preferredSlot?: string | null;
+  preferredSlot2?: string | null;
+  checkoutSlot?: string | null;
   waitlistFor?: string | null;
   ageGroup?: string | null;
   joiningWithFriend?: string | null;
@@ -128,6 +134,8 @@ export function buildSiteMetadata(input: {
     gym_member: input.gymMember ?? "",
     membership_number: input.membershipNumber ?? "",
     preferred_slot: input.preferredSlot ?? "",
+    preferred_slot_2: input.preferredSlot2 ?? "",
+    checkout_slot: input.checkoutSlot ?? "",
     waitlist_for: input.waitlistFor ?? "",
     age_group: input.ageGroup ?? "",
     joining_with_friend: input.joiningWithFriend ?? "",

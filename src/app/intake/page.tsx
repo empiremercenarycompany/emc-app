@@ -24,6 +24,7 @@ export default async function IntakePage({
     typeof params.start === "string" ? params.start : "",
   );
   const stored = tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "");
+  const storedSecond = tableKey(viewer.intake?.secondTimeslotId ?? "", viewer.intake?.secondStartsOn ?? "");
 
   return (
     <Page tour="about-you" title="About you" lede="This is you, not your character.">
@@ -41,6 +42,7 @@ export default async function IntakePage({
                 goals: viewer.intake.goals,
                 timeslot: viewer.intake.timeslotId ?? "",
                 tableKey: requested || stored || "",
+                secondKey: storedSecond || "",
                 age: viewer.intake.ageBand ?? "",
                 gymMember: viewer.intake.gymMember ?? "",
                 membershipNumber: viewer.intake.membershipNumber ?? "",

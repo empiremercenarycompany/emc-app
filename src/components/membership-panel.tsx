@@ -6,6 +6,7 @@ import type { OwnBilling } from "@/lib/billing/own-billing";
 import { planLookupKey, type CheckoutPlan } from "@/lib/billing/price";
 import { productName, planTitle } from "@/lib/billing/plans";
 import { PAYMENT_STEP, PRICE_ONE_LINE, type GymMember } from "@/lib/rules/public-copy";
+import { FIRST_FULL_COPY, WAITLIST_COPY } from "@/lib/rules/seat-choice";
 
 export function MembershipPanel({
   billing,
@@ -18,6 +19,7 @@ export function MembershipPanel({
   teenWaitlist,
   hasIntake,
   couponNote,
+  heldChoice = null,
 }: {
   billing: OwnBilling | null;
   wanderlustEnabled: boolean;
@@ -29,6 +31,7 @@ export function MembershipPanel({
   teenWaitlist: boolean;
   hasIntake: boolean;
   couponNote?: string | null;
+  heldChoice?: "first" | "second" | "waitlist" | null;
 }) {
   const subscription = billing?.subscription ?? null;
   const period = formatPeriodEnd(subscription?.current_period_end ?? null);
@@ -41,13 +44,21 @@ export function MembershipPanel({
     membershipNumber,
     staffPlan,
     subscriptionStatus: subscription?.status ?? null,
+    heldChoice,
   });
   const lookup = offer.state === "pay" ? planLookupKey(offer.plan) : null;
 
   return (
     <Panel title="Membership">
-      <p>{PRICE_ONE_LINE}</p>
-      <p>{PAYMENT_STEP}</p>
+      {heldChoice === "waitlist" ? (
+        <p>{WAITLIST_COPY}</p>
+      ) : (
+        <>
+          <p>{PRICE_ONE_LINE}</p>
+          <p>{PAYMENT_STEP}</p>
+          {heldChoice === "second" ? <p>{FIRST_FULL_COPY}</p> : null}
+        </>
+      )}
       {subscription ? (
         <div>
           <p>{productName(subscription.plan_lookup_key)}</p>
@@ -72,7 +83,7 @@ export function MembershipPanel({
           <button type="submit">{offer.button}</button>
         </form>
       ) : null}
-      {offer.state === "hold" || offer.state === "closed" ? <p>{offer.message}</p> : null}
+      {heldChoice !== "waitlist" && (offer.state === "hold" || offer.state === "closed") ? <p>{offer.message}</p> : null}
       {billing?.customer ? (
         <form action="/api/billing-portal" method="post">
           <button className="secondary" type="submit">

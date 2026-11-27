@@ -39,9 +39,15 @@ export async function POST(request: Request) {
     membershipNumber: decision.membershipNumber,
     staffPlan: decision.staffPlan,
     subscriptionStatus: billing?.subscription?.status ?? null,
+    heldChoice: decision.heldChoice,
   });
   if (offer.state === "hold") return back("hold");
-  if (offer.state !== "pay") return back("closed");
+  if (offer.state !== "pay") {
+    if (decision.heldChoice === "waitlist" && !decision.teenWaitlist && decision.ageBand !== "under_16") {
+      return back("waitlist");
+    }
+    return back("closed");
+  }
   const pairConfirmed = flags.coupon ? await confirmedShieldmatePair(supabase, user.id) : false;
   let params;
   try {
@@ -55,6 +61,9 @@ export async function POST(request: Request) {
       email: user.email ?? null,
       customerId: billing?.customer?.stripe_customer_id ?? null,
       origin,
+      preferredSlot: decision.preferredSlot,
+      preferredSlot2: decision.preferredSlot2,
+      checkoutSlot: decision.heldChoice === "second" ? "second" : "first",
     });
   } catch (error) {
     if (error instanceof PriceConfigError) return back(error.plan === "standard" ? "price-standard" : "price-member");

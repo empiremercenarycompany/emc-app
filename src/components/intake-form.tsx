@@ -17,6 +17,7 @@ import {
   type GymMember,
 } from "@/lib/rules/public-copy";
 import { AGE_BANDS, DND_LEVELS, ENLIST_LIMITS, GOAL_CHIPS, GYM_LEVELS, intakeError } from "@/lib/rules/intake";
+import { SECOND_CHOICE_HINT } from "@/lib/rules/seat-choice";
 import { tableRequest, type SaturdayTable } from "@/lib/rules/saturday-tables";
 import type { ActionResult } from "@/lib/types";
 
@@ -35,6 +36,7 @@ export function IntakeForm({
     goals: string[];
     timeslot: string;
     tableKey?: string;
+    secondKey?: string;
     age?: string;
     gymMember?: string;
     membershipNumber?: string;
@@ -63,6 +65,9 @@ export function IntakeForm({
   const [selectedKey, setSelectedKey] = useState(
     tables.some((table) => table.key === initial?.tableKey) ? (initial?.tableKey ?? "") : "",
   );
+  const [secondKey, setSecondKey] = useState(
+    tables.some((table) => table.key === initial?.secondKey && table.key !== initial?.tableKey) ? (initial?.secondKey ?? "") : "",
+  );
   const [withFriend, setWithFriend] = useState(initial?.withFriend ?? false);
   const [friendName, setFriendName] = useState(initial?.friendName ?? "");
   const [anyOpen, setAnyOpen] = useState(initial?.anyOpen ?? false);
@@ -76,6 +81,7 @@ export function IntakeForm({
   );
   const chosen = custom.trim() ? [...goals.filter((goal) => goal !== custom.trim()), custom.trim()] : goals;
   const selected = tables.find((table) => table.key === selectedKey) ?? null;
+  const second = tables.find((table) => table.key === secondKey && table.key !== selectedKey) ?? null;
   const request = selected ? tableRequest(selected.seatsLeft, withFriend) : "";
   const waiting = age === "under_16";
   const gamegrid = isGameGridSrc(signupSrc);
@@ -94,6 +100,7 @@ export function IntakeForm({
     age,
   });
   if (!waiting && !selected) errors.table = intakeProblem ?? "Pick your Saturday table.";
+  if (!waiting && secondKey && secondKey === selectedKey) errors.second = "Pick a different second time.";
   else if (intakeProblem && intakeProblem !== "Pick your Saturday table." && intakeProblem !== "Say your age.") {
     errors.form = intakeProblem;
   }
@@ -112,6 +119,7 @@ export function IntakeForm({
         gymMember?: string;
         membershipNumber?: string;
         selectedKey?: string;
+        secondKey?: string;
         withFriend?: boolean;
         friendName?: string;
         writNumber?: string;
@@ -122,6 +130,7 @@ export function IntakeForm({
       }
       if (draft.membershipNumber) setMembershipNumber(draft.membershipNumber);
       if (draft.selectedKey) setSelectedKey(draft.selectedKey);
+      if (draft.secondKey && draft.secondKey !== draft.selectedKey) setSecondKey(draft.secondKey);
       if (draft.withFriend) setWithFriend(true);
       if (draft.friendName) setFriendName(draft.friendName);
       if (draft.writNumber) setWritNumber(draft.writNumber);
@@ -135,9 +144,9 @@ export function IntakeForm({
     if (!draftReady || initial) return;
     window.localStorage.setItem(
       "emc-intake-draft",
-      JSON.stringify({ age, gymMember, membershipNumber, selectedKey, withFriend, friendName, writNumber, signupSrc }),
+      JSON.stringify({ age, gymMember, membershipNumber, selectedKey, secondKey, withFriend, friendName, writNumber, signupSrc }),
     );
-  }, [draftReady, initial, age, gymMember, membershipNumber, selectedKey, withFriend, friendName, writNumber, signupSrc]);
+  }, [draftReady, initial, age, gymMember, membershipNumber, selectedKey, secondKey, withFriend, friendName, writNumber, signupSrc]);
 
   function toggleGoal(goal: string) {
     setGoals((current) => (current.includes(goal) ? current.filter((item) => item !== goal) : [...current, goal]));
@@ -237,10 +246,34 @@ export function IntakeForm({
               mode="pick"
               withFriend={withFriend}
               selectedKey={selectedKey}
-              onSelect={setSelectedKey}
+              onSelect={(key) => {
+                setSelectedKey(key);
+                if (key === secondKey) setSecondKey("");
+              }}
             />
             {showErrors && errors.table ? <p role="alert">{errors.table}</p> : null}
             </div>
+            <label id="field-second">
+              Second choice
+              <select
+                value={second?.key ?? ""}
+                onChange={(event) => setSecondKey(event.target.value)}
+                aria-describedby="second-choice-hint"
+              >
+                <option value="">No second time</option>
+                {tables
+                  .filter((table) => table.key !== selectedKey)
+                  .map((table) => (
+                    <option key={table.key} value={table.key}>
+                      {table.label}
+                    </option>
+                  ))}
+              </select>
+              <p className="text-mute" id="second-choice-hint">
+                {SECOND_CHOICE_HINT}
+              </p>
+              {showErrors && errors.second ? <p role="alert">{errors.second}</p> : null}
+            </label>
             <Choice checked={anyOpen} onChange={setAnyOpen}>
               {SATURDAY_TABLE_COPY.anyOpen}
             </Choice>
@@ -384,6 +417,8 @@ export function IntakeForm({
       )}
       <input type="hidden" name="timeslot" value={waiting ? "" : (selected?.timeslotId ?? "")} />
       <input type="hidden" name="starts_on" value={waiting ? "" : (selected?.startsOn ?? "")} />
+      <input type="hidden" name="second_timeslot" value={waiting ? "" : (second?.timeslotId ?? "")} />
+      <input type="hidden" name="second_starts_on" value={waiting ? "" : (second?.startsOn ?? "")} />
       <input type="hidden" name="squad_id" value={waiting ? "" : (selected?.squadId ?? "")} />
       <input type="hidden" name="table_request" value={waiting ? "" : request} />
       <input type="hidden" name="with_friend" value={!waiting && withFriend ? "1" : "0"} />

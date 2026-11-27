@@ -46,6 +46,11 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
     const numberProblem = membershipNumberError(membershipNumber);
     if (numberProblem) return { error: numberProblem };
   }
+  const secondSlot = normalizeTimeslotId(String(formData.get("second_timeslot") ?? "")) ?? "";
+  const secondStart = String(formData.get("second_starts_on") ?? "").trim();
+  if (!waiting && secondSlot && secondSlot === draft.timeslot && secondStart === startsOn) {
+    return { error: "Pick a different second time." };
+  }
   const signupSrc = providedText(formData, "signup_src");
   const writNumber = isGameGridSrc(signupSrc) ? providedText(formData, "writ_number") : signupSrc !== null ? "" : null;
   const problem = intakeError({
@@ -94,6 +99,19 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
   const message = dbError(rpcError);
   if (message) return { error: message };
 
+  let seatOutcome = "";
+  if (!waiting && draft.timeslot && user) {
+    const assigned = await supabase.rpc("assign_saturday_choices", {
+      p_second_slot: secondSlot || null,
+      p_second_start: secondStart || null,
+    });
+    const assignMessage = dbError(assigned.error);
+    if (assignMessage) return { error: assignMessage };
+    if (assigned.data && typeof assigned.data === "object" && "outcome" in assigned.data) {
+      seatOutcome = String((assigned.data as { outcome?: string }).outcome ?? "");
+    }
+  }
+
   if (formData.get("enlist") === "1" && user) {
     const record = await enlistRecord(supabase, user.id, user.email ?? "", draft, {
       phone: phone ?? "",
@@ -128,7 +146,7 @@ export async function saveIntake(formData: FormData): Promise<ActionResult> {
       } catch {
         console.error(JSON.stringify({ status: "failed", messageId: null }));
       }
-      if (waiting) return;
+      if (waiting || seatOutcome === "waitlist") return;
       try {
         const { sendPlayerConfirmation } = await import("@/lib/notify/player-confirmation");
         await sendPlayerConfirmation(confirmation);

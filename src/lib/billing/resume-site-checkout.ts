@@ -7,7 +7,7 @@ import {
   siteCheckoutSessionParams,
   sitePlanFor,
 } from "@/lib/billing/site-checkout";
-import { getStripe, isStripeCheckoutUrl } from "@/lib/billing/stripe";
+import { getStripe, isStripeCheckoutUrl, stripeWebhookSecret } from "@/lib/billing/stripe";
 import { createAnonClient } from "@/lib/supabase/server";
 
 export type ResumeResult =
@@ -20,6 +20,7 @@ type SignupRow = {
   gym_member?: string;
   membership_number?: string;
   preferred_slot?: string;
+  preferred_slot_2?: string;
   waitlist_for?: string;
   age_group?: string;
   teen_waitlist?: string | boolean;
@@ -43,11 +44,24 @@ export async function resumeSiteCheckout(emailInput: string, origin: string): Pr
   const row = data as SignupRow;
   if (row.paid === true) return { state: "paid" };
   if (isTeenWaitlist({ ageGroup: row.age_group, teenWaitlist: row.teen_waitlist })) return { state: "teen" };
+  const gate = await supabase.rpc("resume_checkout_gate", {
+    p_secret: stripeWebhookSecret() ?? "",
+    p_email: email,
+  });
+  const decision = gate.data as {
+    allowed?: boolean;
+    preferred_slot?: string;
+    preferred_slot_2?: string;
+    checkout_slot?: string;
+  } | null;
+  if (gate.error || !decision || decision.allowed !== true) return { state: "unavailable" };
   const metadata = buildSiteMetadata({
     email: row.email || email,
     gymMember: row.gym_member,
     membershipNumber: row.membership_number,
-    preferredSlot: row.preferred_slot,
+    preferredSlot: decision.preferred_slot || row.preferred_slot,
+    preferredSlot2: decision.preferred_slot_2 || row.preferred_slot_2,
+    checkoutSlot: decision.checkout_slot === "second" ? "second" : "first",
     waitlistFor: row.waitlist_for,
     ageGroup: row.age_group,
     joiningWithFriend: String(row.joining_with_friend ?? ""),

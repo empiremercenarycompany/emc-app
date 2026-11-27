@@ -14,6 +14,9 @@ export type MembershipDecision = {
   verifiedAt: string | null;
   staffPlan: CheckoutPlan | null;
   signupSrc: string | null;
+  heldChoice: "first" | "second" | "waitlist" | null;
+  preferredSlot: string | null;
+  preferredSlot2: string | null;
 };
 
 const EMPTY: MembershipDecision = {
@@ -27,10 +30,27 @@ const EMPTY: MembershipDecision = {
   verifiedAt: null,
   staffPlan: null,
   signupSrc: null,
+  heldChoice: null,
+  preferredSlot: null,
+  preferredSlot2: null,
 };
 
 const COLUMNS =
   "age_band, teen_waitlist, gym_member, membership_verified, gym_membership_number, membership_verified_by, membership_verified_at, checkout_plan, signup_src";
+const SLOT_COLUMNS = `${COLUMNS}, timeslot_id, table_starts_on, second_timeslot_id, second_starts_on, held_choice`;
+
+function missingColumn(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === "42703" || error.code === "PGRST204" || /column .+ does not exist/i.test(error.message ?? "");
+}
+
+function slotKey(timeslot: unknown, startsOn: unknown): string | null {
+  if (typeof timeslot !== "string" || typeof startsOn !== "string") return null;
+  const date = startsOn.slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+  if (timeslot !== "morning" && timeslot !== "afternoon" && timeslot !== "evening") return null;
+  return `${timeslot}:${date}`;
+}
 
 function textOrNull(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -40,8 +60,13 @@ function textOrNull(value: unknown): string | null {
 
 /** A missing column or a missing row stays on the $120 price. It does not unlock $60. */
 export async function loadMembershipDecision(supabase: SupabaseClient, userId: string): Promise<MembershipDecision> {
-  const { data, error } = await supabase.from("player_intake").select(COLUMNS).eq("user_id", userId).maybeSingle();
+  let result = await supabase.from("player_intake").select(SLOT_COLUMNS).eq("user_id", userId).maybeSingle();
+  if (missingColumn(result.error)) {
+    result = await supabase.from("player_intake").select(COLUMNS).eq("user_id", userId).maybeSingle();
+  }
+  const { data, error } = result;
   if (error || !data) return EMPTY;
+  const held = data.held_choice;
   return {
     hasIntake: true,
     ageBand: textOrNull(data.age_band),
@@ -55,5 +80,8 @@ export async function loadMembershipDecision(supabase: SupabaseClient, userId: s
       ? data.checkout_plan
       : null,
     signupSrc: textOrNull(data.signup_src),
+    heldChoice: held === "first" || held === "second" || held === "waitlist" ? held : null,
+    preferredSlot: slotKey(data.timeslot_id, data.table_starts_on),
+    preferredSlot2: slotKey(data.second_timeslot_id, data.second_starts_on),
   };
 }

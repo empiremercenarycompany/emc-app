@@ -67,6 +67,7 @@ export default async function SignupsPage() {
                 needsVerify={needsMembershipVerification(billing)}
                 staffPlan={billing.staffPlan}
                 noTime={row.placementStatus === "No time available"}
+                waitlist={billing.waitlist}
               />
             ) : null}
           </Panel>

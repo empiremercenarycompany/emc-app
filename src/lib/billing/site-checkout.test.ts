@@ -31,7 +31,9 @@ describe("site checkout contract", () => {
       gymMember: "current",
       membershipNumber: "",
       ageGroup: "age_16_17",
-      preferredSlot: "morning",
+      preferredSlot: "morning:2027-01-02",
+      preferredSlot2: "evening:2027-01-09",
+      checkoutSlot: "second",
       signupSrc: "fb-gamegrid",
       writNumber: "GG-12",
       heardFrom: "Game Grid writ",
@@ -41,6 +43,9 @@ describe("site checkout contract", () => {
       waitlistFor: "",
     });
     expect(metadata.signup_email).toBe("member@example.test");
+    expect(metadata.preferred_slot).toBe("morning:2027-01-02");
+    expect(metadata.preferred_slot_2).toBe("evening:2027-01-09");
+    expect(metadata.checkout_slot).toBe("second");
     expect(metadata.plan).toBe(EMC_MONTHLY);
     expect(metadata.surface).toBe("site");
     expect(Object.keys(metadata).sort()).toEqual([...SITE_CHECKOUT_METADATA_KEYS].sort());

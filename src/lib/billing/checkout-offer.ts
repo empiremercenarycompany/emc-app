@@ -2,6 +2,7 @@ import { MEMBER_CHECKOUT_BEFORE_VERIFY } from "@/lib/billing/member-checkout";
 import { canStartCheckout } from "@/lib/billing/own-billing";
 import { checkoutPlanFor, type CheckoutPlan } from "@/lib/billing/price";
 import { PAYMENT_STEP, type GymMember } from "@/lib/rules/public-copy";
+import { WAITLIST_COPY } from "@/lib/rules/seat-choice";
 
 export type CheckoutOffer =
   | { state: "pay"; plan: CheckoutPlan; button: string }
@@ -36,9 +37,11 @@ export function checkoutOffer(input: {
   membershipNumber: string | null;
   staffPlan: CheckoutPlan | null;
   subscriptionStatus: string | null;
+  heldChoice?: "first" | "second" | "waitlist" | null;
 }): CheckoutOffer {
   if (!canStartCheckout(input.subscriptionStatus)) return { state: "subscribed" };
   if (input.teenWaitlist || input.ageBand === "under_16") return { state: "closed", message: TEEN_CLOSED };
+  if (input.heldChoice === "waitlist") return { state: "closed", message: WAITLIST_COPY };
   if (!input.hasIntake) return { state: "closed", message: ENLIST_FIRST };
   const memberPending =
     input.gymMember === "current" && !input.membershipVerified && input.staffPlan !== "standard";

@@ -64,6 +64,9 @@ export function membershipCheckoutParams(input: {
   email: string | null;
   customerId: string | null;
   origin: string;
+  preferredSlot?: string | null;
+  preferredSlot2?: string | null;
+  checkoutSlot?: "first" | "second" | null;
 }): Stripe.Checkout.SessionCreateParams {
   const wanderlust = input.selection.lookupKeys.includes(WANDERLUST_ADDON);
   const metadata: Record<string, string> = {
@@ -74,6 +77,9 @@ export function membershipCheckoutParams(input: {
   };
   if (wanderlust) metadata.wanderlust = "true";
   if (input.selection.coupon) metadata.coupon = input.selection.coupon;
+  if (input.preferredSlot) metadata.preferred_slot = input.preferredSlot;
+  if (input.preferredSlot2) metadata.preferred_slot_2 = input.preferredSlot2;
+  if (input.checkoutSlot) metadata.checkout_slot = input.checkoutSlot;
 
   const params: Stripe.Checkout.SessionCreateParams = {
     mode: "subscription",
@@ -109,6 +115,9 @@ export async function buildMembershipCheckout(
     email: string | null;
     customerId: string | null;
     origin: string;
+    preferredSlot?: string | null;
+    preferredSlot2?: string | null;
+    checkoutSlot?: "first" | "second" | null;
   },
 ): Promise<Stripe.Checkout.SessionCreateParams | null> {
   const selection = checkoutSelection(input);
@@ -122,6 +131,9 @@ export async function buildMembershipCheckout(
     email: input.email,
     customerId: input.customerId,
     origin: input.origin,
+    preferredSlot: input.preferredSlot,
+    preferredSlot2: input.preferredSlot2,
+    checkoutSlot: input.checkoutSlot,
   });
 }
 

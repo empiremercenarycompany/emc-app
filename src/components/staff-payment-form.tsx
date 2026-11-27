@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { lapseGymMembership, markNoSaturdayTime, saveCheckoutPlan, setMembershipVerified } from "@/lib/actions/membership";
+import { lapseGymMembership, markNoSaturdayTime, saveCheckoutPlan, sendSeatOpenedLink, setMembershipVerified } from "@/lib/actions/membership";
 import type { CheckoutPlan } from "@/lib/billing/price";
 import {
   MEMBERSHIP_NUMBER_LABEL,
@@ -21,6 +21,7 @@ export function StaffPaymentForm({
   needsVerify,
   staffPlan,
   noTime,
+  waitlist = false,
 }: {
   userId: string;
   membershipNumber: string;
@@ -31,6 +32,7 @@ export function StaffPaymentForm({
   needsVerify: boolean;
   staffPlan: CheckoutPlan | null;
   noTime: boolean;
+  waitlist?: boolean;
 }) {
   const [verifiedState, verifyAction, verifyPending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => setMembershipVerified(formData),
@@ -42,6 +44,10 @@ export function StaffPaymentForm({
   );
   const [lapseState, lapseAction, lapsePending] = useActionState(
     async (_previous: ActionResult | null, formData: FormData) => lapseGymMembership(formData),
+    null,
+  );
+  const [seatState, seatAction, seatPending] = useActionState(
+    async (_previous: ActionResult | null, formData: FormData) => sendSeatOpenedLink(formData),
     null,
   );
   const [timeState, timeAction, timePending] = useActionState(
@@ -87,6 +93,19 @@ export function StaffPaymentForm({
         {lapseState && "error" in lapseState ? <p role="alert">{lapseState.error}</p> : null}
         {lapseState && "ok" in lapseState ? <p>Moved to $120.</p> : null}
       </form>
+      {waitlist ? (
+        <form action={seatAction}>
+          <input type="hidden" name="user_id" value={userId} />
+          <button type="submit" disabled={seatPending}>
+            {seatPending ? "Sending" : "Seat opened: send payment link"}
+          </button>
+          <p className="text-mute">
+            Sends this player a payment link for a Saturday time that has room. Nothing is emailed until you click.
+          </p>
+          {seatState && "error" in seatState ? <p role="alert">{seatState.error}</p> : null}
+          {seatState && "ok" in seatState ? <p>{seatState.note ?? "Payment link sent."}</p> : null}
+        </form>
+      ) : null}
       <form action={timeAction}>
         <input type="hidden" name="user_id" value={userId} />
         <button type="submit" disabled={timePending || noTime}>

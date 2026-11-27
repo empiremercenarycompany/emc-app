@@ -3,7 +3,10 @@ import { billingWriteFromEvent } from "@/lib/billing/normalize";
 import { notifyStaffOfPayment } from "@/lib/billing/notices";
 import { recordBillingEvent } from "@/lib/billing/record";
 import { sendAppInvite } from "@/lib/billing/app-invite";
+import { flagOversoldPayment, paidSeatFromEvent } from "@/lib/billing/oversold";
 import { safeBillingMessage, stripeWebhookSecret } from "@/lib/billing/stripe";
+import { NO_TIME_SUBJECT, OWNER_ALERT_EMAIL, noTimeNotice } from "@/lib/notify/no-time";
+import { sendStaffNotice } from "@/lib/notify/staff-notice";
 import type { BillingWrite, StaffPaymentNotice } from "@/lib/billing/types";
 
 export type BillingWebhookDeps = {
@@ -13,6 +16,8 @@ export type BillingWebhookDeps = {
   notify: (notice: StaffPaymentNotice) => Promise<void>;
   /** Sends the app sign-in link after a paid site checkout. Tests omit it. */
   invite?: (email: string) => Promise<void>;
+  /** Re-check the sold Saturday table. A full table keeps the payment and flags staff. */
+  flagNoTime?: (input: { secret: string; email: string; slot: string }) => Promise<boolean>;
 };
 
 export function defaultWebhookDeps(): BillingWebhookDeps {
@@ -22,7 +27,16 @@ export function defaultWebhookDeps(): BillingWebhookDeps {
     record: recordBillingEvent,
     notify: notifyStaffOfPayment,
     invite: sendAppInvite,
+    flagNoTime: flagOversoldPayment,
   };
+}
+
+async function mailNoTime(input: { email: string; slot: string }) {
+  await sendStaffNotice(
+    NO_TIME_SUBJECT,
+    noTimeNotice({ email: input.email, name: "", table: input.slot }),
+    OWNER_ALERT_EMAIL,
+  );
 }
 
 function log(result: string, extra: Record<string, string>) {
@@ -89,6 +103,18 @@ export async function handleStripeWebhook(request: Request, deps: BillingWebhook
       await deps.invite(write.site.email);
     } catch (error) {
       log("invite_failed", { eventId: event.id, type: event.type, message: safeBillingMessage(error) });
+    }
+  }
+
+  if (applied && deps.flagNoTime) {
+    const seat = paidSeatFromEvent(event);
+    if (seat) {
+      try {
+        const oversold = await deps.flagNoTime({ secret: deps.secret, email: seat.email, slot: seat.slot });
+        if (oversold) await mailNoTime(seat);
+      } catch (error) {
+        log("no_time_failed", { eventId: event.id, type: event.type, message: safeBillingMessage(error) });
+      }
     }
   }
 

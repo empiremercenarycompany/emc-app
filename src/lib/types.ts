@@ -143,7 +143,7 @@ export type Impact = {
 export type ActionResult =
   | { error: string }
   | { impact: Impact }
-  | { ok: true; saved?: { title: string; squadId: string | null } };
+  | { ok: true; saved?: { title: string; squadId: string | null }; note?: string };
 
 export type Viewer = {
   configured: boolean;
@@ -186,6 +186,9 @@ export type Viewer = {
     anyOpenTable: boolean;
     withFriend: boolean;
     friendName: string | null;
+    heldChoice: "first" | "second" | "waitlist" | null;
+    secondTimeslotId: string | null;
+    secondStartsOn: string | null;
   } | null;
 };
 

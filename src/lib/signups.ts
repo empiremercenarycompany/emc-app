@@ -61,10 +61,12 @@ type IntakeRow = {
   with_friend?: unknown;
   friend_name?: unknown;
   placement_status?: unknown;
+  held_choice?: unknown;
 };
 
 const INTAKE_COLUMNS =
   "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders, gym_member, gym_membership_number, membership_verified, membership_verified_by, membership_verified_at, checkout_plan, signup_src, preferred_squad_id, table_starts_on, table_request, with_friend, friend_name, placement_status";
+const INTAKE_CHOICE = `${INTAKE_COLUMNS}, held_choice`;
 const INTAKE_BASE =
   "user_id, phone, species_idea, class_idea, backstory_idea, fitness_experience, first_goals, dnd_experience, gym_experience, timeslot_id, session_reminders";
 
@@ -75,6 +77,7 @@ export type SignupBilling = {
   verifiedBy: string;
   verifiedAt: string;
   staffPlan: CheckoutPlan | null;
+  waitlist: boolean;
 };
 
 type SlotRow = { id?: unknown; label?: unknown };
@@ -89,13 +92,17 @@ export async function loadSignups(
 ): Promise<{ rows: SignupRecord[]; billing: Record<string, SignupBilling>; error: string | null }> {
   const [profiles, intakeFirst, slots, squadRows] = await Promise.all([
     supabase.from("profiles").select("id, email, display_name, app_role, created_at").order("created_at", { ascending: false }),
-    supabase.from("player_intake").select(INTAKE_COLUMNS),
+    supabase.from("player_intake").select(INTAKE_CHOICE),
     supabase.from("session_timeslots").select("id, label"),
     supabase.from("squads").select("id, name"),
   ]);
-  const intake = missingColumn(intakeFirst.error)
-    ? await supabase.from("player_intake").select(INTAKE_BASE)
-    : intakeFirst;
+  let intake = intakeFirst;
+  if (missingColumn(intake.error)) {
+    intake = await supabase.from("player_intake").select(INTAKE_COLUMNS);
+  }
+  if (missingColumn(intake.error)) {
+    intake = await supabase.from("player_intake").select(INTAKE_BASE);
+  }
   if (profiles.error || intake.error) return { rows: [], billing: {}, error: "Sign-ups could not be loaded." };
 
   const squadNameById = new Map<string, string>();
@@ -155,6 +162,7 @@ export async function loadSignups(
       verifiedBy: names.get(verifierId) || verifierId,
       verifiedAt,
       staffPlan,
+      waitlist: clean(details?.held_choice) === "waitlist",
     };
     return {
       userId,

@@ -1,4 +1,5 @@
 import { playerPriceFailureMessage } from "@/lib/billing/price";
+import { WAITLIST_COPY } from "@/lib/rules/seat-choice";
 import type { NoticeField } from "@/lib/notify/signup-fields";
 import { sendStaffNotice } from "@/lib/notify/staff-notice";
 import type { StaffPaymentNotice } from "@/lib/billing/types";
@@ -40,6 +41,8 @@ export function billingQueryNotice(flag: string | undefined): string | null {
       return "We're checking your Empire membership. You'll pay $60 a month once staff confirm it. Nothing is charged until then.";
     case "closed":
       return "Checkout isn't available for this enlistment. Nothing was charged.";
+    case "waitlist":
+      return WAITLIST_COPY;
     default:
       return null;
   }
