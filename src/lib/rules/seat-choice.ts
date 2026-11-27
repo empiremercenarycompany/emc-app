@@ -1,14 +1,23 @@
-/**
- * First and second Saturday choice.
- * The waitlist sentence is pending Strategy review.
- */
+/** First and second Saturday choice. Strategy's lines, used verbatim. */
+
+export const FIRST_CHOICE_PROMPT = "Pick your first choice";
+
+export const SECOND_CHOICE_PROMPT = "Pick a second choice";
+
+export const SECOND_CHOICE_HINT = "If your first choice is full, we'll seat you here.";
+
+export const LOCK_IN_BUTTON = "Lock in my seat";
+
+export const WAIT_FOR_FIRST = "I'd rather wait for my first choice";
+
+export const GOT_IT = "Got it";
 
 export const WAITLIST_COPY =
-  "Both times you picked are full right now. You're on the waitlist, and you won't pay anything until a seat opens.";
+  "Both times you picked are full right now. You're on the waitlist, and you won't pay anything until a seat opens. We'll email you as soon as one does, at today's rate.";
 
-export const SECOND_CHOICE_HINT = "A second time is optional. Pick one if your first choice might be full.";
-
-export const FIRST_FULL_COPY = "Your first choice is full. You can pay for your second choice.";
+export function firstFullCopy(tableLabel: string): string {
+  return `Your first choice is full, but your second choice has a seat: ${tableLabel}. Pay to lock it in.`;
+}
 
 export type SeatOutcome = "first" | "second" | "waitlist";
 

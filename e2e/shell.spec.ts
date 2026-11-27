@@ -348,7 +348,9 @@ test("about you shows enlist details", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Enlist details" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "About you" })).toBeVisible();
   await expect(page.getByLabel("Phone")).toBeVisible();
-  await expect(page.getByRole("radiogroup", { name: "Pick your Saturday table" })).toBeVisible();
+  await expect(page.getByRole("radiogroup", { name: "Pick your first choice" })).toBeVisible();
+  await expect(page.getByLabel("Pick a second choice")).toBeVisible();
+  await expect(page.getByText("If your first choice is full, we'll seat you here.")).toBeVisible();
   await expect(page.getByRole("checkbox", { name: "Joining with a friend?" })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Saturday evenings, 7 PM to 10 PM, first game Jan 2, 2027/ })).toBeVisible();
   await expect(page.getByText("7–10 PM (18+)")).toHaveCount(0);

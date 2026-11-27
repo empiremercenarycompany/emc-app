@@ -17,7 +17,7 @@ import {
   type GymMember,
 } from "@/lib/rules/public-copy";
 import { AGE_BANDS, DND_LEVELS, ENLIST_LIMITS, GOAL_CHIPS, GYM_LEVELS, intakeError } from "@/lib/rules/intake";
-import { SECOND_CHOICE_HINT } from "@/lib/rules/seat-choice";
+import { FIRST_CHOICE_PROMPT, SECOND_CHOICE_HINT, SECOND_CHOICE_PROMPT } from "@/lib/rules/seat-choice";
 import { tableRequest, type SaturdayTable } from "@/lib/rules/saturday-tables";
 import type { ActionResult } from "@/lib/types";
 
@@ -99,7 +99,7 @@ export function IntakeForm({
     timeslot: waiting ? "" : (selected?.timeslotId ?? ""),
     age,
   });
-  if (!waiting && !selected) errors.table = intakeProblem ?? "Pick your Saturday table.";
+  if (!waiting && !selected) errors.table = FIRST_CHOICE_PROMPT;
   if (!waiting && secondKey && secondKey === selectedKey) errors.second = "Pick a different second time.";
   else if (intakeProblem && intakeProblem !== "Pick your Saturday table." && intakeProblem !== "Say your age.") {
     errors.form = intakeProblem;
@@ -244,6 +244,7 @@ export function IntakeForm({
             <SaturdayHall
               tables={tables}
               mode="pick"
+              heading={FIRST_CHOICE_PROMPT}
               withFriend={withFriend}
               selectedKey={selectedKey}
               onSelect={(key) => {
@@ -254,7 +255,7 @@ export function IntakeForm({
             {showErrors && errors.table ? <p role="alert">{errors.table}</p> : null}
             </div>
             <label id="field-second">
-              Second choice
+              {SECOND_CHOICE_PROMPT}
               <select
                 value={second?.key ?? ""}
                 onChange={(event) => setSecondKey(event.target.value)}

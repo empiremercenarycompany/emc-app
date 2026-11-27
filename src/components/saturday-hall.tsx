@@ -34,6 +34,7 @@ export function SaturdayHall({
   selectedKey = "",
   yourKey = "",
   onSelect,
+  heading = SATURDAY_TABLE_COPY.heading,
 }: {
   tables: SaturdayTable[];
   mode: "pick" | "view";
@@ -42,6 +43,7 @@ export function SaturdayHall({
   selectedKey?: string;
   yourKey?: string;
   onSelect?: (key: string) => void;
+  heading?: string;
 }) {
   const labelId = "saturday-hall-title";
   const groupRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function SaturdayHall({
     <div className="saturday-hall">
       {showIntro ? (
         <>
-          <h2 id={labelId}>{SATURDAY_TABLE_COPY.heading}</h2>
+          <h2 id={labelId}>{heading}</h2>
           <p>{SATURDAY_TABLE_COPY.subhead}</p>
         </>
       ) : null}
@@ -95,7 +97,7 @@ export function SaturdayHall({
         className="saturday-hall-grid"
         role={mode === "pick" ? "radiogroup" : "list"}
         aria-labelledby={showIntro ? labelId : undefined}
-        aria-label={showIntro ? undefined : SATURDAY_TABLE_COPY.heading}
+        aria-label={showIntro ? undefined : heading}
         onKeyDown={onKeyDown}
       >
         <span className="hall-corner" aria-hidden="true" />

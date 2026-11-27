@@ -33,6 +33,12 @@ begin
   if v_open <> 6 or v_full then
     raise exception 'empty morning table is % full %', v_open, v_full;
   end if;
+  if has_function_privilege('anon', 'public.prefer_first_waitlist()', 'execute') then
+    raise exception 'anon can drop a seat hold';
+  end if;
+  if not has_function_privilege('authenticated', 'public.prefer_first_waitlist()', 'execute') then
+    raise exception 'a player cannot wait for the first choice';
+  end if;
   if public.note_oversold_payment('wrong-secret', 'one@example.test', 'morning:2027-01-02') then
     raise exception 'a bad secret flagged a payment';
   end if;

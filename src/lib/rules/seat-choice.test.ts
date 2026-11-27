@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { canonicalSlotKey, chooseSaturdaySeat, soldSlotKey, slotOversold, WAITLIST_COPY } from "./seat-choice";
+import {
+  canonicalSlotKey,
+  chooseSaturdaySeat,
+  firstFullCopy,
+  GOT_IT,
+  LOCK_IN_BUTTON,
+  soldSlotKey,
+  slotOversold,
+  WAIT_FOR_FIRST,
+  WAITLIST_COPY,
+} from "./seat-choice";
 
 describe("Saturday first and second choice", () => {
   it("pays for the first time when it is open", () => {
@@ -14,7 +24,10 @@ describe("Saturday first and second choice", () => {
   it("waitlists when neither time has room", () => {
     expect(chooseSaturdaySeat({ firstOpen: 0, secondOpen: 0 })).toBe("waitlist");
     expect(chooseSaturdaySeat({ firstOpen: 0, secondOpen: null })).toBe("waitlist");
-    expect(WAITLIST_COPY).toContain("won't pay anything until a seat opens");
+    expect(WAITLIST_COPY).toBe(
+      "Both times you picked are full right now. You're on the waitlist, and you won't pay anything until a seat opens. We'll email you as soon as one does, at today's rate.",
+    );
+    expect(GOT_IT).toBe("Got it");
   });
 
   it("needs two seats when a friend is coming", () => {
@@ -25,6 +38,14 @@ describe("Saturday first and second choice", () => {
   it("keeps a payment that landed after the seat filled", () => {
     expect(slotOversold(0)).toBe(false);
     expect(slotOversold(-1)).toBe(true);
+  });
+
+  it("uses the second-choice sentence and the lock-in button", () => {
+    expect(firstFullCopy("Saturday afternoons, 2 PM to 5 PM, first game Jan 2, 2027")).toBe(
+      "Your first choice is full, but your second choice has a seat: Saturday afternoons, 2 PM to 5 PM, first game Jan 2, 2027. Pay to lock it in.",
+    );
+    expect(LOCK_IN_BUTTON).toBe("Lock in my seat");
+    expect(WAIT_FOR_FIRST).toBe("I'd rather wait for my first choice");
   });
 
   it("names the sold table without a bare clock time", () => {

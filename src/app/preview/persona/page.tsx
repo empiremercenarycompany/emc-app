@@ -6,7 +6,7 @@ import { ShieldmateInvite } from "@/components/shieldmate-invite";
 import { Notice, Page } from "@/components/ui";
 import { isLocalHost } from "@/lib/dev-login";
 import { PAYMENT_STEP } from "@/lib/rules/public-copy";
-import { FIRST_FULL_COPY, WAITLIST_COPY } from "@/lib/rules/seat-choice";
+import { firstFullCopy, WAITLIST_COPY } from "@/lib/rules/seat-choice";
 
 export const dynamic = "force-dynamic";
 
@@ -79,9 +79,7 @@ export default async function PersonaPreviewPage() {
         />
       </section>
       <section id="second-open">
-        <Notice>
-          {FIRST_FULL_COPY} {PAYMENT_STEP}
-        </Notice>
+        <Notice>{firstFullCopy("Saturday afternoons, 2 PM to 5 PM, first game Jan 2, 2027")}</Notice>
         <MembershipPanel
           billing={billing}
           wanderlustEnabled={false}
@@ -93,6 +91,7 @@ export default async function PersonaPreviewPage() {
           teenWaitlist={false}
           hasIntake
           heldChoice="second"
+          secondTableLabel="Saturday afternoons, 2 PM to 5 PM, first game Jan 2, 2027"
         />
       </section>
       <section id="waitlist">

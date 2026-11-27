@@ -5,8 +5,9 @@ import { formatPeriodEnd, statusLabel } from "@/lib/billing/display";
 import type { OwnBilling } from "@/lib/billing/own-billing";
 import { planLookupKey, type CheckoutPlan } from "@/lib/billing/price";
 import { productName, planTitle } from "@/lib/billing/plans";
+import { WaitForFirst } from "@/components/wait-for-first";
 import { PAYMENT_STEP, PRICE_ONE_LINE, type GymMember } from "@/lib/rules/public-copy";
-import { FIRST_FULL_COPY, WAITLIST_COPY } from "@/lib/rules/seat-choice";
+import { firstFullCopy, GOT_IT, LOCK_IN_BUTTON, WAITLIST_COPY } from "@/lib/rules/seat-choice";
 
 export function MembershipPanel({
   billing,
@@ -20,6 +21,7 @@ export function MembershipPanel({
   hasIntake,
   couponNote,
   heldChoice = null,
+  secondTableLabel = null,
 }: {
   billing: OwnBilling | null;
   wanderlustEnabled: boolean;
@@ -32,6 +34,7 @@ export function MembershipPanel({
   hasIntake: boolean;
   couponNote?: string | null;
   heldChoice?: "first" | "second" | "waitlist" | null;
+  secondTableLabel?: string | null;
 }) {
   const subscription = billing?.subscription ?? null;
   const period = formatPeriodEnd(subscription?.current_period_end ?? null);
@@ -56,7 +59,7 @@ export function MembershipPanel({
         <>
           <p>{PRICE_ONE_LINE}</p>
           <p>{PAYMENT_STEP}</p>
-          {heldChoice === "second" ? <p>{FIRST_FULL_COPY}</p> : null}
+          {heldChoice === "second" && secondTableLabel ? <p>{firstFullCopy(secondTableLabel)}</p> : null}
         </>
       )}
       {subscription ? (
@@ -80,8 +83,14 @@ export function MembershipPanel({
               Wanderlust add-on · $30 a month
             </Choice>
           ) : null}
-          <button type="submit">{offer.button}</button>
+          <button type="submit">{heldChoice === "second" ? LOCK_IN_BUTTON : offer.button}</button>
         </form>
+      ) : null}
+      {offer.state === "pay" && heldChoice === "second" ? <WaitForFirst /> : null}
+      {heldChoice === "waitlist" ? (
+        <a className="button primary" href="/profile">
+          {GOT_IT}
+        </a>
       ) : null}
       {heldChoice !== "waitlist" && (offer.state === "hold" || offer.state === "closed") ? <p>{offer.message}</p> : null}
       {billing?.customer ? (
