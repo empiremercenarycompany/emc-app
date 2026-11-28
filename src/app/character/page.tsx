@@ -24,6 +24,7 @@ import {
 import { currentWeekStart } from "@/lib/rules/dates";
 import { alsoTrainedLabels, characterSkillIds, proficiencyRecord } from "@/lib/rules/proficiency-grants";
 import { speciesLabel } from "@/lib/rules/species-names";
+import { level0SpeciesTraitLine } from "@/lib/rules/species-traits";
 import { ABILITIES, type AbilityName } from "@/lib/rules/starting-array";
 import { GrewUpForm } from "@/components/grew-up-form";
 import { PortraitForm } from "@/components/portrait-form";
@@ -446,6 +447,7 @@ export default async function CharacterPage({
               {character.rank} · level {character.level}
               {character.species ? ` · ${speciesLabel(character.species)}` : ""}
             </p>
+            {level0SpeciesTraitLine(character.species) ? <p>{level0SpeciesTraitLine(character.species)}</p> : null}
             <p>
               {character.profession}
               {character.origin_feat ? ` · ${character.origin_feat}` : ""}

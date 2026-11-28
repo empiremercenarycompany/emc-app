@@ -23,7 +23,7 @@ describe("public payment and age copy", () => {
   it("uses the schedule payment line and the age rule", () => {
     expect(SCHEDULE_PRICE_COPY.startsWith("Founding Recruit Rate: $120/month")).toBe(true);
     expect(SCHEDULE_PRICE_COPY.indexOf("$120/month")).toBeLessThan(SCHEDULE_PRICE_COPY.indexOf("$60/month"));
-    expect(SCHEDULE_PRICE_COPY).toContain("No payments are taken in the app.");
+    expect(SCHEDULE_PRICE_COPY).toContain("Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.");
     expect(PRICE_ONE_LINE).toBe("$120/month with gym membership included. Current Empire members: $60/month.");
     expect(FAQ_COST_COPY).not.toMatch(/shieldmate/i);
     expect(GYM_MEMBER_OPTIONS.map((option) => option.id)).toEqual(["not_yet", "former", "current"]);
@@ -31,9 +31,11 @@ describe("public payment and age copy", () => {
     expect(confirmationRateLine("current")).toContain("$60 a month");
     expect(confirmationRateLine(null)).toContain("Staff will confirm which applies");
     expect(gamegridLead("gamegrid-writ")).toBe(true);
+    expect(gamegridLead("fb-gamegrid")).toBe(true);
     expect(gamegridLead("friend")).toBe(false);
     expect(gamegridWritLine("gamegrid-writ")).toContain("after your first paid month");
-    expect(gamegridWritLine("gamegrid-poster")).toBeNull();
+    expect(gamegridWritLine("gamegrid-poster")).toContain("after your first paid month");
+    expect(gamegridWritLine("friend")).toBeNull();
     expect(SCHEDULE_PRICE_COPY).not.toMatch(/pay on the Empire/i);
     expect(SCHEDULE_PRICE_COPY).not.toMatch(/shieldmate/i);
     expect(AGE_RULE).toContain("16 and up");

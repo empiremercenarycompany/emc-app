@@ -240,7 +240,7 @@ export default async function BarracksPage({
           <Notice>New here? Dotted words open a plain meaning. Check in once a week, record the work you did, and your coach handles the numbers.</Notice>
         </div>
       ) : null}
-      {viewer.userId && viewer.firstVisit ? (
+      {viewer.userId && viewer.firstVisit && (viewer.today ?? "") >= "2027-01-02" ? (
         <>
           <Panel title="Set a goal" wide>
             <p>Goals are the work of the Company.</p>
@@ -264,13 +264,12 @@ export default async function BarracksPage({
       ) : null}
       {!viewer.character ? (
         <Panel title="Start here" wide>
-          {viewer.userId && viewer.firstVisit ? (
-            <p>Your character comes first. Fill Out Recruitment Papers, then the rest of the Company opens up.</p>
-          ) : null}
+          <p>You start as a commoner, grow by training, and choose a class at the week 6 ceremony.</p>
           <ol className="list-decimal pl-5">
-            <li>{viewer.userId ? "Join the Company — Done" : "Join the Company"}</li>
-            <li>Fill Out Recruitment Papers</li>
-            <li>Record work</li>
+            <li>{viewer.userId ? "Recruitment Papers" : "Sign in"}</li>
+            <li>Pick your Saturday table and rate</li>
+            <li>Pay in the app</li>
+            <li>Staff confirm your Saturday time within 2 days</li>
           </ol>
         </Panel>
       ) : (

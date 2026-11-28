@@ -15,7 +15,7 @@ import {
 } from "@/lib/rules/saturday-tables";
 
 function chairs(table: SaturdayTable, markPair: boolean) {
-  const filled = Math.min(6, table.placed);
+  const filled = Math.min(6, 6 - table.seatsLeft);
   let pairLeft = markPair ? 2 : 0;
   return Array.from({ length: 6 }, (_item, index) => {
     const open = index >= filled;
@@ -34,6 +34,7 @@ export function SaturdayHall({
   selectedKey = "",
   yourKey = "",
   onSelect,
+  heading = SATURDAY_TABLE_COPY.heading,
 }: {
   tables: SaturdayTable[];
   mode: "pick" | "view";
@@ -42,6 +43,7 @@ export function SaturdayHall({
   selectedKey?: string;
   yourKey?: string;
   onSelect?: (key: string) => void;
+  heading?: string;
 }) {
   const labelId = "saturday-hall-title";
   const groupRef = useRef<HTMLDivElement>(null);
@@ -86,7 +88,7 @@ export function SaturdayHall({
     <div className="saturday-hall">
       {showIntro ? (
         <>
-          <h2 id={labelId}>{SATURDAY_TABLE_COPY.heading}</h2>
+          <h2 id={labelId}>{heading}</h2>
           <p>{SATURDAY_TABLE_COPY.subhead}</p>
         </>
       ) : null}
@@ -95,7 +97,7 @@ export function SaturdayHall({
         className="saturday-hall-grid"
         role={mode === "pick" ? "radiogroup" : "list"}
         aria-labelledby={showIntro ? labelId : undefined}
-        aria-label={showIntro ? undefined : SATURDAY_TABLE_COPY.heading}
+        aria-label={showIntro ? undefined : heading}
         onKeyDown={onKeyDown}
       >
         <span className="hall-corner" aria-hidden="true" />
@@ -114,6 +116,7 @@ export function SaturdayHall({
           const text = (
             <>
               <span className="saturday-label">{table.label}</span>
+              <span className="saturday-date">First game {SATURDAY_TABLE_COPY.dateHead[table.startsOn]}</span>
               {table.squadLine ? <span className="saturday-squad">{table.squadLine}</span> : null}
               <span className="saturday-seats">{seatLine(table.seatsLeft)}</span>
               <span className="seat-row" aria-hidden="true">

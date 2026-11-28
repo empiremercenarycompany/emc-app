@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { INFERNI, SERAPH, speciesLabel } from "./species-names";
+import { PENDING_NAMES } from "./pending-names";
+import { speciesLabel } from "./species-names";
 
-describe("homebrew species labels", () => {
-  it("renames two ids and leaves the rest", () => {
-    expect(speciesLabel("aasimar")).toBe(SERAPH);
-    expect(speciesLabel("tiefling")).toBe(INFERNI);
+describe("species labels", () => {
+  it("shows Aasimar and Tiefling until a canon rename", () => {
+    expect(speciesLabel("aasimar")).toBe("Aasimar");
+    expect(speciesLabel("tiefling")).toBe("Tiefling");
     expect(speciesLabel("human", "Human")).toBe("Human");
-    expect(INFERNI).toBe("Inferni");
+    expect(PENDING_NAMES.find((row) => row.id === "aasimar")?.pendingRename).toBe(true);
+    expect(PENDING_NAMES.find((row) => row.id === "tiefling")?.pendingRename).toBe(true);
   });
 });

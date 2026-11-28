@@ -12,9 +12,13 @@ function logSend(result: SendResult) {
   else console.error(line);
 }
 
-/** Gmail SMTP. Missing config skips the send. A mail failure stays here. */
-export async function sendStaffNotice(event: string, fields: NoticeField[]): Promise<void> {
-  const to = process.env.EMC_NOTIFY_TO?.trim();
+/**
+ * Gmail SMTP. Missing config skips the send. A mail failure stays here.
+ * `toAddress` overrides EMC_NOTIFY_TO for an owner alert. Tests leave the SMTP
+ * password unset, so this stays a no-op and never sends.
+ */
+export async function sendStaffNotice(event: string, fields: NoticeField[], toAddress?: string): Promise<void> {
+  const to = (toAddress ?? process.env.EMC_NOTIFY_TO)?.trim();
   const user = process.env.EMC_NOTIFY_SMTP_USER?.trim();
   const pass = process.env.EMC_NOTIFY_SMTP_PASSWORD;
   if (!to || !user || !pass) return;

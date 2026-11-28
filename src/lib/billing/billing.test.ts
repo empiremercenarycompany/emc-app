@@ -308,6 +308,80 @@ describe("stripe webhook", () => {
     expect(response.status).toBe(200);
   });
 
+  it("keeps a payment when the Saturday table filled and tells staff", async () => {
+    const payload = JSON.stringify({
+      id: "evt_full",
+      object: "event",
+      type: "checkout.session.completed",
+      created: 1763760000,
+      data: {
+        object: {
+          object: "checkout.session",
+          id: "cs_full",
+          customer: "cus_full",
+          customer_email: "full@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_gym_monthly",
+            signup_email: "full@example.test",
+            preferred_slot: "morning:2027-01-02",
+            preferred_slot_2: "evening:2027-01-09",
+            checkout_slot: "second",
+          },
+        },
+      },
+    });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });
+    const flagNoTime = vi.fn().mockResolvedValue(true);
+    const response = await handleStripeWebhook(
+      signedRequest(payload, signature),
+      deps({ record: vi.fn().mockResolvedValue({ applied: true }), flagNoTime }),
+    );
+    expect(response.status).toBe(200);
+    expect(flagNoTime).toHaveBeenCalledWith({
+      secret: SECRET,
+      email: "full@example.test",
+      slot: "evening:2027-01-09",
+    });
+  });
+
+  it("still returns 200 when the full-table check fails", async () => {
+    const payload = JSON.stringify({
+      id: "evt_full_fail",
+      object: "event",
+      type: "checkout.session.completed",
+      created: 1763760000,
+      data: {
+        object: {
+          object: "checkout.session",
+          id: "cs_full_fail",
+          customer: "cus_full_fail",
+          customer_email: "full@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_gym_monthly",
+            signup_email: "full@example.test",
+            preferred_slot: "morning:2027-01-02",
+          },
+        },
+      },
+    });
+    const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await handleStripeWebhook(
+      signedRequest(payload, signature),
+      deps({
+        record: vi.fn().mockResolvedValue({ applied: true }),
+        flagNoTime: vi.fn().mockRejectedValue(new Error("db down")),
+      }),
+    );
+    expect(response.status).toBe(200);
+  });
+
   it("ignores events outside the six billing types", async () => {
     const payload = JSON.stringify({ id: "evt_other", object: "event", type: "charge.succeeded", created: 1, data: { object: {} } });
     const signature = Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET });
@@ -368,7 +442,7 @@ describe("billing event normalize", () => {
     expect(JSON.stringify(write?.subscription)).not.toContain("transfer");
   });
 
-  it("links an app checkout to the auth uid and a site checkout to the signup id", () => {
+  it("links an app checkout to the auth uid and a site checkout by email, not a signup id", () => {
     const app = billingWriteFromEvent({
       id: "evt_app",
       object: "event",
@@ -400,11 +474,32 @@ describe("billing event normalize", () => {
           object: "checkout.session",
           client_reference_id: SIGNUP,
           customer: "cus_site",
-          metadata: { surface: "site" },
+          customer_email: "Member@example.test",
+          payment_status: "paid",
+          status: "complete",
+          metadata: {
+            surface: "site",
+            plan: "emc_monthly",
+            signup_email: "Member@example.test",
+            gym_member: "current",
+            membership_number: "",
+            age_group: "age_16_17",
+          },
         },
       },
     } as unknown as Stripe.Event);
-    expect(site?.customer).toMatchObject({ user_id: null, signup_id: SIGNUP });
+    expect(site?.customer).toMatchObject({
+      user_id: null,
+      signup_id: null,
+      email: "Member@example.test",
+    });
+    expect(site?.site).toMatchObject({
+      email: "member@example.test",
+      plan: "emc_monthly",
+      invite: true,
+    });
+    expect(site?.site?.metadata).not.toHaveProperty("signup_id");
+    expect(JSON.stringify(site?.site)).not.toContain("shieldmate");
   });
 });
 

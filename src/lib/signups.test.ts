@@ -29,6 +29,7 @@ const row: SignupRecord = {
   tableSquad: "CCC",
   withFriend: "no",
   friendName: "",
+  placementStatus: "",
 };
 
 describe("sign-up export", () => {

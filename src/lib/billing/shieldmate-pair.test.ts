@@ -3,34 +3,19 @@ import { describe, expect, it } from "vitest";
 import { confirmedShieldmatePair } from "./shieldmate-pair";
 
 const USER = "11111111-1111-4111-8111-111111111111";
-const CHARACTER = "22222222-2222-4222-8222-222222222222";
 
 function client(options: {
-  characterId?: string | null;
-  characterError?: boolean;
-  rows?: { id: string }[];
+  rows?: { paired_at: string; expires_at: string }[];
   rowError?: boolean;
-  onFilter?: (filter: string) => void;
 }): SupabaseClient {
   return {
-    from(table: string) {
+    from() {
       return {
         select() {
           return {
-            eq(column: string, value: string) {
-              if (table === "characters") {
-                return {
-                  maybeSingle: async () => ({
-                    data: options.characterError ? null : options.characterId ? { id: options.characterId } : null,
-                    error: options.characterError ? { message: "missing" } : null,
-                  }),
-                };
-              }
+            eq() {
               return {
-                or(filter: string) {
-                  options.onFilter?.(filter);
-                  expect(column).toBe("status");
-                  expect(value).toBe("approved");
+                or() {
                   return {
                     limit: async () => ({
                       data: options.rowError ? null : (options.rows ?? []),
@@ -48,19 +33,24 @@ function client(options: {
 }
 
 describe("confirmed Shieldmate pair", () => {
-  it("is true only for this player's approved request", async () => {
-    const seen: string[] = [];
+  it("is true only when the invite was accepted before it expired", async () => {
     const yes = await confirmedShieldmatePair(
-      client({ characterId: CHARACTER, rows: [{ id: "row" }], onFilter: (filter) => seen.push(filter) }),
+      client({
+        rows: [{ paired_at: "2026-11-20T00:00:00.000Z", expires_at: "2026-12-04T00:00:00.000Z" }],
+      }),
       USER,
     );
     expect(yes).toBe(true);
-    expect(seen[0]).toContain(`requested_by.eq.${USER}`);
-    expect(seen[0]).toContain(`partner_character_id.eq.${CHARACTER}`);
-
-    expect(await confirmedShieldmatePair(client({ characterId: CHARACTER, rows: [] }), USER)).toBe(false);
-    expect(await confirmedShieldmatePair(client({ characterError: true, rows: [{ id: "row" }] }), USER)).toBe(false);
-    expect(await confirmedShieldmatePair(client({ characterId: CHARACTER, rowError: true }), USER)).toBe(false);
-    expect(await confirmedShieldmatePair(client({ rows: [{ id: "row" }] }), "not-a-user")).toBe(false);
+    expect(
+      await confirmedShieldmatePair(
+        client({
+          rows: [{ paired_at: "2026-12-05T00:00:00.000Z", expires_at: "2026-12-04T00:00:00.000Z" }],
+        }),
+        USER,
+      ),
+    ).toBe(false);
+    expect(await confirmedShieldmatePair(client({ rows: [] }), USER)).toBe(false);
+    expect(await confirmedShieldmatePair(client({ rowError: true }), USER)).toBe(false);
+    expect(await confirmedShieldmatePair(client({ rows: [] }), "not-a-user")).toBe(false);
   });
 });

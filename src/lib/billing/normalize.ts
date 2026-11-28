@@ -1,6 +1,14 @@
 import type Stripe from "stripe";
 import { basePlanFromPrices } from "@/lib/billing/price";
 import { SHIELDMATE_COUPON_ID, WANDERLUST_ADDON } from "@/lib/billing/plans";
+import {
+  isTeenWaitlist,
+  normalizeSignupEmail,
+  siteLookupKey,
+  siteMetadataFromUnknown,
+  sitePlanFor,
+} from "@/lib/billing/site-checkout";
+import type { SiteCheckoutWrite } from "@/lib/billing/types";
 import type {
   BillingCustomerWrite,
   BillingEventType,
@@ -24,7 +32,10 @@ export function stripeId(value: string | { id: string } | null | undefined): str
   return typeof value.id === "string" ? value.id : null;
 }
 
-/** App checkout stores the auth uid. A later site checkout can store a signup id when surface is site. */
+/**
+ * App checkout stores the auth uid.
+ * Site checkout has no signup id. The player is matched later by email.
+ */
 export function linkIds(
   metadata: Stripe.Metadata | null | undefined,
   clientReferenceId: string | null | undefined,
@@ -33,8 +44,38 @@ export function linkIds(
   const metaUser = uuidOrNull(metadata?.user_id);
   const metaSignup = uuidOrNull(metadata?.signup_id);
   const ref = uuidOrNull(clientReferenceId);
-  if (surface === "site") return { userId: metaUser, signupId: metaSignup ?? ref };
+  if (surface === "site") return { userId: null, signupId: null };
   return { userId: metaUser ?? ref, signupId: metaSignup };
+}
+
+function siteCheckoutWrite(
+  metadata: Stripe.Metadata | null | undefined,
+  extras: {
+    email?: string | null;
+    stripeCustomerId: string | null;
+    stripeSubscriptionId: string | null;
+    checkoutSessionId: string | null;
+    paid: boolean;
+  },
+): SiteCheckoutWrite | null {
+  if ((metadata?.surface ?? "") !== "site" || !extras.paid) return null;
+  const parsed = siteMetadataFromUnknown(metadata);
+  const email = normalizeSignupEmail(parsed.signup_email) ?? normalizeSignupEmail(extras.email);
+  if (!email) return null;
+  parsed.signup_email = email;
+  const plan = sitePlanFor(parsed.gym_member, parsed.plan);
+  parsed.plan = siteLookupKey(plan);
+  const teen = isTeenWaitlist({ ageGroup: parsed.age_group });
+  return {
+    email,
+    status: "paid",
+    plan: parsed.plan,
+    metadata: parsed,
+    stripeCustomerId: extras.stripeCustomerId,
+    stripeSubscriptionId: extras.stripeSubscriptionId,
+    checkoutSessionId: extras.checkoutSessionId,
+    invite: !teen,
+  };
 }
 
 function centsFromMetadata(metadata: Stripe.Metadata | null | undefined): number | null {
@@ -109,9 +150,10 @@ function fromCheckout(event: Stripe.Event): BillingWrite | null {
   if (event.type !== "checkout.session.completed") return null;
   const session = event.data.object;
   const links = linkIds(session.metadata, session.client_reference_id);
-  const email = session.customer_details?.email ?? session.customer_email ?? null;
+  const email = session.metadata?.signup_email ?? session.customer_details?.email ?? session.customer_email ?? null;
   const expanded = session.subscription && typeof session.subscription !== "string" ? session.subscription : null;
   const subscription = expanded ? normalizeSubscription(expanded) : null;
+  const paid = session.payment_status === "paid" || session.status === "complete";
   return {
     id: event.id,
     type: event.type,
@@ -120,6 +162,13 @@ function fromCheckout(event: Stripe.Event): BillingWrite | null {
     customer: customerWrite(stripeId(session.customer), links, email),
     subscription,
     notice: null,
+    site: siteCheckoutWrite(session.metadata, {
+      email,
+      stripeCustomerId: stripeId(session.customer),
+      stripeSubscriptionId: stripeId(session.subscription),
+      checkoutSessionId: session.id,
+      paid,
+    }),
   };
 }
 
@@ -138,10 +187,21 @@ function fromSubscription(event: Stripe.Event): BillingWrite | null {
     created: event.created,
     raw: event,
     customer: subscription
-      ? customerWrite(subscription.stripe_customer_id, { userId: subscription.user_id, signupId: subscription.signup_id }, null)
+      ? customerWrite(
+          subscription.stripe_customer_id,
+          { userId: subscription.user_id, signupId: subscription.signup_id },
+          event.data.object.metadata?.signup_email ?? null,
+        )
       : null,
     subscription,
     notice: null,
+    site: siteCheckoutWrite(event.data.object.metadata, {
+      email: event.data.object.metadata?.signup_email ?? null,
+      stripeCustomerId: subscription?.stripe_customer_id ?? stripeId(event.data.object.customer),
+      stripeSubscriptionId: event.data.object.id,
+      checkoutSessionId: null,
+      paid: event.data.object.status === "active" || event.data.object.status === "trialing",
+    }),
   };
 }
 
@@ -174,6 +234,7 @@ function fromInvoice(event: Stripe.Event): BillingWrite | null {
     customer: customerWrite(stripeId(invoice.customer), links, invoice.customer_email ?? null),
     subscription: null,
     notice,
+    site: null,
   };
 }
 

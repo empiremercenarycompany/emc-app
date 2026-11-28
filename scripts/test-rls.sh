@@ -40,6 +40,8 @@ run_sql -f supabase/tests/backgrounds.test.sql
 run_sql -f supabase/tests/proficiency_grants.test.sql
 run_sql -f supabase/tests/intake.test.sql
 run_sql -f supabase/tests/saturday_tables.test.sql
+run_sql -f supabase/tests/saturday_choice.test.sql
+run_sql -f supabase/tests/signup_lookup_secret.test.sql
 run_sql -f supabase/tests/signup_notice.test.sql
 run_sql -f supabase/tests/staff_edit.test.sql
 run_sql -f supabase/tests/clearance.test.sql

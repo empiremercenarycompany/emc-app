@@ -5,7 +5,7 @@ import { signInError } from "@/lib/rules/auth-error";
 import { createBrowser } from "@/lib/supabase/browser";
 import { MISSING_ENV } from "@/lib/supabase/env";
 
-export function SignInForm() {
+export function SignInForm({ nextPath = "/" }: { nextPath?: string }) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -33,7 +33,7 @@ export function SignInForm() {
     setPending(true);
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}` },
     });
     setPending(false);
     if (error) {
@@ -78,7 +78,6 @@ export function SignInForm() {
             Check your email. The link is for {email}.
           </p>
           <p>Check spam if it is not in your inbox.</p>
-          <p>{"Open the link in the same browser you're using now."}</p>
           <button type="submit" disabled={pending || !canResend}>
             {canResend ? "Send the link again" : "Send the link again in a moment"}
           </button>

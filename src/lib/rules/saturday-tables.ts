@@ -66,10 +66,11 @@ export function tableLabel(timeslotId: string, startsOn: string): string | null 
   return key ? SATURDAY_TABLE_COPY.labels[key] : null;
 }
 
-/** Staff-placed seats only. Pending requests are not seats. No guessed scarcity. */
-export function seatsLeftFromPlaced(placed: number): number {
-  const count = Number.isFinite(placed) ? Math.max(0, Math.floor(placed)) : 0;
-  return Math.max(0, TABLE_SIZE - count);
+/** Placed characters plus pending seat requests. The number never goes below zero. */
+export function seatsLeftFromPlaced(placed: number, pending = 0): number {
+  const seated = Number.isFinite(placed) ? Math.max(0, Math.floor(placed)) : 0;
+  const waiting = Number.isFinite(pending) ? Math.max(0, Math.floor(pending)) : 0;
+  return Math.max(0, TABLE_SIZE - seated - waiting);
 }
 
 export function seatLine(seatsLeft: number): string {
@@ -83,7 +84,17 @@ export function squadLineFor(name: string | null | undefined, showNames: boolean
   return trimmed || SATURDAY_TABLE_COPY.squadForming;
 }
 
-export function buildSaturdayHall(squads: PlacedSquad[], showNames: boolean): SaturdayTable[] {
+export type PendingSeat = {
+  timeslotId: string;
+  startsOn: string;
+  pending: number;
+};
+
+export function buildSaturdayHall(
+  squads: PlacedSquad[],
+  showNames: boolean,
+  pending: PendingSeat[] = [],
+): SaturdayTable[] {
   const tables: SaturdayTable[] = [];
   for (const startsOn of TABLE_STARTS) {
     for (const timeslotId of TABLE_SLOTS) {
@@ -94,6 +105,9 @@ export function buildSaturdayHall(squads: PlacedSquad[], showNames: boolean): Sa
       const named = matches.find((squad) => squad.name.trim());
       const squad = named ?? matches[0] ?? null;
       const placed = squad ? Math.max(0, squad.placed) : 0;
+      const waiting = pending
+        .filter((row) => normalizeTimeslotId(row.timeslotId) === timeslotId && row.startsOn === startsOn)
+        .reduce((sum, row) => sum + Math.max(0, row.pending), 0);
       tables.push({
         key,
         timeslotId,
@@ -102,7 +116,7 @@ export function buildSaturdayHall(squads: PlacedSquad[], showNames: boolean): Sa
         squadId: showNames && squad ? squad.id : null,
         squadLine: squadLineFor(squad?.name, showNames && Boolean(squad)),
         placed,
-        seatsLeft: seatsLeftFromPlaced(placed),
+        seatsLeft: seatsLeftFromPlaced(placed, waiting),
       });
     }
   }
@@ -113,8 +127,8 @@ export function buildSaturdayHall(squads: PlacedSquad[], showNames: boolean): Sa
  * A squad with no row yet still shows Squad forming inside the app.
  * Logged-out callers pass showNames false and get no squad line.
  */
-export function hallForApp(squads: PlacedSquad[], showNames: boolean): SaturdayTable[] {
-  return buildSaturdayHall(squads, showNames).map((table) => {
+export function hallForApp(squads: PlacedSquad[], showNames: boolean, pending: PendingSeat[] = []): SaturdayTable[] {
+  return buildSaturdayHall(squads, showNames, pending).map((table) => {
     if (!showNames || table.squadLine) return table;
     return { ...table, squadLine: SATURDAY_TABLE_COPY.squadForming };
   });

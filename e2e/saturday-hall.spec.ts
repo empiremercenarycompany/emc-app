@@ -10,7 +10,7 @@ test("a recruit can pick a Saturday table from the keyboard", async ({ page }) =
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/intake");
   const friend = page.getByRole("checkbox", { name: "Joining with a friend?" });
-  const hall = page.getByRole("radiogroup", { name: "Pick your Saturday table" });
+  const hall = page.getByRole("radiogroup", { name: "Pick your first choice" });
   const friendBox = await friend.boundingBox();
   const hallBox = await hall.boundingBox();
   expect(friendBox).not.toBeNull();

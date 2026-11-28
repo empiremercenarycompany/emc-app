@@ -5,10 +5,10 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(__dirname, "../../..");
 
 const INVITE =
-  "Bring your Shieldmate. If a friend signs up within 14 days, picks your session time and puts your name under 'Who invited you?', you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.";
+  "Bring your Shieldmate. Share your invite code from the EMC app. If your friend joins within 14 days, you'll be in the same squad, you each get $20 off your first two months, and you both start proficient in something you grew up doing together.";
 
 const FORWARD =
-  "I just joined the Empire Mercenary Company. Sign up in the next 14 days, pick my session time, put my name under 'Who invited you?', and we'll be in the same squad with $20 off our first two months each: empiremercenarycompany.com/signup?src=friend";
+  "I just joined the Empire Mercenary Company. Open my Shieldmate invite in the EMC app within 14 days and we'll each get $20 off our first two months: https://emc.thegiantdungeonmaster.com/shieldmate";
 
 const REVEAL =
   "Shieldmates. Join with a friend and you each get $20 off your first two months, and you'll be in the same squad. Pick one thing you two grew up doing together, like a game, an instrument, a trade or a language, and you both start proficient in it. Choose the same session time, and your friend has 14 days to sign up.";

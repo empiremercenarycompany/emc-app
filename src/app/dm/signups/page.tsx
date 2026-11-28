@@ -24,6 +24,23 @@ export default async function SignupsPage() {
       <a className="button primary" href="/dm/signups/export">
         Download CSV
       </a>
+      {loaded.rows.some((row) => row.placementStatus === "No time available") ? (
+        <Notice>
+          <p>
+            No Saturday time for a recruit. The owner is emailed at empiremercenarycompany@gmail.com. Talk to the
+            player. This page cannot move the money.
+          </p>
+          <ul>
+            {loaded.rows
+              .filter((row) => row.placementStatus === "No time available")
+              .map((row) => (
+                <li key={row.userId || row.email}>
+                  {row.displayName || row.email} · {row.email} · {row.tableLabel || row.trainingSlot || "No table"}
+                </li>
+              ))}
+          </ul>
+        </Notice>
+      ) : null}
       {loaded.error ? <Notice>{loaded.error}</Notice> : null}
       {!loaded.error && loaded.rows.length === 0 ? <p>No accounts yet.</p> : null}
       {loaded.rows.map((row) => {
@@ -49,6 +66,8 @@ export default async function SignupsPage() {
                 canChooseMember={staffCanChooseMember(billing)}
                 needsVerify={needsMembershipVerification(billing)}
                 staffPlan={billing.staffPlan}
+                noTime={row.placementStatus === "No time available"}
+                waitlist={billing.waitlist}
               />
             ) : null}
           </Panel>

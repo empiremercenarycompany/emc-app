@@ -16,7 +16,7 @@ export default async function NewCharacterPage() {
     : [];
 
   return (
-    <Page tour="recruitment" title="Recruitment Papers" lede="Report for duty. The Company fills the skills, the tool, and the feat from your background.">
+    <Page tour="recruitment" title="Recruitment Papers" lede="You start as a commoner, grow by training, and choose a class at the week 6 ceremony.">
       {setup ? <Notice>{setup}</Notice> : null}
       {!viewer.userId ? <SignInPrompt /> : (
         <CharacterForm species={(species ?? []).length > 0 ? (species ?? []) : [...SPECIES_FALLBACK]} />

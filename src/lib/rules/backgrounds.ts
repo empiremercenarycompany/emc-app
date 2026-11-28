@@ -1,3 +1,4 @@
+import { pendingDisplayName } from "@/lib/rules/pending-names";
 import type { AbilityName, AbilityScores } from "./starting-array";
 import { BASE_SCORES } from "./starting-array";
 
@@ -100,6 +101,18 @@ export const BACKGROUND_BLURB: Record<string, string> = {
 
 export function backgroundById(id: string): RecruitBackground | undefined {
   return BACKGROUNDS.find((row) => row.id === id);
+}
+
+/** Player-facing background name. A lore rename lives in pending-names.ts. */
+export function backgroundLabel(id: string | null | undefined, storedName?: string | null): string {
+  if (!id && !storedName) return "";
+  return (id ? pendingDisplayName("background", id) : null) ?? storedName ?? id ?? "";
+}
+
+/** Player-facing feat name. The stored id stays Crafter, Tough, and the rest. */
+export function featLabel(feat: string | null | undefined): string {
+  if (!feat) return "";
+  return pendingDisplayName("feat", feat) ?? feat;
 }
 
 /** A missing preview is a dash. It never pretends the array is all 8s. */

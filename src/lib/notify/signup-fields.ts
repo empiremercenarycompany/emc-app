@@ -27,6 +27,7 @@ export type SignupRecord = {
   tableSquad: string;
   withFriend: string;
   friendName: string;
+  placementStatus: string;
 };
 
 export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
@@ -56,6 +57,7 @@ export const SIGNUP_COLUMNS: { key: keyof SignupRecord; label: string }[] = [
   { key: "tableSquad", label: SATURDAY_TABLE_COPY.columnSquad },
   { key: "withFriend", label: SATURDAY_TABLE_COPY.columnFriend },
   { key: "friendName", label: SATURDAY_TABLE_COPY.columnFriendName },
+  { key: "placementStatus", label: "Saturday placement" },
 ];
 
 export type NoticeField = { label: string; value: string };

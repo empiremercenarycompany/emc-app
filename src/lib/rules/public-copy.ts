@@ -1,6 +1,14 @@
+/**
+ * Pay-first line from the marketing lead. Use this wherever the payment step
+ * is described. Do not promise a refund.
+ */
+export const PAYMENT_STEP =
+  "Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.";
+
 /** Schedule price note. $120 is first. $60 is only for a current Empire member. */
 export const SCHEDULE_PRICE_COPY =
-  "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. No payments are taken in the app.";
+  "Founding Recruit Rate: $120/month with your Empire Strength and Fitness membership included, or $60/month if you're already a current Empire member. " +
+  PAYMENT_STEP;
 
 /** One-line price anywhere else in the app. */
 export const PRICE_ONE_LINE = "$120/month with gym membership included. Current Empire members: $60/month.";
@@ -8,8 +16,6 @@ export const PRICE_ONE_LINE = "$120/month with gym membership included. Current 
 /** Codex FAQ cost entry. No Shieldmate mention. */
 export const FAQ_COST_COPY =
   "$120 a month with your Empire Strength and Fitness membership included, or $60 a month if you're a current Empire member. Month to month, cancel anytime.";
-
-export const PAYMENT_STEP = "Once staff confirm your seat, they'll send you a payment link.";
 
 export const GYM_MEMBER_OPTIONS = [
   { id: "not_yet", label: "I'm not an Empire member yet: $120/month, gym membership included" },
@@ -19,8 +25,10 @@ export const GYM_MEMBER_OPTIONS = [
 
 export type GymMember = (typeof GYM_MEMBER_OPTIONS)[number]["id"];
 
-export const GYM_MEMBER_HELPER =
-  "The $60 rate needs a current Empire Strength and Fitness membership. Not sure if yours is active? Pick $120 and staff will sort it out when they confirm your seat.";
+export const MEMBER_RATE_COPY =
+  "Current Empire Strength and Fitness members pay $60 a month. Have your membership number handy? Add it. If not, leave it blank and staff will look you up.";
+
+export const GYM_MEMBER_HELPER = MEMBER_RATE_COPY;
 
 export const VERIFY_MEMBERSHIP_NOTE = "Verify membership before sending the $60 link.";
 
@@ -34,15 +42,21 @@ export const GAMEGRID_WRIT_SRC = "gamegrid-writ";
 export const GAMEGRID_WRIT_LINE =
   "You came in on an Enlistment Writ. Your first Game Grid paint night is on the Company after your first paid month. Bring your writ.";
 
-export const MEMBERSHIP_NUMBER_LABEL = "Empire Strength and Fitness membership number";
-export const MEMBERSHIP_NUMBER_REQUIRED = "Enter your Empire Strength and Fitness membership number.";
-export const MEMBERSHIP_NUMBER_STAFF = "A membership number is required before the $60 price.";
+export const MEMBERSHIP_NUMBER_LABEL = "Empire membership number (optional)";
+export const MEMBERSHIP_NUMBER_HINT =
+  "Leave it blank if you don't have it handy. Staff will check your membership.";
+export const MEMBERSHIP_NUMBER_STAFF = "No membership number on file. $60 is still allowed after you verify the membership.";
 
 const MEMBERSHIP_NUMBER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 -]{0,39}$/;
 
+/** A leading # and the spaces around it are not part of the number. Blank is allowed. */
+export function normalizeMembershipNumber(value: string): string {
+  return value.trim().replace(/^#+/, "").trim();
+}
+
 export function membershipNumberError(value: string): string | null {
-  const text = value.trim();
-  if (!text) return MEMBERSHIP_NUMBER_REQUIRED;
+  const text = normalizeMembershipNumber(value);
+  if (!text) return null;
   if (!MEMBERSHIP_NUMBER_PATTERN.test(text)) return "Use the membership number from Empire Strength and Fitness.";
   return null;
 }
@@ -67,14 +81,23 @@ export function gymMemberLabel(value: GymMember | null): string {
   return "";
 }
 
-/** A gamegrid arrival leads with the $120 price. The stored src is unchanged. */
+/**
+ * Game Grid arrival. The live site treats any src that contains "gamegrid"
+ * as Game Grid, including src=fb-gamegrid. Matching is case-insensitive.
+ * The stored src is unchanged.
+ */
+export function isGameGridSrc(src: string | null | undefined): boolean {
+  return (src ?? "").toLowerCase().includes("gamegrid");
+}
+
+/** A Game Grid arrival leads with the $120 price. The stored src is unchanged. */
 export function gamegridLead(src: string | null | undefined): boolean {
-  return (src ?? "").trim().toLowerCase().startsWith("gamegrid");
+  return isGameGridSrc(src);
 }
 
 export function confirmationRateLine(gymMember: GymMember | null): string {
   if (gymMember === "current") {
-    return "Your rate: $60 a month, the Founding Recruit Rate for current Empire members, added to the membership you already have. Staff will check your membership when they confirm your seat.";
+    return `Your rate: $60 a month. ${MEMBER_RATE_COPY}`;
   }
   if (gymMember === "former" || gymMember === "not_yet") {
     return "Your rate: $120 a month, the Founding Recruit Rate with your Empire Strength and Fitness membership included.";
@@ -83,5 +106,5 @@ export function confirmationRateLine(gymMember: GymMember | null): string {
 }
 
 export function gamegridWritLine(src: string | null | undefined): string | null {
-  return (src ?? "").trim() === GAMEGRID_WRIT_SRC ? GAMEGRID_WRIT_LINE : null;
+  return isGameGridSrc(src) ? GAMEGRID_WRIT_LINE : null;
 }

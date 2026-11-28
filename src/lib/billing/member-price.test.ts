@@ -28,7 +28,7 @@ describe("member and standard prices", () => {
     vi.unstubAllEnvs();
   });
 
-  it("maps current to $60 only after staff switch, and former or not-yet to $120", () => {
+  it("quotes $60 for a current member even before verification, and $120 after a staff lapse", () => {
     const number = "ESF-1001";
     expect(parseGymMember("not-yet")).toBe("not_yet");
     expect(
@@ -36,13 +36,13 @@ describe("member and standard prices", () => {
     ).toBe("member");
     expect(
       checkoutPlanFor({ gymMember: "current", membershipVerified: true, membershipNumber: number, staffPlan: null }),
-    ).toBe("standard");
+    ).toBe("member");
     expect(
       checkoutPlanFor({ gymMember: "current", membershipVerified: false, membershipNumber: number, staffPlan: "member" }),
-    ).toBe("standard");
+    ).toBe("member");
     expect(
       checkoutPlanFor({ gymMember: "current", membershipVerified: true, membershipNumber: null, staffPlan: "member" }),
-    ).toBe("standard");
+    ).toBe("member");
     expect(
       checkoutPlanFor({ gymMember: "former", membershipVerified: true, membershipNumber: number, staffPlan: "member" }),
     ).toBe("standard");
@@ -62,7 +62,7 @@ describe("member and standard prices", () => {
     ).toMatch(/Verify membership before sending the \$60 link/);
     expect(
       staffPlanError({ gymMember: "current", membershipVerified: true, membershipNumber: "  ", staffPlan: "member" }),
-    ).toMatch(/membership number is required/i);
+    ).toBeNull();
     expect(
       staffPlanError({ gymMember: "current", membershipVerified: true, membershipNumber: number, staffPlan: "member" }),
     ).toBeNull();

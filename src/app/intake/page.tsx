@@ -24,11 +24,12 @@ export default async function IntakePage({
     typeof params.start === "string" ? params.start : "",
   );
   const stored = tableKey(viewer.intake?.timeslotId ?? "", viewer.intake?.tableStartsOn ?? "");
+  const storedSecond = tableKey(viewer.intake?.secondTimeslotId ?? "", viewer.intake?.secondStartsOn ?? "");
 
   return (
     <Page tour="about-you" title="About you" lede="This is you, not your character.">
       {setup ? <Notice>{setup}</Notice> : null}
-      {!viewer.userId ? <SignInPrompt label="Sign in to save" /> : null}
+      {!viewer.userId ? <SignInPrompt label="Sign in to save" next={signupSrc ? `/intake?src=${encodeURIComponent(signupSrc)}` : "/intake"} /> : null}
       <IntakeForm
         canSave={Boolean(viewer.userId)}
         tables={tables}
@@ -41,6 +42,7 @@ export default async function IntakePage({
                 goals: viewer.intake.goals,
                 timeslot: viewer.intake.timeslotId ?? "",
                 tableKey: requested || stored || "",
+                secondKey: storedSecond || "",
                 age: viewer.intake.ageBand ?? "",
                 gymMember: viewer.intake.gymMember ?? "",
                 membershipNumber: viewer.intake.membershipNumber ?? "",

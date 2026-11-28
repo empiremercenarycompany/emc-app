@@ -35,24 +35,26 @@ describe("player confirmation template", () => {
   it("renders the strategy subject, preheader, and body", () => {
     const message = renderPlayerConfirmation(input);
     expect(message.subject).toBe("We have your enlistment, Recruit");
-    expect(message.preheader).toBe("Nothing is charged yet. Staff will confirm your seat and send a payment link.");
+    expect(message.preheader).toBe(
+      "Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
+    );
     expect(message.text).toContain("We've received your seat request for the Empire Mercenary Company.");
     expect(message.text).toContain(
-      "You asked for 9 AM–12 PM, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Staff will confirm your seat, then they'll send you a payment link.",
+      "You asked for 9 AM–12 PM, at Empire Strength and Fitness, 1539 E Piper St, Idaho Falls. Your squad is set by the session time you choose. Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
     );
     expect(message.text).not.toMatch(/18\+|18 and up|adults-only|adults only/i);
     expect(message.text).not.toContain("If you're 16 or 17, Empire Strength and Fitness may ask you to sign the gym's waiver.");
     expect(message.text).toContain("Nothing is charged when you ENLIST.");
     expect(message.text).toContain(
-      "Once staff confirm your seat, they'll send you a payment link. Nothing has been charged yet.",
+      "Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does. Nothing has been charged yet.",
     );
     expect(message.text).toContain(
       "Your rate: $120 a month with your Empire Strength and Fitness membership included, or $60 a month if you're a current Empire member. Staff will confirm which applies when they confirm your seat.",
     );
-    expect(message.text).toContain("you go on the waitlist for it with today's rate locked in.");
+    expect(message.text).toContain("you go on the waitlist for it. Staff will find a Saturday time that works.");
     expect(message.text).toContain("Use this same email (recruit@example.test).");
     expect(message.text).toContain("Bring your Shieldmate.");
-    expect(message.text).toContain("empiremercenarycompany.com/signup?src=friend");
+    expect(message.text).toContain("https://emc.thegiantdungeonmaster.com/shieldmate");
     expect(message.text).toContain("How it works: https://empiremercenarycompany.com/how-it-works");
     expect(message.text).not.toMatch(/\breferral\b/i);
     expect(message.text).not.toMatch(/pay on the Empire/i);
@@ -72,7 +74,7 @@ describe("player confirmation template", () => {
     expect(paired.text).not.toContain("Bring your Shieldmate.");
     johnChoices.shieldmateFullSlot = "next-slot-together";
     const moved = renderPlayerConfirmation({ ...input, invitedBy: "A friend" });
-    expect(moved.text).toContain('You listed A friend under "Who invited you?"');
+    expect(moved.text).toContain("You named A friend as your Shieldmate.");
     expect(moved.text).toContain("you and your Shieldmate are offered the next slot together.");
     expect(renderPlayerConfirmation(input).text).toContain("you go on the waitlist for it");
     expect(renderPlayerConfirmation({ ...input, ageBand: "16_17" }).text).toContain(
@@ -80,10 +82,10 @@ describe("player confirmation template", () => {
     );
   });
 
-  it("states the answered rate, and the writ line only for gamegrid-writ", () => {
+  it("states the answered rate, and the writ line for any gamegrid src", () => {
     const current = renderPlayerConfirmation({ ...input, gymMember: "current", signupSrc: "gamegrid-writ" });
     expect(current.text).toContain(
-      "Your rate: $60 a month, the Founding Recruit Rate for current Empire members, added to the membership you already have. Staff will check your membership when they confirm your seat.",
+      "Your rate: $60 a month. Current Empire Strength and Fitness members pay $60 a month. Have your membership number handy? Add it. If not, leave it blank and staff will look you up.",
     );
     expect(current.text).toContain(
       "You came in on an Enlistment Writ. Your first Game Grid paint night is on the Company after your first paid month. Bring your writ.",
@@ -94,7 +96,8 @@ describe("player confirmation template", () => {
     expect(former.text).toContain(
       "Your rate: $120 a month, the Founding Recruit Rate with your Empire Strength and Fitness membership included.",
     );
-    expect(former.text).not.toContain("Enlistment Writ");
+    expect(former.text).toContain("Enlistment Writ");
+    expect(renderPlayerConfirmation({ ...input, signupSrc: "friend" }).text).not.toContain("Enlistment Writ");
     expect(renderPlayerConfirmation({ ...input, gymMember: "not_yet" }).text).toContain("$120 a month, the Founding Recruit Rate");
   });
 
@@ -144,10 +147,16 @@ describe("player confirmation send", () => {
     expect(message.from).toBe("Empire Mercenary Company <mailer@example.test>");
     expect(message.to).toBe("recruit@example.test");
     expect(message.subject).toBe("We have your enlistment, Recruit");
-    expect(message.text.startsWith("Nothing is charged yet. Staff will confirm your seat and send a payment link.")).toBe(
+    expect(
+      message.text.startsWith(
+        "Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does.",
+      ),
+    ).toBe(
       true,
     );
-    expect(message.text).toContain("Once staff confirm your seat, they'll send you a payment link. Nothing has been charged yet.");
+    expect(message.text).toContain(
+      "Pay to lock in your spot. Staff confirm your Saturday time within 2 days. If that time doesn't work, we'll find one that does. Nothing has been charged yet.",
+    );
     expect(message.text).not.toContain("test-smtp-secret");
     const logged = vi.mocked(console.info).mock.calls.flat().join(" ");
     expect(logged).toBe(JSON.stringify({ status: "sent", messageId: "ok" }));
