@@ -39,7 +39,10 @@ export async function resumeSiteCheckout(emailInput: string, origin: string): Pr
   const supabase = createAnonClient();
   const stripe = getStripe();
   if (!supabase || !stripe) return { state: "unavailable" };
-  const { data, error } = await supabase.rpc("site_signup_for_checkout", { p_email: email });
+  const { data, error } = await supabase.rpc("site_signup_for_checkout", {
+    p_secret: stripeWebhookSecret() ?? "",
+    p_email: email,
+  });
   if (error || !data || typeof data !== "object") return { state: "missing" };
   const row = data as SignupRow;
   if (row.paid === true) return { state: "paid" };

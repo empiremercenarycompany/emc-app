@@ -144,11 +144,10 @@ begin
 end;
 $$;
 
-revoke all on function public.site_signup_for_checkout(text) from public;
-grant execute on function public.site_signup_for_checkout(text) to anon, authenticated;
+revoke all on function public.site_signup_for_checkout(text) from public, anon, authenticated;
 
 comment on function public.site_signup_for_checkout(text) is
-  'Fields for a resumable site checkout. Matched by lower-case email. No card data.';
+  'Signup fields by email. Not granted. The secret-gated wrapper replaces this signature.';
 
 create or replace function public.claim_paid_site_signup()
 returns void

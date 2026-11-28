@@ -529,7 +529,9 @@ $$;
 revoke all on function public.saturday_pending_seats() from public;
 grant execute on function public.saturday_pending_seats() to anon, authenticated;
 
-create or replace function public.site_signup_for_checkout(p_email text)
+drop function if exists public.site_signup_for_checkout(text);
+
+create or replace function public.site_signup_for_checkout_inner(p_email text)
 returns jsonb
 language plpgsql
 stable
@@ -582,8 +584,33 @@ begin
 end;
 $$;
 
-revoke all on function public.site_signup_for_checkout(text) from public;
-grant execute on function public.site_signup_for_checkout(text) to anon, authenticated;
+revoke all on function public.site_signup_for_checkout_inner(text) from public, anon, authenticated;
+
+create or replace function public.site_signup_for_checkout(p_secret text, p_email text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_expected text;
+begin
+  select btrim(write_secret) into v_expected from public.billing_runtime where id = 1;
+  if v_expected is null
+     or length(v_expected) < 16
+     or btrim(coalesce(p_secret, '')) is distinct from v_expected then
+    return null;
+  end if;
+  return public.site_signup_for_checkout_inner(p_email);
+end;
+$$;
+
+revoke all on function public.site_signup_for_checkout(text, text) from public;
+grant execute on function public.site_signup_for_checkout(text, text) to anon, authenticated;
+
+comment on function public.site_signup_for_checkout(text, text) is
+  'Signup fields for a resumable checkout. The secret must match billing_runtime. A mismatch returns null.';
 
 create or replace function public.claim_paid_site_signup()
 returns void
